@@ -45,12 +45,27 @@ const styles = {
 };
 
 // Canvas Drawing Component
-function DrawingCanvas({ id }) {
+// Gestuurd (controlled) via value/onChange zodat schetsen net als foto's opgeslagen,
+// vooraf ingevuld (prefill bij 2e opname) en gewijzigd kunnen worden.
+function DrawingCanvas({ id, value, onChange }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState("pen");
   const [color, setColor] = useState("#1a1a1a");
   const lastPos = useRef(null);
+  const loadedValueRef = useRef(null);
+
+  const drawImageOnCanvas = (canvas, ctx, src) => {
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.offsetWidth, 300);
+      loadedValueRef.current = src;
+    };
+    img.src = src;
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -61,7 +76,26 @@ function DrawingCanvas({ id }) {
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (value) drawImageOnCanvas(canvas, ctx, value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Vult de schets alsnog in als de vorige-versie-data later binnenkomt (async prefill)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !value || value === loadedValueRef.current) return;
+    const ctx = canvas.getContext("2d");
+    drawImageOnCanvas(canvas, ctx, value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  const exportImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !onChange) return;
+    const dataUrl = canvas.toDataURL("image/png");
+    loadedValueRef.current = dataUrl;
+    onChange(dataUrl);
+  };
 
   const getPos = (e, canvas) => {
     const rect = canvas.getBoundingClientRect();
@@ -96,13 +130,18 @@ function DrawingCanvas({ id }) {
     lastPos.current = pos;
   };
 
-  const stopDraw = () => setDrawing(false);
+  const stopDraw = () => {
+    if (!drawing) return;
+    setDrawing(false);
+    exportImage();
+  };
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+    exportImage();
   };
 
   return (
@@ -191,10 +230,12 @@ export default function App() {
   const [page, setPage] = useState(0);
   const [data, setData] = useState({
     // Contact
+    projectnummer: "",
     geslacht: "", geslachtAnders: "", naam: "", datum: new Date().toISOString().split("T")[0],
     telefoon: "", mail: "", plaats: "", adres: "", postcode: "", opmerkingen: "",
     // Maatvoering
     hoogte: "", diepte: "", breedteBuiten: "", breedteBinnen: "",
+    schetsMaatvoering: null,
     // Voorbereidingen
     ondergrond: "", heipalen: [], bereikbaarheidFoto: null,
     bouwtekeningen: "", vergunning: "", doorbraakMM: "", constructeur: "",
@@ -211,10 +252,13 @@ export default function App() {
     gevelOpmerking: "",
     // Kozijn 1
     k1Type: "", k1Opties: [], k1Opmerking: "", k1Materiaal: "", k1RAL: "", k1Glas: "", k1Breedte: "", k1Hoogte: "",
+    schetsKozijn1: null,
     // Kozijn 2
     k2Type: "", k2Opties: [], k2Opmerking: "", k2Materiaal: "", k2RAL: "", k2Glas: "", k2Breedte: "", k2Hoogte: "",
+    schetsKozijn2: null,
     // Kozijn 3
     k3Type: "", k3Opties: [], k3Opmerking: "", k3Materiaal: "", k3RAL: "", k3Glas: "", k3Breedte: "", k3Hoogte: "",
+    schetsKozijn3: null,
     // Dak
     dakbedekking: "", overstek: "", overstekMM: "", dakrandAfwerking: "", dakrandMateriaal: "", dakrandKleur: "",
     lichtstraat: "", lichtsturaatFormaat: "", lichtsturaatKleur: "", dakVorm: "", dakOpmerking: "",
@@ -226,14 +270,69 @@ export default function App() {
     wcd: false, wcdMerk: "Niko", wcdType: "Hor", wcdKleur: "Zwart",
     warmteKoude: [],
     eOpmerking: "",
+    schetsEinstallatie: null,
     // W-installaties
     hwaMateriaal: "", bladvanger: false, vergaarbak: false,
     warmte: "", warmteScope: "", warmteM2: "", ketel: false, stadsverwarming: false,
     buitenkraan: "", buitenkraanKleur: "", wkWater: "",
     wOpmerking: "",
+    schetsWinstallatie: null,
   });
 
   const set = (key, val) => setData(d => ({ ...d, [key]: val }));
+
+  // --- Projectnummer: bestaande gegevens ophalen bij SharePoint (prefill bij 2e/3e opname) ---
+  const [projectStatus, setProjectStatus] = useState({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
+
+  const projectGegevensOphalen = async (nr) => {
+    const projectnummer = (nr || "").trim();
+    if (!projectnummer) {
+      setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
+      return;
+    }
+    setProjectStatus(s => ({ ...s, loading: true, error: null }));
+    try {
+      const res = await fetch(`/api/project-ophalen?projectnummer=${encodeURIComponent(projectnummer)}`);
+      if (res.status === 404) {
+        setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
+        return;
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Kon project niet ophalen");
+      }
+      const json = await res.json();
+      setData(d => ({ ...d, ...json.data, projectnummer }));
+      setProjectStatus({ loading: false, error: null, foundVersion: json.versie, nextVersion: json.versie + 1 });
+    } catch (err) {
+      setProjectStatus({ loading: false, error: err.message, foundVersion: null, nextVersion: 1 });
+    }
+  };
+
+  // --- Versturen & Opslaan: schrijft data.json + foto's + schetsen weg naar SharePoint ---
+  const [submitStatus, setSubmitStatus] = useState({ loading: false, error: null, done: false, versie: null });
+
+  const versturenEnOpslaan = async () => {
+    if (!data.projectnummer || !data.projectnummer.trim()) {
+      setSubmitStatus({ loading: false, error: "Vul eerst een projectnummer in op de Contact-pagina.", done: false, versie: null });
+      setPage(0);
+      return;
+    }
+    setSubmitStatus({ loading: true, error: null, done: false, versie: null });
+    try {
+      const res = await fetch("/api/project-opslaan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectnummer: data.projectnummer.trim(), data }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Opslaan is mislukt");
+      setSubmitStatus({ loading: false, error: null, done: true, versie: body.versie });
+      setProjectStatus(s => ({ ...s, foundVersion: body.versie, nextVersion: body.versie + 1 }));
+    } catch (err) {
+      setSubmitStatus({ loading: false, error: err.message, done: false, versie: null });
+    }
+  };
 
   const KozijnPage = ({ prefix, num }) => {
     const type = data[`${prefix}Type`];
@@ -367,6 +466,21 @@ export default function App() {
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Contact gegevens</p></div>
         <div style={styles.sectionBody}>
           <div style={styles.row}>
+            <div style={styles.label}>Projectnummer:</div>
+            <input style={{ ...styles.input, maxWidth: 160 }} placeholder="bijv. 26001" value={data.projectnummer}
+              onChange={e => set("projectnummer", e.target.value)}
+              onBlur={e => projectGegevensOphalen(e.target.value)} />
+            {projectStatus.loading && <span style={styles.hint}>Bezig met ophalen uit SharePoint...</span>}
+            {!projectStatus.loading && projectStatus.foundVersion && (
+              <span style={styles.hint}>Vorige versie V{projectStatus.foundVersion} gevonden — gegevens vooraf ingevuld. Dit wordt V{projectStatus.nextVersion}.</span>
+            )}
+            {!projectStatus.loading && !projectStatus.foundVersion && !projectStatus.error && data.projectnummer && (
+              <span style={styles.hint}>Geen eerdere versie gevonden — dit wordt V1.</span>
+            )}
+            {projectStatus.error && <span style={{ fontSize: 11, color: "#c0392b" }}>{projectStatus.error}</span>}
+          </div>
+          <div style={styles.divider} />
+          <div style={styles.row}>
             <div style={styles.label}>Geslacht:</div>
             <RadioGroup name="geslacht" options={["Man", "Vrouw", "Anders"]} value={data.geslacht} onChange={v => set("geslacht", v)} />
             {data.geslacht === "Anders" && (
@@ -450,7 +564,7 @@ export default function App() {
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Schets maatvoering</p></div>
         <div style={styles.sectionBody}>
-          <DrawingCanvas id="maatvoering" />
+          <DrawingCanvas id="maatvoering" value={data.schetsMaatvoering} onChange={v => set("schetsMaatvoering", v)} />
         </div>
       </div>
     </div>,
@@ -620,7 +734,7 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 1 — Schets</p></div>
-        <div style={styles.sectionBody}><DrawingCanvas id="kozijn1" /></div>
+        <div style={styles.sectionBody}><DrawingCanvas id="kozijn1" value={data.schetsKozijn1} onChange={v => set("schetsKozijn1", v)} /></div>
       </div>
     </div>,
     // 9: Kozijn 2
@@ -629,7 +743,7 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 2 — Schets</p></div>
-        <div style={styles.sectionBody}><DrawingCanvas id="kozijn2" /></div>
+        <div style={styles.sectionBody}><DrawingCanvas id="kozijn2" value={data.schetsKozijn2} onChange={v => set("schetsKozijn2", v)} /></div>
       </div>
     </div>,
     // 11: Kozijn 3
@@ -638,7 +752,7 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 3 — Schets</p></div>
-        <div style={styles.sectionBody}><DrawingCanvas id="kozijn3" /></div>
+        <div style={styles.sectionBody}><DrawingCanvas id="kozijn3" value={data.schetsKozijn3} onChange={v => set("schetsKozijn3", v)} /></div>
       </div>
     </div>,
 
@@ -765,7 +879,7 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <DrawingCanvas id="einstallatie" />
+            <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)} />
           </div>
         </div>
       </div>
@@ -831,7 +945,7 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <DrawingCanvas id="winstallatie" />
+            <DrawingCanvas id="winstallatie" value={data.schetsWinstallatie} onChange={v => set("schetsWinstallatie", v)} />
           </div>
         </div>
       </div>
@@ -845,7 +959,7 @@ export default function App() {
         </div>
         <div style={styles.sectionBody}>
           {[
-            ["Contact", [["Naam", data.naam], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`], ["Geslacht", data.geslacht]]],
+            ["Contact", [["Projectnummer", data.projectnummer], ["Naam", data.naam], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`], ["Geslacht", data.geslacht]]],
             ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte", `${data.diepte} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
             ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
             ["Wandafwerking", [["Binnenwand", data.binnenwand], ["Stucwerk", data.stucwerk]]],
@@ -868,10 +982,13 @@ export default function App() {
             </div>
           ))}
           <div style={styles.divider} />
-          <button style={{ ...styles.btnNext, width: "100%", fontSize: 16, padding: "14px" }}
-            onClick={() => alert("Formulier verzonden! In de definitieve versie wordt dit opgeslagen in SharePoint en gemaild.")}>
-            ✉️ Versturen & Opslaan
+          <button style={{ ...styles.btnNext, width: "100%", fontSize: 16, padding: "14px", opacity: submitStatus.loading ? 0.6 : 1, cursor: submitStatus.loading ? "default" : "pointer" }}
+            disabled={submitStatus.loading}
+            onClick={versturenEnOpslaan}>
+            {submitStatus.loading ? "Bezig met opslaan..." : `✉️ Versturen & Opslaan (wordt V${projectStatus.nextVersion})`}
           </button>
+          {submitStatus.error && <div style={{ color: "#c0392b", fontSize: 13, marginTop: 8 }}>{submitStatus.error}</div>}
+          {submitStatus.done && <div style={{ color: "#2e7d32", fontSize: 13, marginTop: 8 }}>Opgeslagen in SharePoint als versie V{submitStatus.versie}.</div>}
         </div>
       </div>
     </div>,

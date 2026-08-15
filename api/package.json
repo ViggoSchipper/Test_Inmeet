@@ -1,0 +1,16 @@
+{
+  "name": "addon-inmeet-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/functions/*.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.1",
+    "@azure/msal-node": "^2.13.1"
+  }
+}

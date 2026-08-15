@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "",
+
+    "AZURE_TENANT_ID": "<tenant-id-uit-Azure-App-registratie>",
+    "AZURE_CLIENT_ID": "<client-id-uit-Azure-App-registratie>",
+    "AZURE_CLIENT_SECRET": "<client-secret-uit-Azure-App-registratie>",
+
+    "SHAREPOINT_SITE_URL": "https://addonbv.sharepoint.com/sites/<naam-van-de-site>",
+    "SHAREPOINT_LIBRARY_NAME": "Nieuwe documenten"
+  }
+}
