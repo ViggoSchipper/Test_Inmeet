@@ -21,8 +21,13 @@ const SCHETS_VELDEN = {
   schetsWinstallatie: "Schets_Winstallatie",
 };
 
-const SIMPLE_UPLOAD_LIMIT = 4 * 1024 * 1024; // Graph: boven 4MB moet je een upload-sessie gebruiken
 const CHUNK_SIZE = 16 * 327680; // ~5MB, moet een veelvoud van 327.680 bytes zijn
+
+// Beveiliging: elk pad waar geschreven wordt moet letterlijk eindigen op
+// deze mapnaam. Dit is een harde, code-brede waarborg (los van het feit dat
+// alle aanroepers toch al alleen dit pad doorgeven) zodat een fout
+// ergens anders in de code nooit per ongeluk buiten deze map kan schrijven.
+const TOEGESTANE_SCHRIJFMAP = "03 Inmeetformulier";
 
 let msalApp = null;
 function getMsalApp() {
@@ -150,48 +155,54 @@ function parseDataUrl(dataUrl) {
   return { mime, buffer, ext };
 }
 
+// contentType wordt momenteel niet apart doorgegeven aan Graph — de
+// bestandsextensie in filename (.json/.png/.jpg) is voldoende voor Graph
+// om het juiste type te herkennen. Blijft als parameter staan voor
+// leesbaarheid bij de aanroepers.
 async function uploadFile(folderPath, filename, buffer, contentType) {
+  void contentType;
+  // Harde check, los van de aanroepende code: weiger elke upload die niet
+  // naar een "03 Inmeetformulier"-map gaat.
+  const laatsteSegment = folderPath.split("/").pop();
+  if (laatsteSegment !== TOEGESTANE_SCHRIJFMAP) {
+    throw new Error(`Beveiliging: upload geweigerd — pad '${folderPath}' is geen '${TOEGESTANE_SCHRIJFMAP}'-map.`);
+  }
+  // Bestandsnamen worden elders altijd opgebouwd met een vers versienummer
+  // (_V1, _V2, ...) dat nog niet bestaat. conflictBehavior "fail" is de
+  // laatste vangrail: mocht dat versienummer ooit toch al bezet zijn (bug
+  // of dubbele aanvraag), dan krijg je een duidelijke foutmelding in plaats
+  // van dat een bestaand bestand stilletjes wordt overschreven.
   const { driveId } = await resolveSiteAndDrive();
   const encodedPath = folderPath.split("/").map(encodeURIComponent).join("/");
   const encodedName = encodeURIComponent(filename);
 
-  if (buffer.length <= SIMPLE_UPLOAD_LIMIT) {
-    const res = await graphFetch(`/drives/${driveId}/root:/${encodedPath}/${encodedName}:/content`, {
-      method: "PUT",
-      headers: { "Content-Type": contentType || "application/octet-stream" },
-      body: buffer,
-    });
-    return graphJsonOrThrow(res, `Upload van ${filename} mislukt`);
-  }
-
-  // Grote bestanden (foto's kunnen groter zijn dan 4MB): upload-sessie in chunks.
   const sessionRes = await graphFetch(`/drives/${driveId}/root:/${encodedPath}/${encodedName}:/createUploadSession`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ item: { "@microsoft.graph.conflictBehavior": "replace" } }),
+    body: JSON.stringify({ item: { "@microsoft.graph.conflictBehavior": "fail" } }),
   });
   const { uploadUrl } = await graphJsonOrThrow(sessionRes, `Kon upload-sessie voor ${filename} niet starten`);
 
   let start = 0;
   let laatsteResultaat = null;
-  while (start < buffer.length) {
+  do {
     const end = Math.min(start + CHUNK_SIZE, buffer.length);
     const chunk = buffer.subarray(start, end);
     const res = await fetch(uploadUrl, {
       method: "PUT",
       headers: {
         "Content-Length": String(chunk.length),
-        "Content-Range": `bytes ${start}-${end - 1}/${buffer.length}`,
+        "Content-Range": `bytes ${start}-${Math.max(end - 1, 0)}/${buffer.length}`,
       },
       body: chunk,
     });
     if (!res.ok && res.status !== 202) {
       const tekst = await res.text().catch(() => "");
-      throw new Error(`Chunk-upload van ${filename} mislukt: ${res.status} ${tekst}`);
+      throw new Error(`Upload van ${filename} mislukt (mogelijk bestaat dit bestand al): ${res.status} ${tekst}`);
     }
     if (res.status !== 202) laatsteResultaat = await res.json();
     start = end;
-  }
+  } while (start < buffer.length);
   return laatsteResultaat;
 }
 
