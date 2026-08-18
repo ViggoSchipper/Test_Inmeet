@@ -9,6 +9,7 @@
     "AZURE_CLIENT_SECRET": "<client-secret-uit-Azure-App-registratie>",
 
     "SHAREPOINT_SITE_URL": "https://addonbv.sharepoint.com/sites/<naam-van-de-site>",
-    "SHAREPOINT_LIBRARY_NAME": "Nieuwe documenten"
+    "SHAREPOINT_LIBRARY_NAME": "Documenten",
+    "SHAREPOINT_ROOT_FOLDER": ""
   }
 }

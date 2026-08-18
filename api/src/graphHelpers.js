@@ -80,8 +80,14 @@ async function graphJsonOrThrow(res, foutmelding) {
   return res.json();
 }
 
-// Site-id + drive-id (document bibliotheek "Nieuwe documenten") worden één keer
-// per functie-instantie opgehaald en daarna hergebruikt.
+// Site-id + drive-id worden één keer per functie-instantie opgehaald en
+// daarna hergebruikt. De document bibliotheek (drive) heet op deze site
+// "Documenten" - "02 Projecten" staat direct in de root van die bibliotheek
+// (bevestigd via het kruimelpad: Documenten > 02 Projecten > 2026 > ...).
+// Mocht dat ooit een extra map dieper zitten, kan dat via
+// SHAREPOINT_ROOT_FOLDER ingesteld worden zonder de code aan te passen.
+const ROOT_FOLDER = process.env.SHAREPOINT_ROOT_FOLDER || "";
+
 let cachedSite = null;
 async function resolveSiteAndDrive() {
   if (cachedSite) return cachedSite;
@@ -96,7 +102,7 @@ async function resolveSiteAndDrive() {
 
   const drivesRes = await graphFetch(`/sites/${site.id}/drives`);
   const drives = (await graphJsonOrThrow(drivesRes, "Kon document bibliotheken niet ophalen")).value;
-  const driveName = process.env.SHAREPOINT_LIBRARY_NAME || "Nieuwe documenten";
+  const driveName = process.env.SHAREPOINT_LIBRARY_NAME || "Documenten";
   const drive = drives.find((d) => d.name === driveName);
   if (!drive) {
     throw new Error(`Document bibliotheek '${driveName}' niet gevonden. Beschikbaar: ${drives.map((d) => d.name).join(", ")}`);
@@ -106,7 +112,13 @@ async function resolveSiteAndDrive() {
   return cachedSite;
 }
 
-// Projectmap vinden: Nieuwe documenten/02 Projecten/{jaar}/{projectnummer}_...
+// Zet een eventuele vaste hoofdmap voor elk pad binnen de drive (leeg als
+// "02 Projecten" al in de root van de bibliotheek staat).
+function metRootmap(pad) {
+  return ROOT_FOLDER ? `${ROOT_FOLDER}/${pad}` : pad;
+}
+
+// Projectmap vinden: {ROOT_FOLDER}/02 Projecten/{jaar}/{projectnummer}_...
 // Jaar wordt afgeleid uit de eerste 2 cijfers van het projectnummer (26001 -> 2026).
 function jaarUitProjectnummer(projectnummer) {
   const kort = String(projectnummer).slice(0, 2);
@@ -116,10 +128,10 @@ function jaarUitProjectnummer(projectnummer) {
 async function findProjectFolder(projectnummer) {
   const { driveId } = await resolveSiteAndDrive();
   const jaar = jaarUitProjectnummer(projectnummer);
-  const path = `/drives/${driveId}/root:/02 Projecten/${jaar}:/children`;
-  const res = await graphFetch(path);
+  const relatiefPad = metRootmap(`02 Projecten/${jaar}`);
+  const res = await graphFetch(`/drives/${driveId}/root:/${relatiefPad}:/children`);
   if (res.status === 404) return null;
-  const children = (await graphJsonOrThrow(res, `Kon map '02 Projecten/${jaar}' niet lezen`)).value;
+  const children = (await graphJsonOrThrow(res, `Kon map '${relatiefPad}' niet lezen`)).value;
   return children.find((c) => c.folder && c.name.startsWith(`${projectnummer}_`)) || null;
 }
 
@@ -207,7 +219,7 @@ async function uploadFile(folderPath, filename, buffer, contentType) {
 }
 
 function inmeetFormulierPad(jaar, projectMapNaam) {
-  return `02 Projecten/${jaar}/${projectMapNaam}/03 Inmeetformulier`;
+  return metRootmap(`02 Projecten/${jaar}/${projectMapNaam}/03 Inmeetformulier`);
 }
 
 module.exports = {
