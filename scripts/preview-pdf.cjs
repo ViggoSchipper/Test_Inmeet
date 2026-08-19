@@ -57,8 +57,8 @@ const data = {
 
   binnenwand: "Spuitwerk", stucwerk: "Glad",
 
-  steenstrip: "Anders", steenstripAnders: "Waalformaat handvorm",
-  composiet: "", composietAnders: "",
+  steenstrip: "Rood", steenstripAnders: "",
+  composiet: "Compleet zwart", composietAnders: "",
   keramaType: "Kerama Marazzi", keramaKleur: "Antraciet",
   houtType: "", houtKleur: "",
   gevelOpmerking: "Kleur moet aansluiten bij bestaande gevel.",

@@ -90,6 +90,11 @@ const styles = StyleSheet.create({
   opmerkingBlock: { marginTop: 2, paddingTop: 6, borderTop: `0.5 solid ${LIGHT_BORDER}` },
   opmerkingLabel: { fontSize: 8.5, color: GREY, marginBottom: 2, textTransform: "uppercase" },
   opmerkingText: { fontSize: 9.5, color: BLACK },
+  swatchRow: { flexDirection: "row", flexWrap: "wrap", marginBottom: 8 },
+  swatchItem: { flexDirection: "row", alignItems: "center", marginRight: 16, marginBottom: 4 },
+  swatchBox: { width: 16, height: 16, borderRadius: 3, marginRight: 6, border: `0.5 solid ${LIGHT_BORDER}` },
+  swatchLabel: { fontSize: 9, color: BLACK },
+  swatchSub: { fontSize: 8, color: GREY },
 
   // --- Foto- en schetspagina's ---
   pageHeading: { fontSize: 13, fontWeight: 700, color: BLACK, marginBottom: 12 },
@@ -163,12 +168,25 @@ function Field({ label, value }) {
   );
 }
 
-function Section({ title, fields, opmerking }) {
+function Section({ title, fields, opmerking, swatches }) {
   return (
     <View style={styles.section} wrap={false}>
       <View style={styles.sectionTitleBar}>
         <Text style={styles.sectionTitleText}>{title}</Text>
       </View>
+      {swatches && swatches.length > 0 ? (
+        <View style={styles.swatchRow}>
+          {swatches.map((s) => (
+            <View key={s.label} style={styles.swatchItem}>
+              <View style={[styles.swatchBox, { backgroundColor: s.color || "#ffffff" }]} />
+              <View>
+                <Text style={styles.swatchLabel}>{s.label}</Text>
+                {s.sub ? <Text style={styles.swatchSub}>{s.sub}</Text> : null}
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : null}
       <View style={styles.fieldGrid}>
         {fields.map(([label, value]) => (
           <Field key={label} label={label} value={value} />
@@ -212,6 +230,14 @@ function PageChrome({ data, pageLabel, children, logoSrc }) {
     </Page>
   );
 }
+
+// Kleuren van de gevelbekleding-opties — zelfde kleuren als de keuzekaarten
+// op de Gevelbekleding-pagina in de app zelf (App.jsx), zodat de PDF een
+// visuele swatch kan tonen bij de gekozen optie. Dit zijn (nog) geen echte
+// productfoto's — als Viggo echte materiaalfoto's aanlevert, kunnen die de
+// swatch hieronder vervangen (en meteen ook de keuzekaarten in de app).
+const STEENSTRIP_KLEUREN = { Rood: "#c0392b", Grijs: "#95a5a6", Geel: "#d4ac0d" };
+const COMPOSIET_KLEUREN = { "Rustic Teak": "#8B6914", "Compleet zwart": "#1a1a1a", "Teak met zwart": "#4a3010" };
 
 // --- Foto's / schetsen: veld -> { label, key } -----------------------------
 
@@ -336,6 +362,14 @@ export default function InmeetPdf({ data, logoSrc }) {
         />
         <Section
           title="Gevelbekleding"
+          swatches={[
+            data.steenstrip && data.steenstrip !== "Anders"
+              ? { label: `Steenstrips: ${data.steenstrip}`, color: STEENSTRIP_KLEUREN[data.steenstrip] }
+              : null,
+            data.composiet && data.composiet !== "Anders"
+              ? { label: `Composiet: ${data.composiet}`, color: COMPOSIET_KLEUREN[data.composiet] }
+              : null,
+          ].filter(Boolean)}
           fields={[
             ["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip],
             ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet],
@@ -373,7 +407,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           opmerking={waarde(data.dakOpmerking)}
         />
         <Section
-          title="Elektra installaties"
+          title="E-installaties"
           fields={[
             ["Stopcontacten", data.stopcontacten],
             ["Stopcontact merk/type/kleur", [data.stopMerk, data.stopType, data.stopKleur].filter(Boolean).join(" / ")],
@@ -390,7 +424,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           opmerking={waarde(data.eOpmerking)}
         />
         <Section
-          title="Water installaties"
+          title="W-installaties"
           fields={[
             ["HWA materiaal", data.hwaMateriaal],
             ["Bladvanger", data.bladvanger],
