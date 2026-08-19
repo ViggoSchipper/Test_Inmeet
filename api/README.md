@@ -10,8 +10,12 @@ daarvan roept de app deze twee endpoints aan:
   opgeslagen versie voor dit project en geeft de gegevens terug, zodat het
   formulier vooraf ingevuld kan worden bij een volgende opname.
 - `POST /api/project-opslaan` — bepaalt het eerstvolgende versienummer
-  (V1, V2, ...) en schrijft `Inmeetformulier_{projectnummer}_V{n}_data.json`
-  plus alle foto's en schetsen weg naar de projectmap.
+  (V1, V2, ...) en schrijft `Inmeetformulier_{projectnummer}_V{n}_data.json`,
+  alle foto's en schetsen, én (als de app een `pdfDataUrl` meestuurt) de
+  leesbare PDF `Inmeetformulier_{projectnummer}_V{n}.pdf` weg naar de
+  projectmap. De PDF wordt in de browser gegenereerd (dezelfde die "PDF
+  bekijken" laat zien) en als base64 data-URL meegestuurd in de request
+  body — de backend genereert 'm niet zelf.
 
 ## Verwachte mapstructuur in SharePoint
 

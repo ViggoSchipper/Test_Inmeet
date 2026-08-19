@@ -64,6 +64,16 @@ app.http("projectOpslaan", {
         if (!parsed) continue;
         uploads.push(uploadFile(basisPad, `${bestandsnaam}_V${versie}.${parsed.ext}`, parsed.buffer, parsed.mime));
       }
+
+      // De leesbare PDF (zelfde bestand als "PDF bekijken" in de app laat
+      // zien), zodat er ook zonder de app een compleet overzicht in de map
+      // staat. Optioneel/backwards compatible: als de client geen pdfDataUrl
+      // meestuurt, wordt dit stilletjes overgeslagen.
+      const pdfParsed = parseDataUrl(body?.pdfDataUrl);
+      if (pdfParsed) {
+        uploads.push(uploadFile(basisPad, `Inmeetformulier_${projectnummer}_V${versie}.pdf`, pdfParsed.buffer, pdfParsed.mime));
+      }
+
       await Promise.all(uploads);
 
       return { status: 200, jsonBody: { versie } };

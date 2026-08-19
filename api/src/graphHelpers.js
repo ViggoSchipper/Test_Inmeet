@@ -163,7 +163,11 @@ function parseDataUrl(dataUrl) {
   if (!m) return null;
   const mime = m[1];
   const buffer = Buffer.from(m[2], "base64");
-  const ext = mime === "image/png" ? "png" : mime === "image/jpeg" ? "jpg" : mime === "image/webp" ? "webp" : "bin";
+  const ext =
+    mime === "image/png" ? "png" :
+    mime === "image/jpeg" ? "jpg" :
+    mime === "image/webp" ? "webp" :
+    mime === "application/pdf" ? "pdf" : "bin";
   return { mime, buffer, ext };
 }
 

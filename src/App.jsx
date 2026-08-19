@@ -314,10 +314,31 @@ export default function App() {
     }
   };
 
+  // --- PDF genereren: gedeelde helper, gebruikt door zowel "PDF bekijken"
+  // (hieronder) als "Versturen & Opslaan" (die de PDF meestuurt naar
+  // SharePoint). @react-pdf/renderer wordt pas dynamisch ingeladen op het
+  // moment dat hij nodig is, zodat het eerste laden van de app op de iPad
+  // niet trager wordt door deze (~500KB) library. ---
+  const genereerPdfBlob = async () => {
+    const [{ pdf }, { default: InmeetPdf }, { createElement }] = await Promise.all([
+      import("@react-pdf/renderer"),
+      import("./pdf/InmeetPdf"),
+      import("react"),
+    ]);
+    return pdf(createElement(InmeetPdf, { data, logoSrc: logoUrl })).toBlob();
+  };
+
+  const blobNaarDataUrl = (blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
   // --- PDF bekijken: genereert de PDF in de browser met de echte
   // formuliergegevens, zodat de opmeter hem kan controleren voordat er
-  // verstuurd wordt. (Nog los van opslaan naar SharePoint - dat is de
-  // volgende stap.) ---
+  // verstuurd wordt. ---
   const [pdfStatus, setPdfStatus] = useState({ loading: false, error: null });
 
   const bekijkPdf = async () => {
@@ -327,12 +348,7 @@ export default function App() {
     // asynchroon gebeurt.
     const nieuwTab = window.open("", "_blank");
     try {
-      const [{ pdf }, { default: InmeetPdf }, { createElement }] = await Promise.all([
-        import("@react-pdf/renderer"),
-        import("./pdf/InmeetPdf"),
-        import("react"),
-      ]);
-      const blob = await pdf(createElement(InmeetPdf, { data, logoSrc: logoUrl })).toBlob();
+      const blob = await genereerPdfBlob();
       const url = URL.createObjectURL(blob);
       if (nieuwTab) nieuwTab.location.href = url;
       else window.location.href = url;
@@ -354,17 +370,23 @@ export default function App() {
     }
     setSubmitStatus({ loading: true, error: null, done: false, versie: null });
     try {
+      // Dezelfde PDF die "PDF bekijken" ook zou tonen, wordt meegestuurd zodat
+      // die als leesbaar bestand naast de data.json in de 03 Inmeetformulier-
+      // map terechtkomt.
+      const pdfBlob = await genereerPdfBlob();
+      const pdfDataUrl = await blobNaarDataUrl(pdfBlob);
+
       const res = await fetch("/api/project-opslaan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectnummer: data.projectnummer.trim(), data }),
+        body: JSON.stringify({ projectnummer: data.projectnummer.trim(), data, pdfDataUrl }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Opslaan is mislukt");
       setSubmitStatus({ loading: false, error: null, done: true, versie: body.versie });
       setProjectStatus(s => ({ ...s, foundVersion: body.versie, nextVersion: body.versie + 1 }));
     } catch (err) {
-      setSubmitStatus({ loading: false, error: err.message, done: false, versie: null });
+      setSubmitStatus({ loading: false, error: err.message || "PDF genereren of opslaan is mislukt", done: false, versie: null });
     }
   };
 
