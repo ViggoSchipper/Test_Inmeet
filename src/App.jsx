@@ -2,6 +2,11 @@
 // Full React SPA - works as iPad PWA
 
 import { useState, useRef, useEffect } from "react";
+import logoUrl from "./assets/logo.png";
+// @react-pdf/renderer is een zware library (~500KB gzipped). Die wordt pas
+// ingeladen op het moment dat de opmeter daadwerkelijk op "PDF bekijken"
+// klikt (zie bekijkPdf hieronder), zodat de eerste keer laden van de app
+// op de iPad niet onnodig trager wordt.
 
 const GOLD = "#B69148";
 const BLACK = "#1a1a1a";
@@ -306,6 +311,35 @@ export default function App() {
       setProjectStatus({ loading: false, error: null, foundVersion: json.versie, nextVersion: json.versie + 1 });
     } catch (err) {
       setProjectStatus({ loading: false, error: err.message, foundVersion: null, nextVersion: 1 });
+    }
+  };
+
+  // --- PDF bekijken: genereert de PDF in de browser met de echte
+  // formuliergegevens, zodat de opmeter hem kan controleren voordat er
+  // verstuurd wordt. (Nog los van opslaan naar SharePoint - dat is de
+  // volgende stap.) ---
+  const [pdfStatus, setPdfStatus] = useState({ loading: false, error: null });
+
+  const bekijkPdf = async () => {
+    setPdfStatus({ loading: true, error: null });
+    // Het nieuwe tabblad moet synchroon met de klik geopend worden, anders
+    // blokkeert Safari op iPad de popup omdat het genereren van de PDF
+    // asynchroon gebeurt.
+    const nieuwTab = window.open("", "_blank");
+    try {
+      const [{ pdf }, { default: InmeetPdf }, { createElement }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("./pdf/InmeetPdf"),
+        import("react"),
+      ]);
+      const blob = await pdf(createElement(InmeetPdf, { data, logoSrc: logoUrl })).toBlob();
+      const url = URL.createObjectURL(blob);
+      if (nieuwTab) nieuwTab.location.href = url;
+      else window.location.href = url;
+      setPdfStatus({ loading: false, error: null });
+    } catch (err) {
+      if (nieuwTab) nieuwTab.close();
+      setPdfStatus({ loading: false, error: err.message || "PDF genereren is mislukt" });
     }
   };
 
@@ -982,6 +1016,12 @@ export default function App() {
             </div>
           ))}
           <div style={styles.divider} />
+          <button style={{ ...styles.btnPrev, width: "100%", fontSize: 15, padding: "12px", marginBottom: 10, opacity: pdfStatus.loading ? 0.6 : 1, cursor: pdfStatus.loading ? "default" : "pointer" }}
+            disabled={pdfStatus.loading}
+            onClick={bekijkPdf}>
+            {pdfStatus.loading ? "PDF wordt gemaakt..." : "📄 PDF bekijken"}
+          </button>
+          {pdfStatus.error && <div style={{ color: "#c0392b", fontSize: 13, marginBottom: 10 }}>{pdfStatus.error}</div>}
           <button style={{ ...styles.btnNext, width: "100%", fontSize: 16, padding: "14px", opacity: submitStatus.loading ? 0.6 : 1, cursor: submitStatus.loading ? "default" : "pointer" }}
             disabled={submitStatus.loading}
             onClick={versturenEnOpslaan}>
