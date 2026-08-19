@@ -25,3 +25,6 @@ api/local.settings.json
 *.njsproj
 *.sln
 *.sw?
+
+# PDF preview output (lokaal genereren met: node scripts/preview-pdf.cjs)
+preview-inmeetformulier.pdf
