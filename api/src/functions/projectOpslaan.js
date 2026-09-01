@@ -2,6 +2,8 @@ const { app } = require("@azure/functions");
 const {
   FOTO_VELDEN,
   SCHETS_VELDEN,
+  FOTO_SUBMAP,
+  SCHETS_SUBMAP,
   jaarUitProjectnummer,
   findProjectFolder,
   listInmeetFiles,
@@ -9,12 +11,16 @@ const {
   parseDataUrl,
   uploadFile,
   inmeetFormulierPad,
+  archiveerOudeVersies,
 } = require("../graphHelpers");
 
-// POST /api/project-opslaan   body: { projectnummer, data }
+// POST /api/project-opslaan   body: { projectnummer, data, pdfDataUrl? }
 // Bepaalt zelf het eerstvolgende versienummer (V1, V2, ...) op basis van wat
-// er al in de projectmap staat, en schrijft data.json + losse foto's + losse
-// schetsen weg naar .../{projectmap}/03 Inmeetformulier.
+// er al in de projectmap staat. Verplaatst daarna alles van de vorige versie
+// naar "Oude versies" (zodat er buiten het archief maar één versie te zien
+// is), en schrijft dan de nieuwe versie weg: data.json + pdf direct in
+// "03 Inmeetformulier", foto's in de "Foto's"-map en schetsen in de
+// "Schetsen"-map.
 app.http("projectOpslaan", {
   methods: ["POST"],
   authLevel: "anonymous",
@@ -45,6 +51,11 @@ app.http("projectOpslaan", {
       const versie = hoogsteVersie(bestaandeFiles) + 1;
       const basisPad = inmeetFormulierPad(jaarUitProjectnummer(projectnummer), folder.name);
 
+      // Eerst alles van de vorige versie(s) naar "Oude versies" verplaatsen,
+      // zodat de hoofdmap en de Foto's/Schetsen-mappen straks alleen de
+      // zojuist opgeslagen (nieuwste) versie bevatten.
+      await archiveerOudeVersies(basisPad);
+
       // Volledige formulierdata (incl. foto's/schetsen als base64) - dient als
       // bron voor prefill bij een volgende opname van hetzelfde project.
       await uploadFile(
@@ -55,14 +66,22 @@ app.http("projectOpslaan", {
       );
 
       // Losse foto's en schetsen, zodat iemand die de map opent ze direct kan
-      // bekijken zonder het databestand te hoeven openen.
+      // bekijken zonder het databestand te hoeven openen - elk in hun eigen
+      // submap.
       const uploads = [];
-      for (const [veld, bestandsnaam] of Object.entries({ ...FOTO_VELDEN, ...SCHETS_VELDEN })) {
+      for (const [veld, bestandsnaam] of Object.entries(FOTO_VELDEN)) {
         const waarde = data[veld];
         if (!waarde) continue;
         const parsed = parseDataUrl(waarde);
         if (!parsed) continue;
-        uploads.push(uploadFile(basisPad, `${bestandsnaam}_V${versie}.${parsed.ext}`, parsed.buffer, parsed.mime));
+        uploads.push(uploadFile(`${basisPad}/${FOTO_SUBMAP}`, `${bestandsnaam}_V${versie}.${parsed.ext}`, parsed.buffer, parsed.mime));
+      }
+      for (const [veld, bestandsnaam] of Object.entries(SCHETS_VELDEN)) {
+        const waarde = data[veld];
+        if (!waarde) continue;
+        const parsed = parseDataUrl(waarde);
+        if (!parsed) continue;
+        uploads.push(uploadFile(`${basisPad}/${SCHETS_SUBMAP}`, `${bestandsnaam}_V${versie}.${parsed.ext}`, parsed.buffer, parsed.mime));
       }
 
       // De leesbare PDF (zelfde bestand als "PDF bekijken" in de app laat

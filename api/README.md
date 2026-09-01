@@ -10,30 +10,45 @@ daarvan roept de app deze twee endpoints aan:
   opgeslagen versie voor dit project en geeft de gegevens terug, zodat het
   formulier vooraf ingevuld kan worden bij een volgende opname.
 - `POST /api/project-opslaan` — bepaalt het eerstvolgende versienummer
-  (V1, V2, ...) en schrijft `Inmeetformulier_{projectnummer}_V{n}_data.json`,
-  alle foto's en schetsen, én (als de app een `pdfDataUrl` meestuurt) de
-  leesbare PDF `Inmeetformulier_{projectnummer}_V{n}.pdf` weg naar de
-  projectmap. De PDF wordt in de browser gegenereerd (dezelfde die "PDF
-  bekijken" laat zien) en als base64 data-URL meegestuurd in de request
-  body — de backend genereert 'm niet zelf.
+  (V1, V2, ...), verplaatst eerst alles van de vorige versie naar
+  `Oude versies`, en schrijft dan de nieuwe versie weg:
+  `Inmeetformulier_{projectnummer}_V{n}_data.json` en (als de app een
+  `pdfDataUrl` meestuurt) `Inmeetformulier_{projectnummer}_V{n}.pdf` direct
+  in `03 Inmeetformulier`, foto's in `Foto's` en schetsen in `Schetsen`. De
+  PDF wordt in de browser gegenereerd (dezelfde die "PDF bekijken" laat
+  zien) en als base64 data-URL meegestuurd in de request body — de backend
+  genereert 'm niet zelf.
 
 ## Verwachte mapstructuur in SharePoint
 
 ```
-Nieuwe documenten/
+Documenten/
   02 Projecten/
     2026/
       26001_Klantnaam_Plaatsnaam/
         01 Ontvangen/
         02 Verzonden/
-        03 Inmeetformulier/        ← hier komt alles terecht
+        03 Inmeetformulier/
+          Inmeetformulier_26001_V3_data.json   ← altijd de nieuwste versie
+          Inmeetformulier_26001_V3.pdf
+          Foto's/
+            Foto_AchtergevelBuiten_V3.jpg       ← alleen de nieuwste versie
+          Schetsen/
+            Schets_Maatvoering_V3.png           ← alleen de nieuwste versie
+          Oude versies/
+            Inmeetformulier_26001_V1_data.json  ← V1 en V2 (data/pdf/foto's/
+            Inmeetformulier_26001_V1.pdf           schetsen door elkaar,
+            Foto_AchtergevelBuiten_V1.jpg          bestandsnamen zijn al
+            ...                                    uniek per versie)
 ```
 
 De projectmap (`26001_Klantnaam_Plaatsnaam`) moet al bestaan — die maakt de
 verkoper vooraf aan vanuit de template. De code zoekt in
 `02 Projecten/{jaar}` naar een map die begint met het ingevoerde
 projectnummer (het jaar wordt afgeleid uit de eerste 2 cijfers, bv. 26001 →
-2026).
+2026). De submappen `Foto's`, `Schetsen` en `Oude versies` maakt de code zelf
+aan als ze nog niet bestaan — die hoeven dus niet al in de template te
+zitten.
 
 ## Benodigde App Settings
 
