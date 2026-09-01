@@ -47,6 +47,8 @@ const styles = {
   badge: { background: `${GOLD}22`, color: GOLD, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 },
   optionCard: (selected) => ({ border: `2px solid ${selected ? GOLD : "#e0e0e0"}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", background: selected ? `${GOLD}11` : "white", transition: "all 0.15s" }),
   subSection: { background: "#fdfcf8", border: `1px solid ${GOLD}33`, borderRadius: 8, padding: "12px 14px", marginTop: 10 },
+  foutBanner: { background: "#fdecea", border: "1.5px solid #c0392b", borderRadius: 8, padding: "10px 16px", marginBottom: 14, color: "#c0392b", fontSize: 13 },
+  foutBannerTitel: { fontWeight: 700, marginBottom: 4 },
 };
 
 // Canvas Drawing Component
@@ -231,8 +233,141 @@ const PAGES = [
   "W-installaties", "W-installatie Tekening", "Samenvatting"
 ];
 
+// --- Verplichte-veldvalidatie -------------------------------------------
+// Per pagina (zelfde volgorde/index als PAGES) een functie die controleert
+// of alle verplichte velden op die pagina zijn ingevuld. Geeft een lijst
+// met leesbare namen van wat er nog mist terug (leeg = alles goed). Een
+// pagina zonder validator (null) heeft geen verplichte velden.
+function heeftWaarde(v) {
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === "boolean") return v;
+  return v !== null && v !== undefined && String(v).trim() !== "";
+}
+
+// Kozijn 1 is altijd verplicht in te vullen; kozijn 2/3 alleen als de
+// opmeter er zelf een "Type" voor kiest (niet elk project heeft 3 kozijnen)
+// - is er geen type gekozen, dan mag de hele pagina overgeslagen worden.
+function kozijnValidator(prefix, naam, altijdVerplicht) {
+  return (data) => {
+    const type = data[`${prefix}Type`];
+    if (!altijdVerplicht && !heeftWaarde(type)) return [];
+    const missend = [];
+    if (!heeftWaarde(type)) missend.push(`${naam}: type`);
+    if (!heeftWaarde(data[`${prefix}Materiaal`])) missend.push(`${naam}: materiaal`);
+    if (!heeftWaarde(data[`${prefix}RAL`])) missend.push(`${naam}: RAL kleur`);
+    if (!heeftWaarde(data[`${prefix}Glas`])) missend.push(`${naam}: glas`);
+    if (!heeftWaarde(data[`${prefix}Breedte`])) missend.push(`${naam}: breedte`);
+    if (!heeftWaarde(data[`${prefix}Hoogte`])) missend.push(`${naam}: hoogte`);
+    return missend;
+  };
+}
+
+const PAGE_VALIDATORS = [
+  // 0: Contact
+  (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.projectnummer)) missend.push("Projectnummer");
+    if (!heeftWaarde(data.geslacht)) missend.push("Geslacht");
+    if (data.geslacht === "Anders" && !heeftWaarde(data.geslachtAnders)) missend.push("Geslacht (namelijk...)");
+    if (!heeftWaarde(data.naam)) missend.push("Naam");
+    if (!heeftWaarde(data.telefoon)) missend.push("Telefoon");
+    if (!heeftWaarde(data.mail)) missend.push("Mail");
+    if (!heeftWaarde(data.plaats)) missend.push("Plaats");
+    if (!heeftWaarde(data.adres)) missend.push("Adres");
+    if (!heeftWaarde(data.postcode)) missend.push("Postcode");
+    return missend;
+  },
+  // 1: Maatvoering
+  (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.hoogte)) missend.push("Hoogte");
+    if (!heeftWaarde(data.diepte)) missend.push("Diepte");
+    if (!heeftWaarde(data.breedteBuiten)) missend.push("Breedte buiten");
+    if (!heeftWaarde(data.breedteBinnen)) missend.push("Breedte binnen");
+    return missend;
+  },
+  // 2: Maatvoering Schets
+  (data) => (heeftWaarde(data.schetsMaatvoering) ? [] : ["Schets maatvoering"]),
+  // 3: Voorbereidingen
+  (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.ondergrond)) missend.push("Ondergrond");
+    if (!heeftWaarde(data.heipalen)) missend.push("Bereikbaarheid");
+    if (!heeftWaarde(data.bouwtekeningen)) missend.push("Bouwtekeningen");
+    if (!heeftWaarde(data.vergunning)) missend.push("Vergunning");
+    if (!heeftWaarde(data.constructeur)) missend.push("Constructeur");
+    return missend;
+  },
+  // 4: Voorbereiding Foto's
+  (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.fotoAchterBinnen)) missend.push("Foto achtergevel binnen");
+    if (!heeftWaarde(data.fotoAchterBuiten)) missend.push("Foto achtergevel buiten");
+    if (!heeftWaarde(data.kruipruimteStatus)) missend.push("Kruipruimte status");
+    if (data.kruipruimteStatus === "Vloeroplegging foto bijgevoegd" && !heeftWaarde(data.fotoKruipruimte)) missend.push("Foto kruipruimte");
+    if (!heeftWaarde(data.fotoBereikbaarheid)) missend.push("Foto bereikbaarheid");
+    return missend;
+  },
+  // 5: Wandafwerking
+  (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwand afwerking");
+    if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
+    return missend;
+  },
+  // 6: Gevelbekleding - niet elk project gebruikt elke materiaalsoort, dus
+  // alleen controleren dat er in elk geval íets gekozen is.
+  (data) => {
+    const ietsGekozen = heeftWaarde(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
+    return ietsGekozen ? [] : ["Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)"];
+  },
+  // 7: Kozijn 1 (altijd verplicht)
+  kozijnValidator("k1", "Kozijn 1", true),
+  // 8: Kozijn 1 Schets
+  (data) => (heeftWaarde(data.schetsKozijn1) ? [] : ["Schets kozijn 1"]),
+  // 9: Kozijn 2 (alleen verplicht als er een type gekozen is)
+  kozijnValidator("k2", "Kozijn 2", false),
+  // 10: Kozijn 2 Schets
+  (data) => (data.k2Type && !heeftWaarde(data.schetsKozijn2) ? ["Schets kozijn 2"] : []),
+  // 11: Kozijn 3 (alleen verplicht als er een type gekozen is)
+  kozijnValidator("k3", "Kozijn 3", false),
+  // 12: Kozijn 3 Schets
+  (data) => (data.k3Type && !heeftWaarde(data.schetsKozijn3) ? ["Schets kozijn 3"] : []),
+  // 13: Dak & Lichtstraat
+  (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.dakbedekking)) missend.push("Dakbedekking");
+    if (!heeftWaarde(data.dakrandAfwerking)) missend.push("Dakrand afwerking");
+    if (!heeftWaarde(data.dakrandKleur)) missend.push("Dakrand kleur RAL");
+    if (!heeftWaarde(data.overstek)) missend.push("Overstek");
+    if (data.overstek === "Ja" && !heeftWaarde(data.overstekMM)) missend.push("Overstek MM");
+    if (!heeftWaarde(data.dakVorm)) missend.push("Dakvorm");
+    if (!heeftWaarde(data.lichtstraat)) missend.push("Lichtstraat");
+    if (data.lichtstraat === "Ja") {
+      if (!heeftWaarde(data.lichtsturaatFormaat)) missend.push("Lichtstraat formaat");
+      if (!heeftWaarde(data.lichtsturaatKleur)) missend.push("Lichtstraat kleur");
+    }
+    return missend;
+  },
+  // 14: E-installaties - veel losse, optionele keuzes; alleen checken dat
+  // de pagina niet helemaal leeg is.
+  (data) => {
+    const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
+      heeftWaarde(data.warmteKoude) || data.buitenVerlichting || data.wcd;
+    return iets ? [] : ["Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude"];
+  },
+  // 15: E-installatie Tekening - geen verplichte velden.
+  null,
+  // 16: W-installaties - HWA is altijd relevant (elk dak heeft een
+  // hemelwaterafvoer), de rest is projectafhankelijk.
+  (data) => (heeftWaarde(data.hwaMateriaal) ? [] : ["HWA materiaal"]),
+  // 17: W-installatie Tekening - geen verplichte velden.
+  null,
+];
+
 export default function App() {
   const [page, setPage] = useState(0);
+  const [foutmeldingen, setFoutmeldingen] = useState([]);
   const [data, setData] = useState({
     // Contact
     projectnummer: "",
@@ -1066,15 +1201,33 @@ export default function App() {
         </div>
       </div>
       <div style={styles.body}>
+        {foutmeldingen.length > 0 && (
+          <div style={styles.foutBanner}>
+            <div style={styles.foutBannerTitel}>Vul eerst het volgende in voor je verder kunt:</div>
+            <div>{foutmeldingen.join(", ")}</div>
+          </div>
+        )}
         {pages[page]}
       </div>
       <div style={styles.nav}>
-        <button style={styles.btnPrev} onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
+        <button style={styles.btnPrev} onClick={() => { setFoutmeldingen([]); setPage(p => Math.max(0, p - 1)); }} disabled={page === 0}>
           ← Vorige
         </button>
         <span style={{ fontSize: 12, color: "#888", alignSelf: "center" }}>{page + 1} / {PAGES.length}</span>
         {page < PAGES.length - 1 ? (
-          <button style={styles.btnNext} onClick={() => setPage(p => Math.min(PAGES.length - 1, p + 1))}>
+          <button
+            style={styles.btnNext}
+            onClick={() => {
+              const validator = PAGE_VALIDATORS[page];
+              const missend = validator ? validator(data) : [];
+              if (missend.length > 0) {
+                setFoutmeldingen(missend);
+                return;
+              }
+              setFoutmeldingen([]);
+              setPage(p => Math.min(PAGES.length - 1, p + 1));
+            }}
+          >
             Volgende →
           </button>
         ) : null}
