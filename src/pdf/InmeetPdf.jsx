@@ -323,7 +323,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           <Section
             title="Contact"
             fields={[
-              ["Aanhef", data.geslacht === "Anders" ? data.geslachtAnders : data.geslacht],
+              ["Aanhef", data.geslacht],
             ]}
             opmerking={waarde(data.opmerkingen)}
           />

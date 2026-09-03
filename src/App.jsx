@@ -267,9 +267,8 @@ const PAGE_VALIDATORS = [
   (data) => {
     const missend = [];
     if (!heeftWaarde(data.projectnummer)) missend.push("Projectnummer");
-    if (!heeftWaarde(data.geslacht)) missend.push("Geslacht");
-    if (data.geslacht === "Anders" && !heeftWaarde(data.geslachtAnders)) missend.push("Geslacht (namelijk...)");
     if (!heeftWaarde(data.naam)) missend.push("Naam");
+    if (!heeftWaarde(data.geslacht)) missend.push("Aanhef");
     if (!heeftWaarde(data.telefoon)) missend.push("Telefoon");
     if (!heeftWaarde(data.mail)) missend.push("Mail");
     if (!heeftWaarde(data.plaats)) missend.push("Plaats");
@@ -371,7 +370,7 @@ export default function App() {
   const [data, setData] = useState({
     // Contact
     projectnummer: "",
-    geslacht: "", geslachtAnders: "", naam: "", datum: new Date().toISOString().split("T")[0],
+    geslacht: "", naam: "", datum: new Date().toISOString().split("T")[0],
     telefoon: "", mail: "", plaats: "", adres: "", postcode: "", opmerkingen: "",
     // Maatvoering
     hoogte: "", diepte: "", breedteBuiten: "", breedteBinnen: "",
@@ -672,35 +671,31 @@ export default function App() {
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
-            <div style={styles.label}>Geslacht:</div>
-            <RadioGroup name="geslacht" options={["Man", "Vrouw", "Anders"]} value={data.geslacht} onChange={v => set("geslacht", v)} />
-            {data.geslacht === "Anders" && (
-              <input style={{ ...styles.input, maxWidth: 180 }} placeholder="Namelijk..." value={data.geslachtAnders}
-                onChange={e => set("geslachtAnders", e.target.value)} />
-            )}
+            <div style={styles.label}>Naam:</div>
+            <input style={styles.input} value={data.naam} onChange={e => set("naam", e.target.value)} />
+            <div style={styles.label}>Aanhef:</div>
+            <RadioGroup name="geslacht" options={["Meneer", "Mevrouw", "Familie"]} value={data.geslacht} onChange={v => set("geslacht", v)} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
-            <div style={styles.label}>Naam:</div>
-            <input style={styles.input} value={data.naam} onChange={e => set("naam", e.target.value)} />
-            <div style={styles.label}>Datum:</div>
-            <input type="date" style={styles.input} value={data.datum} onChange={e => set("datum", e.target.value)} />
+            <div style={styles.label}>Adres:</div>
+            <input style={styles.input} value={data.adres} onChange={e => set("adres", e.target.value)} />
+            <div style={styles.label}>Postcode:</div>
+            <input style={{ ...styles.input, maxWidth: 120 }} value={data.postcode} onChange={e => set("postcode", e.target.value)} />
+            <div style={styles.label}>Plaats:</div>
+            <input style={styles.input} value={data.plaats} onChange={e => set("plaats", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Telefoon:</div>
-            <input style={styles.input} value={data.telefoon} onChange={e => set("telefoon", e.target.value)} />
+            <input type="tel" style={styles.input} value={data.telefoon} onChange={e => set("telefoon", e.target.value)} />
             <div style={styles.label}>Mail:</div>
             <input type="email" style={styles.input} value={data.mail} onChange={e => set("mail", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
-            <div style={styles.label}>Plaats:</div>
-            <input style={styles.input} value={data.plaats} onChange={e => set("plaats", e.target.value)} />
-            <div style={styles.label}>Adres:</div>
-            <input style={styles.input} value={data.adres} onChange={e => set("adres", e.target.value)} />
-            <div style={styles.label}>Postcode:</div>
-            <input style={{ ...styles.input, maxWidth: 120 }} value={data.postcode} onChange={e => set("postcode", e.target.value)} />
+            <div style={styles.label}>Datum:</div>
+            <span style={{ fontSize: 15, color: "#333" }}>{new Date(data.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}</span>
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
@@ -1150,7 +1145,7 @@ export default function App() {
         </div>
         <div style={styles.sectionBody}>
           {[
-            ["Contact", [["Projectnummer", data.projectnummer], ["Naam", data.naam], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`], ["Geslacht", data.geslacht]]],
+            ["Contact", [["Projectnummer", data.projectnummer], ["Naam", data.naam], ["Aanhef", data.geslacht], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`]]],
             ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte", `${data.diepte} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
             ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
             ["Wandafwerking", [["Binnenwand", data.binnenwand], ["Stucwerk", data.stucwerk]]],
