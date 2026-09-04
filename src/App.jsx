@@ -730,13 +730,11 @@ export default function App() {
                 <span style={{ fontSize: 13, minWidth: 60 }}>Buiten:</span>
                 <input inputMode="decimal" style={styles.inputSmall} value={data.diepteBuiten} onChange={e => set("diepteBuiten", e.target.value)} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
-                <span style={styles.hint}>Relevant bij werken met erfgrens</span>
               </div>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Binnen:</span>
                 <input inputMode="decimal" style={styles.inputSmall} value={data.diepteBinnen} onChange={e => set("diepteBinnen", e.target.value)} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
-                <span style={styles.hint}>Wanneer niet afhankelijk van erfgrens</span>
               </div>
             </div>
           </div>
