@@ -262,6 +262,12 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
   };
 }
 
+// Tijdelijk uitgezet tijdens het pagina-voor-pagina optimaliseren, zodat je
+// niet elke keer alle verplichte velden opnieuw hoeft in te vullen om verder
+// te kunnen bladeren. De validatieregels hieronder blijven gewoon staan -
+// zet dit terug op true voor de grote eindtest / productie.
+const VALIDATIE_ACTIEF = false;
+
 const PAGE_VALIDATORS = [
   // 0: Contact
   (data) => {
@@ -1225,7 +1231,7 @@ export default function App() {
             style={styles.btnNext}
             onClick={() => {
               const validator = PAGE_VALIDATORS[page];
-              const missend = validator ? validator(data) : [];
+              const missend = (VALIDATIE_ACTIEF && validator) ? validator(data) : [];
               if (missend.length > 0) {
                 setFoutmeldingen(missend);
                 return;
