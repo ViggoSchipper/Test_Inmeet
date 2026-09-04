@@ -695,7 +695,7 @@ export default function App() {
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Datum:</div>
-            <span style={{ fontSize: 15, color: "#333" }}>{new Date(data.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}</span>
+            <input type="date" style={styles.input} value={data.datum} onChange={e => set("datum", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
