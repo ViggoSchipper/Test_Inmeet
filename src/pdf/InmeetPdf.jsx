@@ -336,7 +336,8 @@ export default function InmeetPdf({ data, logoSrc }) {
           title="Maatvoering"
           fields={[
             ["Hoogte", fmtMM(data.hoogte)],
-            ["Diepte", fmtMM(data.diepte)],
+            ["Diepte buiten", fmtMM(data.diepteBuiten)],
+            ["Diepte binnen", fmtMM(data.diepteBinnen)],
             ["Breedte buiten", fmtMM(data.breedteBuiten)],
             ["Breedte binnen", fmtMM(data.breedteBinnen)],
           ]}

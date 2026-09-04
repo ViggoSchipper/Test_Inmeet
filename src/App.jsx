@@ -280,9 +280,8 @@ const PAGE_VALIDATORS = [
   (data) => {
     const missend = [];
     if (!heeftWaarde(data.hoogte)) missend.push("Hoogte");
-    if (!heeftWaarde(data.diepte)) missend.push("Diepte");
-    if (!heeftWaarde(data.breedteBuiten)) missend.push("Breedte buiten");
-    if (!heeftWaarde(data.breedteBinnen)) missend.push("Breedte binnen");
+    if (!heeftWaarde(data.diepteBuiten) && !heeftWaarde(data.diepteBinnen)) missend.push("Diepte (buiten of binnen)");
+    if (!heeftWaarde(data.breedteBuiten) && !heeftWaarde(data.breedteBinnen)) missend.push("Breedte (buiten of binnen)");
     return missend;
   },
   // 2: Maatvoering Schets
@@ -373,7 +372,7 @@ export default function App() {
     geslacht: "", naam: "", datum: new Date().toISOString().split("T")[0],
     telefoon: "", mail: "", plaats: "", adres: "", postcode: "", opmerkingen: "",
     // Maatvoering
-    hoogte: "", diepte: "", breedteBuiten: "", breedteBinnen: "",
+    hoogte: "", diepteBuiten: "", diepteBinnen: "", breedteBuiten: "", breedteBinnen: "",
     schetsMaatvoering: null,
     // Voorbereidingen
     ondergrond: "", heipalen: [], bereikbaarheidFoto: null,
@@ -713,15 +712,27 @@ export default function App() {
         <div style={styles.sectionBody}>
           <div style={styles.row}>
             <div style={styles.label}>Hoogte:</div>
-            <input style={styles.inputSmall} value={data.hoogte} onChange={e => set("hoogte", e.target.value)} />
+            <input inputMode="decimal" style={styles.inputSmall} value={data.hoogte} onChange={e => set("hoogte", e.target.value)} />
             <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
             <span style={styles.hint}>P=0 van huidige vloer tot plafond huidige woning</span>
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Diepte:</div>
-            <input style={styles.inputSmall} value={data.diepte} onChange={e => set("diepte", e.target.value)} />
-            <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
+            <div style={{ flex: 1 }}>
+              <div style={styles.row}>
+                <span style={{ fontSize: 13, minWidth: 60 }}>Buiten:</span>
+                <input inputMode="decimal" style={styles.inputSmall} value={data.diepteBuiten} onChange={e => set("diepteBuiten", e.target.value)} />
+                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
+                <span style={styles.hint}>Relevant bij werken met erfgrens</span>
+              </div>
+              <div style={styles.row}>
+                <span style={{ fontSize: 13, minWidth: 60 }}>Binnen:</span>
+                <input inputMode="decimal" style={styles.inputSmall} value={data.diepteBinnen} onChange={e => set("diepteBinnen", e.target.value)} />
+                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
+                <span style={styles.hint}>Wanneer niet afhankelijk van erfgrens</span>
+              </div>
+            </div>
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
@@ -729,13 +740,13 @@ export default function App() {
             <div style={{ flex: 1 }}>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Buiten:</span>
-                <input style={styles.inputSmall} value={data.breedteBuiten} onChange={e => set("breedteBuiten", e.target.value)} />
+                <input inputMode="decimal" style={styles.inputSmall} value={data.breedteBuiten} onChange={e => set("breedteBuiten", e.target.value)} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <span style={styles.hint}>Relevant bij werken met erfgrens</span>
               </div>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Binnen:</span>
-                <input style={styles.inputSmall} value={data.breedteBinnen} onChange={e => set("breedteBinnen", e.target.value)} />
+                <input inputMode="decimal" style={styles.inputSmall} value={data.breedteBinnen} onChange={e => set("breedteBinnen", e.target.value)} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <span style={styles.hint}>Wanneer niet afhankelijk van erfgrens</span>
               </div>
@@ -1146,7 +1157,7 @@ export default function App() {
         <div style={styles.sectionBody}>
           {[
             ["Contact", [["Projectnummer", data.projectnummer], ["Naam", data.naam], ["Aanhef", data.geslacht], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`]]],
-            ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte", `${data.diepte} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
+            ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte buiten", `${data.diepteBuiten} MM`], ["Diepte binnen", `${data.diepteBinnen} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
             ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
             ["Wandafwerking", [["Binnenwand", data.binnenwand], ["Stucwerk", data.stucwerk]]],
             ["Gevelbekleding", [["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip], ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet], ["Kerama type", data.keramaType], ["Kerama kleur", data.keramaKleur], ["Hout type", data.houtType], ["Hout kleur", data.houtKleur]]],
