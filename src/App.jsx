@@ -54,21 +54,52 @@ const styles = {
 // Canvas Drawing Component
 // Gestuurd (controlled) via value/onChange zodat schetsen net als foto's opgeslagen,
 // vooraf ingevuld (prefill bij 2e opname) en gewijzigd kunnen worden.
-function DrawingCanvas({ id, value, onChange }) {
+// Aantal vakjes van de hulp-grid (alleen gebruikt als grid=true) - elk vakje
+// stelt 1x1 meter voor, dus 15 vakjes = een grid van 15x15 meter.
+const GRID_VAKJES = 15;
+// Hoeveel stappen "Ongedaan maken" onthoudt (ouder dan dit wordt vergeten).
+const MAX_UNDO_STAPPEN = 15;
+
+function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300 }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState("pen");
   const [color, setColor] = useState("#1a1a1a");
+  const [canUndo, setCanUndo] = useState(false);
   const lastPos = useRef(null);
   const loadedValueRef = useRef(null);
+  // Snapshots (dataURLs) van het canvas vóór elke actie, voor "Ongedaan maken".
+  const historyRef = useRef([]);
+
+  const tekenGrid = (ctx, w, h) => {
+    ctx.save();
+    ctx.strokeStyle = "#e5ddc8";
+    ctx.lineWidth = 1;
+    for (let i = 1; i < GRID_VAKJES; i++) {
+      const x = (w / GRID_VAKJES) * i;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      const y = (h / GRID_VAKJES) * i;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  const legeAchtergrond = (canvas, ctx) => {
+    const w = canvas.offsetWidth, h = canvas.offsetHeight;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, w, h);
+    if (grid) tekenGrid(ctx, w, h);
+  };
 
   const drawImageOnCanvas = (canvas, ctx, src) => {
     const img = new Image();
     img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const w = canvas.offsetWidth, h = canvas.offsetHeight;
+      ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.offsetWidth, 300);
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
       loadedValueRef.current = src;
     };
     img.src = src;
@@ -78,12 +109,11 @@ function DrawingCanvas({ id, value, onChange }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-    canvas.height = 300 * window.devicePixelRatio;
+    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
     const ctx = canvas.getContext("2d");
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (value) drawImageOnCanvas(canvas, ctx, value);
+    else legeAchtergrond(canvas, ctx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -104,10 +134,35 @@ function DrawingCanvas({ id, value, onChange }) {
     onChange(dataUrl);
   };
 
+  const bewaarVoorUndo = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    historyRef.current.push(canvas.toDataURL("image/png"));
+    if (historyRef.current.length > MAX_UNDO_STAPPEN) historyRef.current.shift();
+    setCanUndo(true);
+  };
+
+  const ongedaanMaken = () => {
+    const canvas = canvasRef.current;
+    const vorige = historyRef.current.pop();
+    setCanUndo(historyRef.current.length > 0);
+    if (!canvas || !vorige) return;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+      const w = canvas.offsetWidth, h = canvas.offsetHeight;
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      loadedValueRef.current = vorige;
+      if (onChange) onChange(vorige);
+    };
+    img.src = vorige;
+  };
+
   const getPos = (e, canvas) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.offsetWidth / rect.width;
-    const scaleY = (canvas.height / window.devicePixelRatio) / rect.height;
+    const scaleY = canvas.offsetHeight / rect.height;
     if (e.touches) {
       return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
     }
@@ -116,6 +171,7 @@ function DrawingCanvas({ id, value, onChange }) {
 
   const startDraw = (e) => {
     e.preventDefault();
+    bewaarVoorUndo();
     setDrawing(true);
     const pos = getPos(e, canvasRef.current);
     lastPos.current = pos;
@@ -146,8 +202,8 @@ function DrawingCanvas({ id, value, onChange }) {
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+    bewaarVoorUndo();
+    legeAchtergrond(canvas, ctx);
     exportImage();
   };
 
@@ -163,11 +219,15 @@ function DrawingCanvas({ id, value, onChange }) {
           <div key={c} onClick={() => { setTool("pen"); setColor(c); }}
             style={{ width: 24, height: 24, borderRadius: "50%", background: c, cursor: "pointer", border: color === c && tool === "pen" ? "3px solid #333" : "2px solid #eee" }} />
         ))}
+        <button style={{ ...styles.toolBtn(false), opacity: canUndo ? 1 : 0.4, cursor: canUndo ? "pointer" : "default" }}
+          onClick={ongedaanMaken} disabled={!canUndo}>↩️ Ongedaan maken</button>
         <button style={styles.toolBtn(false)} onClick={clearCanvas}>🗑️ Wissen</button>
       </div>
-      <canvas ref={canvasRef} style={{ ...styles.canvas, height: 300 }}
+      <canvas ref={canvasRef}
+        style={square ? { ...styles.canvas, width: "min(100%, 70vh)", aspectRatio: "1 / 1", margin: "0 auto" } : { ...styles.canvas, height }}
         onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
+      {grid && <div style={{ ...styles.hint, marginTop: 6, textAlign: "center" }}>Elk vakje = 1 x 1 meter (grid van {GRID_VAKJES} x {GRID_VAKJES} m)</div>}
     </div>
   );
 }
@@ -765,7 +825,7 @@ export default function App() {
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Schets maatvoering</p></div>
         <div style={styles.sectionBody}>
-          <DrawingCanvas id="maatvoering" value={data.schetsMaatvoering} onChange={v => set("schetsMaatvoering", v)} />
+          <DrawingCanvas id="maatvoering" value={data.schetsMaatvoering} onChange={v => set("schetsMaatvoering", v)} grid square />
         </div>
       </div>
     </div>,

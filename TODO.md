@@ -10,7 +10,10 @@
       (Aanhef blijft wel gewoon een invulveld, alleen niet meer blokkerend.)
 - [x] Pagina 2 Maatvoering: Diepte krijgt Buiten/Binnen (zoals Breedte), Hoogte altijd verplicht,
       Diepte/Breedte: minimaal buiten óf binnen verplicht, numeriek toetsenbord op mm-velden.
-- [ ] Pagina 3 t/m 19: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1 en 2).
+- [x] Pagina 3 Maatvoering Schets: schetsveld zo groot mogelijk (vierkant), grid van 15x15 vakjes
+      (1 vakje = 1 meter). "Ongedaan maken" toegevoegd aan het tekenveld — werkt op alle
+      schets-pagina's (Maatvoering, Kozijn 1/2/3, E-installatie, W-installatie).
+- [ ] Pagina 4 t/m 19: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-3).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Azure-adres.
