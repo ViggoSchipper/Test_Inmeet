@@ -356,7 +356,7 @@ const PAGE_VALIDATORS = [
   (data) => {
     const missend = [];
     if (!heeftWaarde(data.ondergrond)) missend.push("Ondergrond");
-    if (!heeftWaarde(data.heipalen)) missend.push("Bereikbaarheid");
+    if (!heeftWaarde(data.bereikbaarheid)) missend.push("Bereikbaarheid");
     if (!heeftWaarde(data.bouwtekeningen)) missend.push("Bouwtekeningen");
     if (!heeftWaarde(data.vergunning)) missend.push("Vergunning");
     if (!heeftWaarde(data.constructeur)) missend.push("Constructeur");
@@ -441,7 +441,7 @@ export default function App() {
     hoogte: "", diepteBuiten: "", diepteBinnen: "", breedteBuiten: "", breedteBinnen: "",
     schetsMaatvoering: null,
     // Voorbereidingen
-    ondergrond: "", heipalen: [], bereikbaarheidFoto: null,
+    ondergrond: "", bereikbaarheid: [],
     bouwtekeningen: "", vergunning: "", doorbraakMM: "", constructeur: "",
     // Foto's
     fotoAchterBuiten: null, fotoAchterBinnen: null, fotoKruipruimte: null, fotoBereikbaarheid: null,
@@ -842,12 +842,7 @@ export default function App() {
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Bereikbaarheid:</div>
-            <CheckGroup options={["Kraan", "Bereikbaar"]} values={data.heipalen} onChange={v => set("heipalen", v)} />
-            <label style={styles.checkLabel}>
-              <input type="checkbox" style={{ accentColor: GOLD }} checked={!!data.bereikbaarheidFotoCheck}
-                onChange={e => set("bereikbaarheidFotoCheck", e.target.checked)} />
-              Foto bijgevoegd
-            </label>
+            <CheckGroup options={["Kraan", "Bereikbaar"]} values={data.bereikbaarheid} onChange={v => set("bereikbaarheid", v)} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
@@ -863,7 +858,7 @@ export default function App() {
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Doorbraak:</div>
-            <input style={styles.inputSmall} placeholder="0" value={data.doorbraakMM} onChange={e => set("doorbraakMM", e.target.value)} />
+            <input inputMode="decimal" style={styles.inputSmall} placeholder="0" value={data.doorbraakMM} onChange={e => set("doorbraakMM", e.target.value)} />
             <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
             <div style={styles.label}>Constructeur:</div>
             <RadioGroup name="constructeur" options={["Benodigd", "N.V.T."]} value={data.constructeur} onChange={v => set("constructeur", v)} />
@@ -1222,7 +1217,7 @@ export default function App() {
           {[
             ["Contact", [["Projectnummer", data.projectnummer], ["Naam", data.naam], ["Aanhef", data.geslacht], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`]]],
             ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte buiten", `${data.diepteBuiten} MM`], ["Diepte binnen", `${data.diepteBinnen} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
-            ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
+            ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bereikbaarheid", (data.bereikbaarheid || []).join(", ")], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
             ["Wandafwerking", [["Binnenwand", data.binnenwand], ["Stucwerk", data.stucwerk]]],
             ["Gevelbekleding", [["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip], ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet], ["Kerama type", data.keramaType], ["Kerama kleur", data.keramaKleur], ["Hout type", data.houtType], ["Hout kleur", data.houtKleur]]],
             ["Kozijn 1", [["Type", data.k1Type], ["Opties", data.k1Opties.join(", ")], ["Materiaal", data.k1Materiaal], ["RAL", data.k1RAL], ["Glas", data.k1Glas], ["Breedte", `${data.k1Breedte} MM`], ["Hoogte", `${data.k1Hoogte} MM`]]],

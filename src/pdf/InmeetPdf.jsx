@@ -346,7 +346,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           title="Voorbereidingen"
           fields={[
             ["Ondergrond", data.ondergrond],
-            ["Heipalen", data.heipalen],
+            ["Bereikbaarheid", data.bereikbaarheid],
             ["Bouwtekeningen", data.bouwtekeningen],
             ["Vergunning", data.vergunning],
             ["Doorbraak", fmtMM(data.doorbraakMM)],
