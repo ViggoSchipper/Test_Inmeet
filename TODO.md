@@ -27,7 +27,13 @@
       plus foto bij Kerama en Hout (thermisch gemodificeerd). Nieuw veld "Voegkleur" bij
       Steenstrips, verplicht (bij aanzetten validatie) zodra een Steenstrip-optie is gekozen.
       Gevelbekleding en Binnenwandafwerking: bevestigd dat "1 optie verplicht" al klopte.
-- [ ] Pagina 7 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-6).
+- [x] Pagina 7/9/11 Kozijn 1/2/3 (delen dezelfde component, dus in 1x geregeld): Glas nu
+      alleen HR++/HR+++ (Triple weg). "Vast glas" toegevoegd als optie bij Schuifpui en
+      Openslaande deuren, en als raamtype bij Raam. Zodra Vast glas gekozen is: verplichte
+      Ja/Nee-vraag Ventilatierooster erbij. Raam heeft nu opties (Vast glas/Draaikiepraam/
+      Uitzetraam), Harmonica wand heeft nu opties (aantal delen 3/4/5-delig + richting Links/
+      Rechts) i.p.v. alleen een leeg opmerkingenveld.
+- [ ] Pagina 8, 10, 12 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-7).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres

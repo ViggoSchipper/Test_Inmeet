@@ -268,6 +268,10 @@ export default function InmeetPdf({ data, logoSrc }) {
   const kozijnFields = (prefix) => [
     ["Type", data[`${prefix}Type`]],
     ["Opties", data[`${prefix}Opties`]],
+    ["Raamtype", data[`${prefix}RaamType`]],
+    ["Harmonica delen", data[`${prefix}HarmonicaDelen`]],
+    ["Harmonica richting", data[`${prefix}HarmonicaRichting`]],
+    ["Ventilatierooster", data[`${prefix}Ventilatierooster`]],
     ["Materiaal", data[`${prefix}Materiaal`]],
     ["RAL kleur", data[`${prefix}RAL`]],
     ["Glas", data[`${prefix}Glas`]],
