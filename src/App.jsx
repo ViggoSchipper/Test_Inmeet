@@ -288,7 +288,7 @@ function CheckGroup({ options, values, onChange }) {
 
 const PAGES = [
   "Contact", "Maatvoering", "Maatvoering Schets", "Voorbereidingen", "Voorbereiding Foto's",
-  "Wandafwerking", "Gevelbekleding", "Kozijn 1", "Kozijn 1 Schets", "Kozijn 2", "Kozijn 2 Schets",
+  "Wandafwerking & Gevelbekleding", "Kozijn 1", "Kozijn 1 Schets", "Kozijn 2", "Kozijn 2 Schets",
   "Kozijn 3", "Kozijn 3 Schets", "Dak & Lichtstraat", "E-installaties", "E-installatie Tekening",
   "W-installaties", "W-installatie Tekening", "Samenvatting"
 ];
@@ -371,32 +371,30 @@ const PAGE_VALIDATORS = [
     if (!heeftWaarde(data.fotoBereikbaarheid)) missend.push("Foto bereikbaarheid");
     return missend;
   },
-  // 5: Wandafwerking
+  // 5: Wandafwerking & Gevelbekleding - gevelbekleding gebruikt niet elk
+  // project elke materiaalsoort, dus daar alleen controleren dat er in elk
+  // geval íets gekozen is.
   (data) => {
     const missend = [];
     if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwand afwerking");
     if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
+    const ietsGekozen = heeftWaarde(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
+    if (!ietsGekozen) missend.push("Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)");
     return missend;
   },
-  // 6: Gevelbekleding - niet elk project gebruikt elke materiaalsoort, dus
-  // alleen controleren dat er in elk geval íets gekozen is.
-  (data) => {
-    const ietsGekozen = heeftWaarde(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
-    return ietsGekozen ? [] : ["Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)"];
-  },
-  // 7: Kozijn 1 (altijd verplicht)
+  // 6: Kozijn 1 (altijd verplicht)
   kozijnValidator("k1", "Kozijn 1", true),
-  // 8: Kozijn 1 Schets
+  // 7: Kozijn 1 Schets
   (data) => (heeftWaarde(data.schetsKozijn1) ? [] : ["Schets kozijn 1"]),
-  // 9: Kozijn 2 (alleen verplicht als er een type gekozen is)
+  // 8: Kozijn 2 (alleen verplicht als er een type gekozen is)
   kozijnValidator("k2", "Kozijn 2", false),
-  // 10: Kozijn 2 Schets
+  // 9: Kozijn 2 Schets
   (data) => (data.k2Type && !heeftWaarde(data.schetsKozijn2) ? ["Schets kozijn 2"] : []),
-  // 11: Kozijn 3 (alleen verplicht als er een type gekozen is)
+  // 10: Kozijn 3 (alleen verplicht als er een type gekozen is)
   kozijnValidator("k3", "Kozijn 3", false),
-  // 12: Kozijn 3 Schets
+  // 11: Kozijn 3 Schets
   (data) => (data.k3Type && !heeftWaarde(data.schetsKozijn3) ? ["Schets kozijn 3"] : []),
-  // 13: Dak & Lichtstraat
+  // 12: Dak & Lichtstraat
   (data) => {
     const missend = [];
     if (!heeftWaarde(data.dakbedekking)) missend.push("Dakbedekking");
@@ -412,19 +410,19 @@ const PAGE_VALIDATORS = [
     }
     return missend;
   },
-  // 14: E-installaties - veel losse, optionele keuzes; alleen checken dat
+  // 13: E-installaties - veel losse, optionele keuzes; alleen checken dat
   // de pagina niet helemaal leeg is.
   (data) => {
     const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
       heeftWaarde(data.warmteKoude) || data.buitenVerlichting || data.wcd;
     return iets ? [] : ["Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude"];
   },
-  // 15: E-installatie Tekening - geen verplichte velden.
+  // 14: E-installatie Tekening - geen verplichte velden.
   null,
-  // 16: W-installaties - HWA is altijd relevant (elk dak heeft een
+  // 15: W-installaties - HWA is altijd relevant (elk dak heeft een
   // hemelwaterafvoer), de rest is projectafhankelijk.
   (data) => (heeftWaarde(data.hwaMateriaal) ? [] : ["HWA materiaal"]),
-  // 17: W-installatie Tekening - geen verplichte velden.
+  // 16: W-installatie Tekening - geen verplichte velden.
   null,
 ];
 
@@ -891,7 +889,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 5: Wandafwerking
+    // 5: Wandafwerking & Gevelbekleding
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Wandafwerking & Gevelbekleding</p></div>
@@ -907,15 +905,9 @@ export default function App() {
               <RadioGroup name="stucwerk" options={["Stucen complete woning", "Stucen aanbouw"]} value={data.stucwerk} onChange={v => set("stucwerk", v)} />
             </div>
           )}
-        </div>
-      </div>
-    </div>,
 
-    // 6: Gevelbekleding
-    <div>
-      <div style={styles.section}>
-        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Gevelbekleding</p></div>
-        <div style={styles.sectionBody}>
+          <div style={styles.divider} />
+          <div style={{ fontSize: 13, fontWeight: 700, color: BLACK, marginBottom: 10 }}>Gevelbekleding</div>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Steenstrips</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
             {[{ val: "Rood", hint: "Viola 0013A0", color: "#c0392b" }, { val: "Grijs", hint: "Platina 0004A0", color: "#95a5a6" }, { val: "Geel", hint: "Freya 0504A0", color: "#d4ac0d" }].map(opt => (
@@ -986,27 +978,27 @@ export default function App() {
       </div>
     </div>,
 
-    // 7: Kozijn 1
+    // 6: Kozijn 1
     <KozijnPage prefix="k1" num={1} />,
-    // 8: Kozijn 1 Schets
+    // 7: Kozijn 1 Schets
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 1 — Schets</p></div>
         <div style={styles.sectionBody}><DrawingCanvas id="kozijn1" value={data.schetsKozijn1} onChange={v => set("schetsKozijn1", v)} /></div>
       </div>
     </div>,
-    // 9: Kozijn 2
+    // 8: Kozijn 2
     <KozijnPage prefix="k2" num={2} />,
-    // 10: Kozijn 2 Schets
+    // 9: Kozijn 2 Schets
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 2 — Schets</p></div>
         <div style={styles.sectionBody}><DrawingCanvas id="kozijn2" value={data.schetsKozijn2} onChange={v => set("schetsKozijn2", v)} /></div>
       </div>
     </div>,
-    // 11: Kozijn 3
+    // 10: Kozijn 3
     <KozijnPage prefix="k3" num={3} />,
-    // 12: Kozijn 3 Schets
+    // 11: Kozijn 3 Schets
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 3 — Schets</p></div>
@@ -1014,7 +1006,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 13: Dak & Lichtstraat
+    // 12: Dak & Lichtstraat
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Dakbedekking & Lichtstraat</p></div>
@@ -1063,7 +1055,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 14: E-installaties
+    // 13: E-installaties
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>E-installaties</p></div>
@@ -1122,7 +1114,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 15: E-installatie Tekening
+    // 14: E-installatie Tekening
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>E-installatie tekening</p></div>
@@ -1143,7 +1135,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 16: W-installaties
+    // 15: W-installaties
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>W-installaties</p></div>
@@ -1188,7 +1180,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 17: W-installatie Tekening
+    // 16: W-installatie Tekening
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>W-installatie tekening</p></div>
@@ -1209,7 +1201,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 18: Samenvatting
+    // 17: Samenvatting
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}>

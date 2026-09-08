@@ -21,7 +21,9 @@
       aangepast naar "Doorgang naar de tuin". Verplicht wordt (bij het aanzetten van validatie):
       Achtergevel Binnen, Achtergevel Buiten, Bereikbaarheid altijd; Kruipruimte-foto verplicht
       tenzij "Geen kruipruimte aanwezig" is aangevinkt.
-- [ ] Pagina 6 t/m 19: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-5).
+- [x] Pagina 6 Wandafwerking & Gevelbekleding: samengevoegd tot 1 pagina (was 2 losse pagina's,
+      binnen + buiten stonden origineel ook al samen). App heeft nu 18 pagina's i.p.v. 19.
+- [ ] Pagina 7 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-6).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
