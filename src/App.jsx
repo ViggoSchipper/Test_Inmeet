@@ -1154,11 +1154,16 @@ export default function App() {
             </div>
           )}
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Lichtstraat:</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 4 }}>
+          <div style={styles.row}>
+            <div style={styles.label}>Lichtstraat:</div>
+            <label style={styles.radioLabel} onClick={() => set("lichtstraat", "N.V.T.")}>
+              <input type="radio" readOnly checked={data.lichtstraat === "N.V.T."} style={{ accentColor: GOLD }} />
+              N.V.T.
+            </label>
             {[{ val: "Lessenaar", foto: fotoLichtstraatLessenaar }, { val: "Zadeldak", foto: fotoLichtstraatZadeldak }].map(opt => (
-              <div key={opt.val} style={styles.optionCard(data.lichtstraat === opt.val)} onClick={() => set("lichtstraat", opt.val)}>
-                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
+              <div key={opt.val} style={{ ...styles.optionCard(data.lichtstraat === opt.val), padding: "6px 10px", display: "flex", alignItems: "center", gap: 8 }}
+                onClick={() => set("lichtstraat", opt.val)}>
+                <div style={{ width: 44, height: 44, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
                   <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1167,15 +1172,6 @@ export default function App() {
                 </div>
               </div>
             ))}
-            <div style={styles.optionCard(data.lichtstraat === "N.V.T.")} onClick={() => set("lichtstraat", "N.V.T.")}>
-              <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center", background: "#fdfcf8", border: `1px solid ${GOLD}33` }}>
-                <span style={{ fontSize: 12, color: "#888" }}>Geen lichtstraat</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input type="radio" readOnly checked={data.lichtstraat === "N.V.T."} style={{ accentColor: GOLD }} />
-                <span style={{ fontSize: 12 }}>N.V.T.</span>
-              </div>
-            </div>
           </div>
           {(data.lichtstraat === "Lessenaar" || data.lichtstraat === "Zadeldak") && (
             <div style={styles.subSection}>

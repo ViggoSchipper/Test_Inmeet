@@ -51,6 +51,9 @@
       Zadeldak (niet meer altijd zichtbaar).
 - [x] Pagina 6 Gevelbekleding: "Anders"-vakken bij Steenstrips en Composiet hebben nu een
       klikbare foto-upload (zoals bij de andere foto-velden) i.p.v. alleen een tekstveld.
+- [x] Pagina 13 layout: Lichtstraat-foto's veel kleiner gemaakt (klein vierkantje naast het
+      keuzerondje, i.p.v. groot fotokaartje), N.V.T. is nu gewoon een keuzerondje op dezelfde
+      regel i.p.v. een los kaartje met plaatje.
 - [ ] Pagina 14 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-13).
 
 ## Vóór overgang naar productie
