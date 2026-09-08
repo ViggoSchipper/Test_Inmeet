@@ -68,7 +68,7 @@ const GRID_VAKJES = 15;
 // Hoeveel stappen "Ongedaan maken" onthoudt (ouder dan dit wordt vergeten).
 const MAX_UNDO_STAPPEN = 15;
 
-function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null }) {
+function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null, maxVh = 70 }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState("pen");
@@ -235,7 +235,7 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
       </div>
       <canvas ref={canvasRef}
         style={
-          square ? { ...styles.canvas, width: "min(100%, 70vh)", aspectRatio: "1 / 1", margin: "0 auto" }
+          square ? { ...styles.canvas, width: `min(100%, ${maxVh}vh)`, aspectRatio: "1 / 1", margin: "0 auto" }
           : aspectRatio ? { ...styles.canvas, width: "100%", aspectRatio, margin: "0 auto" }
           : { ...styles.canvas, height }
         }
@@ -419,14 +419,18 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.dakbedekking)) missend.push("Dakbedekking");
     if (!heeftWaarde(data.dakrandAfwerking)) missend.push("Dakrand afwerking");
-    if (!heeftWaarde(data.dakrandKleur)) missend.push("Dakrand kleur RAL");
+    if (data.dakrandAfwerking === "Modern zetwerk" && !heeftWaarde(data.dakrandKleur)) missend.push("Dakrand kleur RAL");
     if (!heeftWaarde(data.overstek)) missend.push("Overstek");
-    if (data.overstek === "Ja" && !heeftWaarde(data.overstekMM)) missend.push("Overstek MM");
-    if (!heeftWaarde(data.dakVorm)) missend.push("Dakvorm");
+    if (data.overstek === "Ja") {
+      if (!heeftWaarde(data.overstekMM)) missend.push("Overstek diepte (MM)");
+      if (!heeftWaarde(data.overstekRAL)) missend.push("Overstek RAL kleur");
+    }
     if (!heeftWaarde(data.lichtstraat)) missend.push("Lichtstraat");
-    if (data.lichtstraat === "Ja") {
-      if (!heeftWaarde(data.lichtsturaatFormaat)) missend.push("Lichtstraat formaat");
-      if (!heeftWaarde(data.lichtsturaatKleur)) missend.push("Lichtstraat kleur");
+    if (data.lichtstraat === "Lessenaar" || data.lichtstraat === "Zadeldak") {
+      if (!heeftWaarde(data.lichtstraatLengteMM)) missend.push("Lichtstraat lengte");
+      if (!heeftWaarde(data.lichtstraatBreedteMM)) missend.push("Lichtstraat breedte");
+      if (!heeftWaarde(data.lichtstraatKleur)) missend.push("Lichtstraat kleur");
+      if (!heeftWaarde(data.lichtstraatDelenGlas)) missend.push("Lichtstraat aantal delen glas");
     }
     return missend;
   },
@@ -484,8 +488,9 @@ export default function App() {
     k3RaamType: "", k3HarmonicaDelen: "", k3HarmonicaRichting: "", k3Ventilatierooster: "",
     schetsKozijn3: null,
     // Dak
-    dakbedekking: "", overstek: "", overstekMM: "", dakrandAfwerking: "", dakrandMateriaal: "", dakrandKleur: "",
-    lichtstraat: "", lichtsturaatFormaat: "", lichtsturaatKleur: "", dakVorm: "", dakOpmerking: "",
+    dakbedekking: "", overstek: "", overstekMM: "", overstekRAL: "", dakrandAfwerking: "", dakrandKleur: "",
+    lichtstraat: "", lichtstraatLengteMM: "", lichtstraatBreedteMM: "", lichtstraatKleur: "", lichtstraatDelenGlas: "",
+    schetsLichtstraatPositie: null, dakOpmerking: "",
     // E-installaties
     stopcontacten: [], stopMerk: "", stopType: "", stopKleur: "",
     verlichting: [], verlichtingMerk: "", verlichtingType: "", verlichtingKleur: "",
@@ -1092,41 +1097,69 @@ export default function App() {
         <div style={styles.sectionBody}>
           <div style={styles.row}>
             <div style={styles.label}>Dakbedekking:</div>
-            <RadioGroup name="dak" options={["EPDM"]} value={data.dakbedekking} onChange={v => set("dakbedekking", v)} />
+            <RadioGroup name="dak" options={["EPDM", "Sedum", "Bitumen"]} value={data.dakbedekking} onChange={v => set("dakbedekking", v)} />
           </div>
+          <div style={styles.hint}>Bitumen: alleen mogelijk bij aansluiting op bestaand bitumen dak.</div>
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Dakrand afwerking:</div>
-            <RadioGroup name="dakrand" options={["Modern zw zetwerk", "Kraal zink"]} value={data.dakrandAfwerking} onChange={v => set("dakrandAfwerking", v)} />
+            <RadioGroup name="dakrand" options={["Modern zetwerk", "Kraal zink"]} value={data.dakrandAfwerking} onChange={v => set("dakrandAfwerking", v)} />
           </div>
+          {data.dakrandAfwerking === "Modern zetwerk" && (
+            <div style={styles.subSection}>
+              <div style={styles.row}>
+                <div style={styles.label}>Kleur RAL:</div>
+                <input style={styles.input} placeholder="RAL kleurcode" value={data.dakrandKleur} onChange={e => set("dakrandKleur", e.target.value)} />
+              </div>
+            </div>
+          )}
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Overstek:</div>
             <RadioGroup name="overstek" options={["N.V.T.", "Ja"]} value={data.overstek} onChange={v => set("overstek", v)} />
-            {data.overstek === "Ja" && <input style={styles.inputSmall} placeholder="MM" value={data.overstekMM} onChange={e => set("overstekMM", e.target.value)} />}
           </div>
-          <div style={styles.divider} />
-          <div style={styles.row}>
-            <div style={styles.label}>Dakvorm:</div>
-            <RadioGroup name="dakvorm" options={["Lessenaar", "Zadeldak"]} value={data.dakVorm} onChange={v => set("dakVorm", v)} />
-            <div style={styles.label}>Kleur RAL:</div>
-            <input style={styles.inputSmall} value={data.dakrandKleur} onChange={e => set("dakrandKleur", e.target.value)} />
-          </div>
-          <div style={styles.divider} />
-          <div style={styles.row}>
-            <div style={styles.label}>Lichtstraat:</div>
-            <RadioGroup name="lichtstraat" options={["N.V.T.", "Ja"]} value={data.lichtstraat} onChange={v => set("lichtstraat", v)} />
-          </div>
-          {data.lichtstraat === "Ja" && (
+          {data.overstek === "Ja" && (
             <div style={styles.subSection}>
               <div style={styles.row}>
-                <div style={styles.label}>Formaat:</div>
-                <input style={styles.inputSmall} placeholder="Breedte MM" value={data.lichtsturaatFormaat} onChange={e => set("lichtsturaatFormaat", e.target.value)} />
+                <div style={styles.label}>Diepte:</div>
+                <input style={styles.inputSmall} inputMode="decimal" placeholder="MM" value={data.overstekMM} onChange={e => set("overstekMM", e.target.value)} />
+                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <div style={styles.label}>Kleur RAL:</div>
-                <input style={styles.inputSmall} value={data.lichtsturaatKleur} onChange={e => set("lichtsturaatKleur", e.target.value)} />
+                <input style={styles.input} placeholder="RAL kleurcode" value={data.overstekRAL} onChange={e => set("overstekRAL", e.target.value)} />
               </div>
             </div>
           )}
+          <div style={styles.divider} />
+          <div style={styles.row}>
+            <div style={styles.label}>Lichtstraat:</div>
+            <RadioGroup name="lichtstraat" options={["N.V.T.", "Lessenaar", "Zadeldak"]} value={data.lichtstraat} onChange={v => set("lichtstraat", v)} />
+          </div>
+          {(data.lichtstraat === "Lessenaar" || data.lichtstraat === "Zadeldak") && (
+            <div style={styles.subSection}>
+              <div style={styles.row}>
+                <div style={styles.label}>Formaat:</div>
+                <span style={{ fontSize: 13 }}>Lengte:</span>
+                <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.lichtstraatLengteMM} onChange={e => set("lichtstraatLengteMM", e.target.value)} />
+                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
+                <span style={{ fontSize: 13 }}>Breedte:</span>
+                <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.lichtstraatBreedteMM} onChange={e => set("lichtstraatBreedteMM", e.target.value)} />
+                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
+              </div>
+              <div style={styles.divider} />
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Kleur:</div>
+              <RadioGroup name="lichtstraatKleur" options={["Wit", "Zwart", "Wit binnen / Zwart buiten"]}
+                value={data.lichtstraatKleur} onChange={v => set("lichtstraatKleur", v)} />
+              <div style={styles.divider} />
+              <div style={styles.row}>
+                <div style={styles.label}>Aantal delen glas:</div>
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data.lichtstraatDelenGlas} onChange={e => set("lichtstraatDelenGlas", e.target.value)} />
+              </div>
+            </div>
+          )}
+          <div style={styles.divider} />
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Positie lichtstraat op dak (schets):</div>
+          <DrawingCanvas id="lichtstraatPositie" value={data.schetsLichtstraatPositie} onChange={v => set("schetsLichtstraatPositie", v)}
+            grid square gridCols={20} gridRows={20} maxVh={40} />
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / extra's:</div>
           <textarea style={styles.textarea} value={data.dakOpmerking} onChange={e => set("dakOpmerking", e.target.value)} />
@@ -1296,7 +1329,7 @@ export default function App() {
             ["Kozijn 1", [["Type", data.k1Type], ["Opties", data.k1Opties.join(", ")], ["Raamtype", data.k1RaamType], ["Harmonica delen", data.k1HarmonicaDelen], ["Harmonica richting", data.k1HarmonicaRichting], ["Ventilatierooster", data.k1Ventilatierooster], ["Materiaal", data.k1Materiaal], ["RAL", data.k1RAL], ["Glas", data.k1Glas], ["Breedte", `${data.k1Breedte} MM`], ["Hoogte", `${data.k1Hoogte} MM`]]],
             ["Kozijn 2", [["Type", data.k2Type], ["Opties", data.k2Opties.join(", ")], ["Raamtype", data.k2RaamType], ["Harmonica delen", data.k2HarmonicaDelen], ["Harmonica richting", data.k2HarmonicaRichting], ["Ventilatierooster", data.k2Ventilatierooster], ["Materiaal", data.k2Materiaal], ["RAL", data.k2RAL], ["Glas", data.k2Glas], ["Breedte", `${data.k2Breedte} MM`], ["Hoogte", `${data.k2Hoogte} MM`]]],
             ["Kozijn 3", [["Type", data.k3Type], ["Opties", data.k3Opties.join(", ")], ["Raamtype", data.k3RaamType], ["Harmonica delen", data.k3HarmonicaDelen], ["Harmonica richting", data.k3HarmonicaRichting], ["Ventilatierooster", data.k3Ventilatierooster], ["Materiaal", data.k3Materiaal], ["RAL", data.k3RAL], ["Glas", data.k3Glas], ["Breedte", `${data.k3Breedte} MM`], ["Hoogte", `${data.k3Hoogte} MM`]]],
-            ["Dak", [["Dakbedekking", data.dakbedekking], ["Dakrand", data.dakrandAfwerking], ["Overstek", data.overstek === "Ja" ? `Ja, ${data.overstekMM} MM` : "N.V.T."], ["Lichtstraat", data.lichtstraat]]],
+            ["Dak", [["Dakbedekking", data.dakbedekking], ["Dakrand", data.dakrandAfwerking], ["Dakrand RAL", data.dakrandKleur], ["Overstek", data.overstek === "Ja" ? `Ja, ${data.overstekMM} MM, RAL ${data.overstekRAL}` : "N.V.T."], ["Lichtstraat", data.lichtstraat], ["Lichtstraat afmeting", (data.lichtstraatLengteMM || data.lichtstraatBreedteMM) ? `${data.lichtstraatLengteMM} x ${data.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", data.lichtstraatKleur], ["Lichtstraat delen glas", data.lichtstraatDelenGlas]]],
             ["E-installaties", [["Stopcontacten", data.stopcontacten.join(", ")], ["Verlichting", data.verlichting.join(", ")], ["Schakelaars", data.schakelaars.join(", ")], ["Warmte/Koude", data.warmteKoude.join(", ")]]],
             ["W-installaties", [["HWA materiaal", data.hwaMateriaal], ["Warmte", data.warmte], ["Buitenkraan", data.buitenkraan]]],
           ].map(([title, rows]) => (

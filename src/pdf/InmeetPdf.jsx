@@ -253,6 +253,7 @@ const SCHETS_VELDEN = [
   { key: "schetsKozijn1", label: "Schets — Kozijn 1" },
   { key: "schetsKozijn2", label: "Schets — Kozijn 2" },
   { key: "schetsKozijn3", label: "Schets — Kozijn 3" },
+  { key: "schetsLichtstraatPositie", label: "Schets — Positie lichtstraat op dak" },
   { key: "schetsEinstallatie", label: "Schets — Elektra installatie" },
   { key: "schetsWinstallatie", label: "Schets — Water/CV installatie" },
 ];
@@ -401,14 +402,14 @@ export default function InmeetPdf({ data, logoSrc }) {
           title="Dak & lichtstraat"
           fields={[
             ["Dakbedekking", data.dakbedekking],
-            ["Dakvorm", data.dakVorm],
-            ["Overstek", data.overstek === "Ja" ? `Ja, ${waarde(data.overstekMM)} MM` : data.overstek],
+            ["Overstek", data.overstek === "Ja" ? `Ja, ${waarde(data.overstekMM)} MM, RAL ${waarde(data.overstekRAL)}` : data.overstek],
             ["Dakrand afwerking", data.dakrandAfwerking],
-            ["Dakrand materiaal", data.dakrandMateriaal],
-            ["Dakrand kleur", data.dakrandKleur],
+            ["Dakrand kleur RAL", data.dakrandKleur],
             ["Lichtstraat", data.lichtstraat],
-            ["Lichtstraat formaat", data.lichtsturaatFormaat],
-            ["Lichtstraat kleur", data.lichtsturaatKleur],
+            ["Lichtstraat lengte", fmtMM(data.lichtstraatLengteMM)],
+            ["Lichtstraat breedte", fmtMM(data.lichtstraatBreedteMM)],
+            ["Lichtstraat kleur", data.lichtstraatKleur],
+            ["Lichtstraat aantal delen glas", data.lichtstraatDelenGlas],
           ]}
           opmerking={waarde(data.dakOpmerking)}
         />

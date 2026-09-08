@@ -36,7 +36,16 @@
 - [x] Pagina 8/10/12 Kozijn 1/2/3 Schets: grid nu 10 x 4 meter (breed x hoog, i.p.v. het
       vierkante 15x15 grid van Maatvoering), met de vaste opmerking "Dit is het buitenaanzicht"
       boven de schets.
-- [ ] Pagina 13 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-12).
+- [x] Pagina 13 Dak & Lichtstraat: flink herzien.
+      Dakbedekking: EPDM/Sedum/Bitumen (Bitumen met hint "alleen bij aansluiting op bestaand
+      bitumen dak"). Dakrand: "Modern zetwerk" (naam gefixt, was "Modern zw zetwerk") / Kraal
+      zink — RAL-veld popt alleen op bij Modern zetwerk. Overstek Ja → Diepte (MM, numeriek) +
+      RAL. Dakvorm is weg. Lichtstraat is nu N.V.T./Lessenaar/Zadeldak — bij Lessenaar of
+      Zadeldak popt op: Lengte+Breedte (MM, numeriek), Kleur (Wit/Zwart/Wit binnen-Zwart
+      buiten), Aantal delen glas (numeriek). Bij N.V.T. blijft alles dicht. Nieuw tekenvak op
+      dezelfde pagina voor de positie van de lichtstraat op het dak (grid 20x20m, kleiner
+      formaat zodat alles op 1 pagina past).
+- [ ] Pagina 14 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-13).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
