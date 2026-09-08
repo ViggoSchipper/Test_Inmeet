@@ -246,6 +246,8 @@ const FOTO_VELDEN = [
   { key: "fotoAchterBinnen", label: "Achtergevel — binnenkant" },
   { key: "fotoKruipruimte", label: "Kruipruimte" },
   { key: "fotoBereikbaarheid", label: "Bereikbaarheid werkplek" },
+  { key: "steenstripAndersFoto", label: "Gevelbekleding — Steenstrip (Anders)" },
+  { key: "composietAndersFoto", label: "Gevelbekleding — Composiet (Anders)" },
 ];
 
 const SCHETS_VELDEN = [

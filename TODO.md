@@ -45,6 +45,12 @@
       buiten), Aantal delen glas (numeriek). Bij N.V.T. blijft alles dicht. Nieuw tekenvak op
       dezelfde pagina voor de positie van de lichtstraat op het dak (grid 20x20m, kleiner
       formaat zodat alles op 1 pagina past).
+- [x] Pagina 13 fixes: "Zinken zetkap" toegevoegd naast Kraal zink bij Dakrand. Lichtstraat
+      Lessenaar/Zadeldak tonen nu echte productfoto's (net als bij Gevelbekleding) i.p.v. platte
+      radiokeuze. Tekenvak positie lichtstraat verschijnt nu pas ná het kiezen van Lessenaar of
+      Zadeldak (niet meer altijd zichtbaar).
+- [x] Pagina 6 Gevelbekleding: "Anders"-vakken bij Steenstrips en Composiet hebben nu een
+      klikbare foto-upload (zoals bij de andere foto-velden) i.p.v. alleen een tekstveld.
 - [ ] Pagina 14 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-13).
 
 ## Vóór overgang naar productie

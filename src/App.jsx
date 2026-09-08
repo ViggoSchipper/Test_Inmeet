@@ -11,6 +11,8 @@ import fotoCompositComleetZwart from "./assets/gevel/composiet-compleet-zwart.jp
 import fotoCompositTeakZwart from "./assets/gevel/composiet-teak-zwart.jpg";
 import fotoKerama from "./assets/gevel/kerama.jpg";
 import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
+import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
+import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 // @react-pdf/renderer is een zware library (~500KB gzipped). Die wordt pas
 // ingeladen op het moment dat de opmeter daadwerkelijk op "PDF bekijken"
 // klikt (zie bekijkPdf hieronder), zodat de eerste keer laden van de app
@@ -453,6 +455,8 @@ const PAGE_VALIDATORS = [
 export default function App() {
   const [page, setPage] = useState(0);
   const [foutmeldingen, setFoutmeldingen] = useState([]);
+  const steenstripAndersFotoRef = useRef(null);
+  const composietAndersFotoRef = useRef(null);
   const [data, setData] = useState({
     // Contact
     projectnummer: "",
@@ -470,8 +474,8 @@ export default function App() {
     // Wandafwerking
     binnenwand: "", stucwerk: "",
     // Gevelbekleding
-    steenstrip: "", steenstripAnders: "", steenstripVoegkleur: "",
-    composiet: "", composietAnders: "",
+    steenstrip: "", steenstripAnders: "", steenstripAndersFoto: null, steenstripVoegkleur: "",
+    composiet: "", composietAnders: "", composietAndersFoto: null,
     keramaType: "", keramaKleur: "",
     houtType: "", houtKleur: "",
     gevelOpmerking: "",
@@ -981,9 +985,19 @@ export default function App() {
               </div>
             ))}
             <div style={styles.optionCard(data.steenstrip === "Anders")}>
-              <div style={{ aspectRatio: "1 / 1", border: `2px dashed ${GOLD}`, borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 12, color: GOLD }}>Anders</span>
+              <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden", cursor: "pointer" }}
+                onClick={() => { set("steenstrip", "Anders"); steenstripAndersFotoRef.current?.click(); }}>
+                {data.steenstripAndersFoto ? (
+                  <img src={data.steenstripAndersFoto} alt="Anders" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", border: `2px dashed ${GOLD}`, borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <span style={{ fontSize: 20 }}>📷</span>
+                    <span style={{ fontSize: 11, color: GOLD }}>Foto toevoegen</span>
+                  </div>
+                )}
               </div>
+              <input ref={steenstripAndersFotoRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+                onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { set("steenstripAndersFoto", ev.target.result); set("steenstrip", "Anders"); }; r.readAsDataURL(f); } }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" readOnly checked={data.steenstrip === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("steenstrip", "Anders")} />
                 <span style={{ fontSize: 12 }}>Type:</span>
@@ -1015,9 +1029,19 @@ export default function App() {
               </div>
             ))}
             <div style={styles.optionCard(data.composiet === "Anders")}>
-              <div style={{ aspectRatio: "1 / 1", border: `2px dashed ${GOLD}`, borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 12, color: GOLD }}>Anders</span>
+              <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden", cursor: "pointer" }}
+                onClick={() => { set("composiet", "Anders"); composietAndersFotoRef.current?.click(); }}>
+                {data.composietAndersFoto ? (
+                  <img src={data.composietAndersFoto} alt="Anders" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", border: `2px dashed ${GOLD}`, borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <span style={{ fontSize: 20 }}>📷</span>
+                    <span style={{ fontSize: 11, color: GOLD }}>Foto toevoegen</span>
+                  </div>
+                )}
               </div>
+              <input ref={composietAndersFotoRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+                onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { set("composietAndersFoto", ev.target.result); set("composiet", "Anders"); }; r.readAsDataURL(f); } }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" readOnly checked={data.composiet === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("composiet", "Anders")} />
                 <span style={{ fontSize: 12 }}>Type:</span>
@@ -1103,7 +1127,7 @@ export default function App() {
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Dakrand afwerking:</div>
-            <RadioGroup name="dakrand" options={["Modern zetwerk", "Kraal zink"]} value={data.dakrandAfwerking} onChange={v => set("dakrandAfwerking", v)} />
+            <RadioGroup name="dakrand" options={["Modern zetwerk", "Kraal zink", "Zinken zetkap"]} value={data.dakrandAfwerking} onChange={v => set("dakrandAfwerking", v)} />
           </div>
           {data.dakrandAfwerking === "Modern zetwerk" && (
             <div style={styles.subSection}>
@@ -1130,9 +1154,28 @@ export default function App() {
             </div>
           )}
           <div style={styles.divider} />
-          <div style={styles.row}>
-            <div style={styles.label}>Lichtstraat:</div>
-            <RadioGroup name="lichtstraat" options={["N.V.T.", "Lessenaar", "Zadeldak"]} value={data.lichtstraat} onChange={v => set("lichtstraat", v)} />
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Lichtstraat:</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 4 }}>
+            {[{ val: "Lessenaar", foto: fotoLichtstraatLessenaar }, { val: "Zadeldak", foto: fotoLichtstraatZadeldak }].map(opt => (
+              <div key={opt.val} style={styles.optionCard(data.lichtstraat === opt.val)} onClick={() => set("lichtstraat", opt.val)}>
+                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
+                  <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <input type="radio" readOnly checked={data.lichtstraat === opt.val} style={{ accentColor: GOLD }} />
+                  <span style={{ fontSize: 12 }}>{opt.val}</span>
+                </div>
+              </div>
+            ))}
+            <div style={styles.optionCard(data.lichtstraat === "N.V.T.")} onClick={() => set("lichtstraat", "N.V.T.")}>
+              <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center", background: "#fdfcf8", border: `1px solid ${GOLD}33` }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Geen lichtstraat</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input type="radio" readOnly checked={data.lichtstraat === "N.V.T."} style={{ accentColor: GOLD }} />
+                <span style={{ fontSize: 12 }}>N.V.T.</span>
+              </div>
+            </div>
           </div>
           {(data.lichtstraat === "Lessenaar" || data.lichtstraat === "Zadeldak") && (
             <div style={styles.subSection}>
@@ -1154,12 +1197,12 @@ export default function App() {
                 <div style={styles.label}>Aantal delen glas:</div>
                 <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data.lichtstraatDelenGlas} onChange={e => set("lichtstraatDelenGlas", e.target.value)} />
               </div>
+              <div style={styles.divider} />
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Positie lichtstraat op dak (schets):</div>
+              <DrawingCanvas id="lichtstraatPositie" value={data.schetsLichtstraatPositie} onChange={v => set("schetsLichtstraatPositie", v)}
+                grid square gridCols={20} gridRows={20} maxVh={40} />
             </div>
           )}
-          <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Positie lichtstraat op dak (schets):</div>
-          <DrawingCanvas id="lichtstraatPositie" value={data.schetsLichtstraatPositie} onChange={v => set("schetsLichtstraatPositie", v)}
-            grid square gridCols={20} gridRows={20} maxVh={40} />
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / extra's:</div>
           <textarea style={styles.textarea} value={data.dakOpmerking} onChange={e => set("dakOpmerking", e.target.value)} />
