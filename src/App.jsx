@@ -25,8 +25,7 @@ const LIGHT = "#f5f5f5";
 const styles = {
   app: { fontFamily: "'Segoe UI', sans-serif", background: LIGHT, minHeight: "100vh", width: "100vw", boxSizing: "border-box", overflowX: "hidden", padding: 0, margin: 0 },
   header: { borderTop: `5px solid ${GOLD}`, background: "white", padding: "12px 20px", borderBottom: `2px solid ${GOLD}`, display: "flex", alignItems: "center", gap: 14, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.07)" },
-  logoText: { fontSize: 22, fontWeight: 900, color: BLACK, letterSpacing: -1 },
-  logoAccent: { color: GOLD },
+  logoImg: { height: 32, width: "auto", display: "block" },
   pageTitle: { fontSize: 18, fontWeight: 600, color: BLACK, marginLeft: 4 },
   progress: { display: "flex", gap: 4, marginLeft: "auto", alignItems: "center" },
   progressDot: (active, done) => ({ width: active ? 10 : 6, height: active ? 10 : 6, borderRadius: "50%", background: done ? GOLD : active ? BLACK : "#ccc", transition: "all 0.2s" }),
@@ -302,6 +301,38 @@ function CheckGroup({ options, values, onChange }) {
   );
 }
 
+// Checkbox-groep met een aantal-veld (numeriek) per aangevinkte optie.
+// extra(opt) mag optioneel extra JSX teruggeven die verschijnt zodra die
+// specifieke optie is aangevinkt (bijv. een kleurkeuze bij "Spotjes").
+function CheckGroupAantal({ options, values, onChange, aantallen, onAantalChange, extra }) {
+  return (
+    <div>
+      {options.map(opt => {
+        const checked = values.includes(opt);
+        return (
+          <div key={opt} style={{ marginBottom: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <label style={styles.checkLabel}>
+                <input type="checkbox" checked={checked} style={{ accentColor: GOLD, width: 16, height: 16 }}
+                  onChange={e => { if (e.target.checked) onChange([...values, opt]); else onChange(values.filter(v => v !== opt)); }} />
+                {opt}
+              </label>
+              {checked && (
+                <>
+                  <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
+                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0"
+                    value={aantallen[opt] || ""} onChange={e => onAantalChange(opt, e.target.value)} />
+                </>
+              )}
+            </div>
+            {checked && extra && extra(opt)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const PAGES = [
   "Contact", "Maatvoering", "Maatvoering Schets", "Voorbereidingen", "Voorbereiding Foto's",
   "Wandafwerking & Gevelbekleding", "Kozijn 1", "Kozijn 1 Schets", "Kozijn 2", "Kozijn 2 Schets",
@@ -314,6 +345,12 @@ const PAGES = [
 // of alle verplichte velden op die pagina zijn ingevuld. Geeft een lijst
 // met leesbare namen van wat er nog mist terug (leeg = alles goed). Een
 // pagina zonder validator (null) heeft geen verplichte velden.
+// Zet een lijst gekozen opties + bijbehorende aantallen om in leesbare tekst,
+// bijv. ["Enkel", "Dubbel"] + {Enkel: "3", Dubbel: "1"} => "Enkel (3x), Dubbel (1x)".
+function metAantal(items, aantallen) {
+  return (items || []).map(i => (aantallen[i] ? `${i} (${aantallen[i]}x)` : i)).join(", ");
+}
+
 function heeftWaarde(v) {
   if (Array.isArray(v)) return v.length > 0;
   if (typeof v === "boolean") return v;
@@ -440,7 +477,7 @@ const PAGE_VALIDATORS = [
   // de pagina niet helemaal leeg is.
   (data) => {
     const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
-      heeftWaarde(data.warmteKoude) || data.buitenVerlichting || data.wcd;
+      heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
     return iets ? [] : ["Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude"];
   },
   // 14: E-installatie Tekening - geen verplichte velden.
@@ -496,11 +533,15 @@ export default function App() {
     lichtstraat: "", lichtstraatLengteMM: "", lichtstraatBreedteMM: "", lichtstraatKleur: "", lichtstraatDelenGlas: "",
     schetsLichtstraatPositie: null, dakOpmerking: "",
     // E-installaties
-    stopcontacten: [], stopMerk: "", stopType: "", stopKleur: "",
-    verlichting: [], verlichtingMerk: "", verlichtingType: "", verlichtingKleur: "",
-    schakelaars: [], schakelaarMerk: "", schakelaarType: "", schakelaarKleur: "",
-    buitenVerlichting: false, buitenVerlichtingMerk: "", buitenVerlichtingType: "", buitenVerlichtingKleur: "",
-    wcd: false, wcdMerk: "Niko", wcdType: "Hor", wcdKleur: "Zwart",
+    stopcontacten: [], stopcontactenAnders: "", stopMerkType: "",
+    stopAantalEnkel: "", stopAantalDubbel: "", stopAantalTripel: "", stopAantalAnders: "",
+    verlichting: [], verlichtingMerkType: "", verlichtingSpotjesKleur: "",
+    verAantalCD: "", verAantalSpotjes: "", verAantalHanglamp: "",
+    schakelaars: [], schakelaarMerkType: "",
+    schAantalSchakelaar: "", schAantalDimmer: "", schAantalSensor: "",
+    buitenVerlichting: [], buitenVerlichtingMerkType: "", buitenSpotjesKleur: "",
+    buitenAantalSpotjes: "", buitenAantalUpDown: "",
+    wcd: false, wcdAantal: "",
     warmteKoude: [],
     eOpmerking: "",
     schetsEinstallatie: null,
@@ -1213,51 +1254,73 @@ export default function App() {
         <div style={styles.sectionBody}>
           <div style={{ fontSize: 11, color: GOLD, marginBottom: 12, fontStyle: "italic" }}>Positie op tekening aangeven gekoppeld met letters. Schakelaar A → spotjes A</div>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Stopcontacten</div>
-          <CheckGroup options={["Enkel", "Dubbel", "Tripel", "Anders"]} values={data.stopcontacten} onChange={v => set("stopcontacten", v)} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 10 }}>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Merk:</div><input style={styles.input} value={data.stopMerk} onChange={e => set("stopMerk", e.target.value)} /></div>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Type:</div><input style={styles.input} value={data.stopType} onChange={e => set("stopType", e.target.value)} /></div>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Kleur:</div><input style={styles.input} value={data.stopKleur} onChange={e => set("stopKleur", e.target.value)} /></div>
+          <CheckGroupAantal options={["Enkel", "Dubbel", "Tripel", "Anders"]} values={data.stopcontacten} onChange={v => set("stopcontacten", v)}
+            aantallen={{ Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders }}
+            onAantalChange={(opt, val) => set({ Enkel: "stopAantalEnkel", Dubbel: "stopAantalDubbel", Tripel: "stopAantalTripel", Anders: "stopAantalAnders" }[opt], val)}
+            extra={opt => opt === "Anders" && (
+              <input style={{ ...styles.input, marginTop: 6 }} placeholder="Omschrijving..." value={data.stopcontactenAnders}
+                onChange={e => set("stopcontactenAnders", e.target.value)} />
+            )} />
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
+            <input style={styles.input} value={data.stopMerkType} onChange={e => set("stopMerkType", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Binnen verlichting</div>
-          <CheckGroup options={["CD", "Spotjes", "Hanglamp"]} values={data.verlichting} onChange={v => set("verlichting", v)} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 10 }}>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Merk:</div><input style={styles.input} value={data.verlichtingMerk} onChange={e => set("verlichtingMerk", e.target.value)} /></div>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Type:</div><input style={styles.input} value={data.verlichtingType} onChange={e => set("verlichtingType", e.target.value)} /></div>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Kleur:</div><input style={styles.input} value={data.verlichtingKleur} onChange={e => set("verlichtingKleur", e.target.value)} /></div>
+          <CheckGroupAantal options={["CD", "Spotjes", "Hanglamp"]} values={data.verlichting} onChange={v => set("verlichting", v)}
+            aantallen={{ CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp }}
+            onAantalChange={(opt, val) => set({ CD: "verAantalCD", Spotjes: "verAantalSpotjes", Hanglamp: "verAantalHanglamp" }[opt], val)}
+            extra={opt => opt === "Spotjes" && (
+              <div style={{ marginTop: 6 }}>
+                <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Kleur:</span>
+                <RadioGroup name="verlichtingSpotjesKleur" options={["Wit", "Zwart"]} value={data.verlichtingSpotjesKleur} onChange={v => set("verlichtingSpotjesKleur", v)} />
+              </div>
+            )} />
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
+            <input style={styles.input} value={data.verlichtingMerkType} onChange={e => set("verlichtingMerkType", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Schakelaars</div>
-          <CheckGroup options={["Schakelaar", "Dimmer", "Sensor"]} values={data.schakelaars} onChange={v => set("schakelaars", v)} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 10 }}>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Merk:</div><input style={styles.input} value={data.schakelaarMerk} onChange={e => set("schakelaarMerk", e.target.value)} /></div>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Type:</div><input style={styles.input} value={data.schakelaarType} onChange={e => set("schakelaarType", e.target.value)} /></div>
-            <div><div style={{ fontSize: 11, color: "#888" }}>Kleur:</div><input style={styles.input} value={data.schakelaarKleur} onChange={e => set("schakelaarKleur", e.target.value)} /></div>
+          <CheckGroupAantal options={["Schakelaar", "Dimmer", "Sensor"]} values={data.schakelaars} onChange={v => set("schakelaars", v)}
+            aantallen={{ Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor }}
+            onAantalChange={(opt, val) => set({ Schakelaar: "schAantalSchakelaar", Dimmer: "schAantalDimmer", Sensor: "schAantalSensor" }[opt], val)} />
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
+            <input style={styles.input} value={data.schakelaarMerkType} onChange={e => set("schakelaarMerkType", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Buiten E-installaties</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
-              <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.buitenVerlichting} onChange={e => set("buitenVerlichting", e.target.checked)} /> Verlichting / Spotjes / U/D wand</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 8 }}>
-                <input style={styles.input} placeholder="Merk" value={data.buitenVerlichtingMerk} onChange={e => set("buitenVerlichtingMerk", e.target.value)} />
-                <input style={styles.input} placeholder="Type" value={data.buitenVerlichtingType} onChange={e => set("buitenVerlichtingType", e.target.value)} />
-                <input style={styles.input} placeholder="Kleur" value={data.buitenVerlichtingKleur} onChange={e => set("buitenVerlichtingKleur", e.target.value)} />
+              <CheckGroupAantal options={["Spotjes", "Up/Down lamp"]} values={data.buitenVerlichting} onChange={v => set("buitenVerlichting", v)}
+                aantallen={{ Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown }}
+                onAantalChange={(opt, val) => set({ Spotjes: "buitenAantalSpotjes", "Up/Down lamp": "buitenAantalUpDown" }[opt], val)}
+                extra={opt => opt === "Spotjes" && (
+                  <div style={{ marginTop: 6 }}>
+                    <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Kleur:</span>
+                    <RadioGroup name="buitenSpotjesKleur" options={["Wit", "Zwart", "Antraciet"]} value={data.buitenSpotjesKleur} onChange={v => set("buitenSpotjesKleur", v)} />
+                  </div>
+                )} />
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
+                <input style={styles.input} value={data.buitenVerlichtingMerkType} onChange={e => set("buitenVerlichtingMerkType", e.target.value)} />
               </div>
             </div>
             <div>
-              <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.wcd} onChange={e => set("wcd", e.target.checked)} /> WCD's</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 8 }}>
-                <input style={styles.input} placeholder="Merk" defaultValue="Niko" value={data.wcdMerk} onChange={e => set("wcdMerk", e.target.value)} />
-                <input style={styles.input} placeholder="Type" defaultValue="Hor" value={data.wcdType} onChange={e => set("wcdType", e.target.value)} />
-                <input style={styles.input} placeholder="Kleur" defaultValue="Zwart" value={data.wcdKleur} onChange={e => set("wcdKleur", e.target.value)} />
-              </div>
+              <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.wcd} onChange={e => set("wcd", e.target.checked)} /> Buitenstopcontact</label>
+              {data.wcd && (
+                <div style={{ marginTop: 8 }}>
+                  <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Aantal:</span>
+                  <RadioGroup name="wcdAantal" options={["1", "2"]} value={data.wcdAantal} onChange={v => set("wcdAantal", v)} />
+                  <div style={{ ...styles.hint, marginTop: 6 }}>Dit is de NIKO 9005 inbouw dubbel horizontaal.</div>
+                </div>
+              )}
             </div>
           </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Warmte / Koude</div>
-          <CheckGroup options={["Airco", "WTW-unit", "Vloerverwarming"]} values={data.warmteKoude} onChange={v => set("warmteKoude", v)} />
+          <CheckGroup options={["Airco"]} values={data.warmteKoude} onChange={v => set("warmteKoude", v)} />
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / Extra's:</div>
           <textarea style={styles.textarea} value={data.eOpmerking} onChange={e => set("eOpmerking", e.target.value)} />
@@ -1369,7 +1432,21 @@ export default function App() {
             ["Kozijn 2", [["Type", data.k2Type], ["Opties", data.k2Opties.join(", ")], ["Raamtype", data.k2RaamType], ["Harmonica delen", data.k2HarmonicaDelen], ["Harmonica richting", data.k2HarmonicaRichting], ["Ventilatierooster", data.k2Ventilatierooster], ["Materiaal", data.k2Materiaal], ["RAL", data.k2RAL], ["Glas", data.k2Glas], ["Breedte", `${data.k2Breedte} MM`], ["Hoogte", `${data.k2Hoogte} MM`]]],
             ["Kozijn 3", [["Type", data.k3Type], ["Opties", data.k3Opties.join(", ")], ["Raamtype", data.k3RaamType], ["Harmonica delen", data.k3HarmonicaDelen], ["Harmonica richting", data.k3HarmonicaRichting], ["Ventilatierooster", data.k3Ventilatierooster], ["Materiaal", data.k3Materiaal], ["RAL", data.k3RAL], ["Glas", data.k3Glas], ["Breedte", `${data.k3Breedte} MM`], ["Hoogte", `${data.k3Hoogte} MM`]]],
             ["Dak", [["Dakbedekking", data.dakbedekking], ["Dakrand", data.dakrandAfwerking], ["Dakrand RAL", data.dakrandKleur], ["Overstek", data.overstek === "Ja" ? `Ja, ${data.overstekMM} MM, RAL ${data.overstekRAL}` : "N.V.T."], ["Lichtstraat", data.lichtstraat], ["Lichtstraat afmeting", (data.lichtstraatLengteMM || data.lichtstraatBreedteMM) ? `${data.lichtstraatLengteMM} x ${data.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", data.lichtstraatKleur], ["Lichtstraat delen glas", data.lichtstraatDelenGlas]]],
-            ["E-installaties", [["Stopcontacten", data.stopcontacten.join(", ")], ["Verlichting", data.verlichting.join(", ")], ["Schakelaars", data.schakelaars.join(", ")], ["Warmte/Koude", data.warmteKoude.join(", ")]]],
+            ["E-installaties", [
+              ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
+              ["Stopcontacten - Anders", data.stopcontactenAnders],
+              ["Stopcontacten Merk/Type", data.stopMerkType],
+              ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
+              ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
+              ["Verlichting Merk/Type", data.verlichtingMerkType],
+              ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
+              ["Schakelaars Merk/Type", data.schakelaarMerkType],
+              ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],
+              ["Buiten verlichting kleur", data.buitenSpotjesKleur],
+              ["Buiten verlichting Merk/Type", data.buitenVerlichtingMerkType],
+              ["Buitenstopcontact", data.wcd ? `Ja, aantal ${data.wcdAantal || "?"} (NIKO 9005 inbouw dubbel horizontaal)` : ""],
+              ["Warmte/Koude", data.warmteKoude.join(", ")],
+            ]],
             ["W-installaties", [["HWA materiaal", data.hwaMateriaal], ["Warmte", data.warmte], ["Buitenkraan", data.buitenkraan]]],
           ].map(([title, rows]) => (
             <div key={title} style={{ marginBottom: 16 }}>
@@ -1404,7 +1481,7 @@ export default function App() {
   return (
     <div style={styles.app}>
       <div style={styles.header}>
-        <div style={styles.logoText}>Add<span style={styles.logoAccent}>On</span></div>
+        <img src={logoUrl} alt="Add On Aanbouw op Maat" style={styles.logoImg} />
         <div style={styles.pageTitle}>{PAGES[page]}</div>
         <div style={styles.progress}>
           {PAGES.map((_, i) => <div key={i} style={styles.progressDot(i === page, i < page)} />)}

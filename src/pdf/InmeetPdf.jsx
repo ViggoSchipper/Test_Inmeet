@@ -158,6 +158,12 @@ function waarde(v) {
   return String(v).trim();
 }
 
+// Zet gekozen opties + bijbehorende aantallen om in leesbare tekst,
+// bijv. ["Enkel", "Dubbel"] + {Enkel: "3", Dubbel: "1"} => "Enkel (3x), Dubbel (1x)".
+function metAantal(items, aantallen) {
+  return (items || []).map((i) => (aantallen[i] ? `${i} (${aantallen[i]}x)` : i)).join(", ");
+}
+
 function Field({ label, value }) {
   const tekst = waarde(value);
   return (
@@ -418,16 +424,18 @@ export default function InmeetPdf({ data, logoSrc }) {
         <Section
           title="E-installaties"
           fields={[
-            ["Stopcontacten", data.stopcontacten],
-            ["Stopcontact merk/type/kleur", [data.stopMerk, data.stopType, data.stopKleur].filter(Boolean).join(" / ")],
-            ["Verlichting", data.verlichting],
-            ["Verlichting merk/type/kleur", [data.verlichtingMerk, data.verlichtingType, data.verlichtingKleur].filter(Boolean).join(" / ")],
-            ["Schakelaars", data.schakelaars],
-            ["Schakelaar merk/type/kleur", [data.schakelaarMerk, data.schakelaarType, data.schakelaarKleur].filter(Boolean).join(" / ")],
-            ["Buitenverlichting", data.buitenVerlichting],
-            ["Buiten merk/type/kleur", [data.buitenVerlichtingMerk, data.buitenVerlichtingType, data.buitenVerlichtingKleur].filter(Boolean).join(" / ")],
-            ["Wandcontactdoos (WCD)", data.wcd],
-            ["WCD merk/type/kleur", [data.wcdMerk, data.wcdType, data.wcdKleur].filter(Boolean).join(" / ")],
+            ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
+            ["Stopcontacten - Anders", data.stopcontactenAnders],
+            ["Stopcontacten Merk/Type", data.stopMerkType],
+            ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
+            ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
+            ["Verlichting Merk/Type", data.verlichtingMerkType],
+            ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
+            ["Schakelaars Merk/Type", data.schakelaarMerkType],
+            ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],
+            ["Buiten verlichting kleur", data.buitenSpotjesKleur],
+            ["Buiten verlichting Merk/Type", data.buitenVerlichtingMerkType],
+            ["Buitenstopcontact", data.wcd ? `Ja, aantal ${waarde(data.wcdAantal) || "?"} (NIKO 9005 inbouw dubbel horizontaal)` : "Nee"],
             ["Warmte/koude", data.warmteKoude],
           ]}
           opmerking={waarde(data.eOpmerking)}

@@ -54,7 +54,17 @@
 - [x] Pagina 13 layout: Lichtstraat-foto's veel kleiner gemaakt (klein vierkantje naast het
       keuzerondje, i.p.v. groot fotokaartje), N.V.T. is nu gewoon een keuzerondje op dezelfde
       regel i.p.v. een los kaartje met plaatje.
-- [ ] Pagina 14 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-13).
+- [x] Header-logo: linksboven staat nu het echte Add On-logo (afbeelding) i.p.v. tekst "AddOn".
+- [x] Pagina 14 E-installaties: flink herzien.
+      Stopcontacten/Binnen verlichting/Schakelaars/Buiten verlichting hebben nu per gekozen
+      optie een Aantal-veld (numeriek). Merk-veld overal weg, Type omgezet naar gecombineerd
+      Merk/Type-veld. Stopcontacten "Anders" heeft nu een omschrijvingsveld. Spotjes (binnen en
+      buiten) hebben een kleurkeuze (binnen: Wit/Zwart, buiten: Wit/Zwart/Antraciet). Buiten
+      verlichting is nu Spotjes/Up-Down lamp met eigen aantallen, net als de rest. WCD's zijn nu
+      "Buitenstopcontact": alleen aanvinken + aantal 1 of 2, met vaste opmerking "NIKO 9005
+      inbouw dubbel horizontaal" (geen losse merk/type/kleur-velden meer). Warmte/Koude toont nu
+      alleen nog Airco (WTW-unit en Vloerverwarming weg).
+- [ ] Pagina 15 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-14).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
