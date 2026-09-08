@@ -1163,7 +1163,7 @@ export default function App() {
             {[{ val: "Lessenaar", foto: fotoLichtstraatLessenaar }, { val: "Zadeldak", foto: fotoLichtstraatZadeldak }].map(opt => (
               <div key={opt.val} style={{ ...styles.optionCard(data.lichtstraat === opt.val), padding: "6px 10px", display: "flex", alignItems: "center", gap: 8 }}
                 onClick={() => set("lichtstraat", opt.val)}>
-                <div style={{ width: 44, height: 44, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
+                <div style={{ width: 88, height: 88, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
                   <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
