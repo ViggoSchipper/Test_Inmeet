@@ -23,6 +23,10 @@
       tenzij "Geen kruipruimte aanwezig" is aangevinkt.
 - [x] Pagina 6 Wandafwerking & Gevelbekleding: samengevoegd tot 1 pagina (was 2 losse pagina's,
       binnen + buiten stonden origineel ook al samen). App heeft nu 18 pagina's i.p.v. 19.
+- [x] Pagina 6 Gevelbekleding: echte foto's i.p.v. kleurvlakken bij Steenstrips en Composiet,
+      plus foto bij Kerama en Hout (thermisch gemodificeerd). Nieuw veld "Voegkleur" bij
+      Steenstrips, verplicht (bij aanzetten validatie) zodra een Steenstrip-optie is gekozen.
+      Gevelbekleding en Binnenwandafwerking: bevestigd dat "1 optie verplicht" al klopte.
 - [ ] Pagina 7 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-6).
 
 ## Vóór overgang naar productie
@@ -41,4 +45,5 @@
 
 ## Later / optioneel
 - [ ] "Toevoegen aan beginscherm" (Add to Home Screen) instructie voor gebruikers, na afronden optimalisatieronde.
-- [ ] Echte foto's van gevelbekleding-materialen ter vervanging van de huidige kleurstalen (indien aangeleverd).
+- [x] Echte foto's van gevelbekleding-materialen ter vervanging van de huidige kleurstalen — gedaan (zie pagina 6 hierboven).
+- [ ] PDF (InmeetPdf.jsx) gebruikt bij Steenstrips/Composiet nog kleurvlakken i.p.v. de nieuwe foto's — optioneel later ook naar foto's.

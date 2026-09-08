@@ -3,6 +3,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import logoUrl from "./assets/logo.png";
+import fotoSteenstripRood from "./assets/gevel/steenstrip-rood.jpg";
+import fotoSteenstripGrijs from "./assets/gevel/steenstrip-grijs.jpg";
+import fotoSteenstripGeel from "./assets/gevel/steenstrip-geel.jpg";
+import fotoCompositRusticTeak from "./assets/gevel/composiet-rustic-teak.jpg";
+import fotoCompositComleetZwart from "./assets/gevel/composiet-compleet-zwart.jpg";
+import fotoCompositTeakZwart from "./assets/gevel/composiet-teak-zwart.jpg";
+import fotoKerama from "./assets/gevel/kerama.jpg";
+import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
 // @react-pdf/renderer is een zware library (~500KB gzipped). Die wordt pas
 // ingeladen op het moment dat de opmeter daadwerkelijk op "PDF bekijken"
 // klikt (zie bekijkPdf hieronder), zodat de eerste keer laden van de app
@@ -380,6 +388,7 @@ const PAGE_VALIDATORS = [
     if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
     const ietsGekozen = heeftWaarde(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
     if (!ietsGekozen) missend.push("Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)");
+    if (heeftWaarde(data.steenstrip) && !heeftWaarde(data.steenstripVoegkleur)) missend.push("Voegkleur steenstrips");
     return missend;
   },
   // 6: Kozijn 1 (altijd verplicht)
@@ -446,7 +455,7 @@ export default function App() {
     // Wandafwerking
     binnenwand: "", stucwerk: "",
     // Gevelbekleding
-    steenstrip: "", steenstripAnders: "",
+    steenstrip: "", steenstripAnders: "", steenstripVoegkleur: "",
     composiet: "", composietAnders: "",
     keramaType: "", keramaKleur: "",
     houtType: "", houtKleur: "",
@@ -910,9 +919,11 @@ export default function App() {
           <div style={{ fontSize: 13, fontWeight: 700, color: BLACK, marginBottom: 10 }}>Gevelbekleding</div>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Steenstrips</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-            {[{ val: "Rood", hint: "Viola 0013A0", color: "#c0392b" }, { val: "Grijs", hint: "Platina 0004A0", color: "#95a5a6" }, { val: "Geel", hint: "Freya 0504A0", color: "#d4ac0d" }].map(opt => (
+            {[{ val: "Rood", hint: "Viola 0013A0", foto: fotoSteenstripRood }, { val: "Grijs", hint: "Platina 0004A0", foto: fotoSteenstripGrijs }, { val: "Geel", hint: "Freya 0504A0", foto: fotoSteenstripGeel }].map(opt => (
               <div key={opt.val} style={styles.optionCard(data.steenstrip === opt.val)} onClick={() => set("steenstrip", opt.val)}>
-                <div style={{ height: 50, background: opt.color, borderRadius: 6, marginBottom: 6 }} />
+                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
+                  <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <input type="radio" readOnly checked={data.steenstrip === opt.val} style={{ accentColor: GOLD }} />
                   <span style={{ fontSize: 12 }}>{opt.val}</span>
@@ -921,7 +932,7 @@ export default function App() {
               </div>
             ))}
             <div style={styles.optionCard(data.steenstrip === "Anders")}>
-              <div style={{ height: 50, border: `2px dashed ${GOLD}`, borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ aspectRatio: "1 / 1", border: `2px dashed ${GOLD}`, borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ fontSize: 12, color: GOLD }}>Anders</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -932,13 +943,22 @@ export default function App() {
                 onChange={e => { set("steenstripAnders", e.target.value); set("steenstrip", "Anders"); }} />
             </div>
           </div>
+          {heeftWaarde(data.steenstrip) && (
+            <div style={{ ...styles.row, marginBottom: 16 }}>
+              <div style={styles.label}>Voegkleur:</div>
+              <input style={styles.input} placeholder="bijv. Antraciet" value={data.steenstripVoegkleur}
+                onChange={e => set("steenstripVoegkleur", e.target.value)} />
+            </div>
+          )}
 
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Rhombus-smal profiel (Composiet)</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-            {[{ val: "Rustic Teak", color: "#8B6914" }, { val: "Compleet zwart", color: "#1a1a1a" }, { val: "Teak met zwart", color: "#4a3010" }].map(opt => (
+            {[{ val: "Rustic Teak", foto: fotoCompositRusticTeak }, { val: "Compleet zwart", foto: fotoCompositComleetZwart }, { val: "Teak met zwart", foto: fotoCompositTeakZwart }].map(opt => (
               <div key={opt.val} style={styles.optionCard(data.composiet === opt.val)} onClick={() => set("composiet", opt.val)}>
-                <div style={{ height: 50, background: opt.color, borderRadius: 6, marginBottom: 6 }} />
+                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
+                  <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <input type="radio" readOnly checked={data.composiet === opt.val} style={{ accentColor: GOLD }} />
                   <span style={{ fontSize: 12 }}>{opt.val}</span>
@@ -946,7 +966,7 @@ export default function App() {
               </div>
             ))}
             <div style={styles.optionCard(data.composiet === "Anders")}>
-              <div style={{ height: 50, border: `2px dashed ${GOLD}`, borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ aspectRatio: "1 / 1", border: `2px dashed ${GOLD}`, borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ fontSize: 12, color: GOLD }}>Anders</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -960,15 +980,21 @@ export default function App() {
 
           <div style={styles.divider} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Kerama <span style={{ color: GOLD, fontWeight: 400, fontSize: 11 }}>Luxe onderhoudsvrij</span></div>
-              <input style={styles.input} placeholder="Type profiel:" value={data.keramaType} onChange={e => set("keramaType", e.target.value)} />
-              <input style={{ ...styles.input, marginTop: 8 }} placeholder="Kleur:" value={data.keramaKleur} onChange={e => set("keramaKleur", e.target.value)} />
+            <div style={{ display: "flex", gap: 12 }}>
+              <img src={fotoKerama} alt="Kerama" style={{ width: 84, height: 84, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Kerama <span style={{ color: GOLD, fontWeight: 400, fontSize: 11 }}>Luxe onderhoudsvrij</span></div>
+                <input style={styles.input} placeholder="Type profiel:" value={data.keramaType} onChange={e => set("keramaType", e.target.value)} />
+                <input style={{ ...styles.input, marginTop: 8 }} placeholder="Kleur:" value={data.keramaKleur} onChange={e => set("keramaKleur", e.target.value)} />
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Thermisch gemodificeerd hout</div>
-              <input style={styles.input} placeholder="Type profiel:" value={data.houtType} onChange={e => set("houtType", e.target.value)} />
-              <input style={{ ...styles.input, marginTop: 8 }} placeholder="Kleur:" value={data.houtKleur} onChange={e => set("houtKleur", e.target.value)} />
+            <div style={{ display: "flex", gap: 12 }}>
+              <img src={fotoHoutThermisch} alt="Thermisch gemodificeerd hout" style={{ width: 84, height: 84, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Thermisch gemodificeerd hout</div>
+                <input style={styles.input} placeholder="Type profiel:" value={data.houtType} onChange={e => set("houtType", e.target.value)} />
+                <input style={{ ...styles.input, marginTop: 8 }} placeholder="Kleur:" value={data.houtKleur} onChange={e => set("houtKleur", e.target.value)} />
+              </div>
             </div>
           </div>
           <div style={styles.divider} />
@@ -1213,7 +1239,7 @@ export default function App() {
             ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte buiten", `${data.diepteBuiten} MM`], ["Diepte binnen", `${data.diepteBinnen} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
             ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bereikbaarheid", (data.bereikbaarheid || []).join(", ")], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
             ["Wandafwerking", [["Binnenwand", data.binnenwand], ["Stucwerk", data.stucwerk]]],
-            ["Gevelbekleding", [["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip], ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet], ["Kerama type", data.keramaType], ["Kerama kleur", data.keramaKleur], ["Hout type", data.houtType], ["Hout kleur", data.houtKleur]]],
+            ["Gevelbekleding", [["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip], ["Voegkleur", data.steenstripVoegkleur], ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet], ["Kerama type", data.keramaType], ["Kerama kleur", data.keramaKleur], ["Hout type", data.houtType], ["Hout kleur", data.houtKleur]]],
             ["Kozijn 1", [["Type", data.k1Type], ["Opties", data.k1Opties.join(", ")], ["Materiaal", data.k1Materiaal], ["RAL", data.k1RAL], ["Glas", data.k1Glas], ["Breedte", `${data.k1Breedte} MM`], ["Hoogte", `${data.k1Hoogte} MM`]]],
             ["Kozijn 2", [["Type", data.k2Type], ["Materiaal", data.k2Materiaal], ["RAL", data.k2RAL], ["Glas", data.k2Glas], ["Breedte", `${data.k2Breedte} MM`], ["Hoogte", `${data.k2Hoogte} MM`]]],
             ["Kozijn 3", [["Type", data.k3Type], ["Materiaal", data.k3Materiaal], ["RAL", data.k3RAL], ["Glas", data.k3Glas], ["Breedte", `${data.k3Breedte} MM`], ["Hoogte", `${data.k3Hoogte} MM`]]],

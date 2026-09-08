@@ -373,6 +373,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           ].filter(Boolean)}
           fields={[
             ["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip],
+            ["Voegkleur", data.steenstripVoegkleur],
             ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet],
             ["Kerama type", data.keramaType],
             ["Kerama kleur", data.keramaKleur],
