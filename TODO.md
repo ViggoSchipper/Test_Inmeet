@@ -33,7 +33,10 @@
       Ja/Nee-vraag Ventilatierooster erbij. Raam heeft nu opties (Vast glas/Draaikiepraam/
       Uitzetraam), Harmonica wand heeft nu opties (aantal delen 3/4/5-delig + richting Links/
       Rechts) i.p.v. alleen een leeg opmerkingenveld.
-- [ ] Pagina 8, 10, 12 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-7).
+- [x] Pagina 8/10/12 Kozijn 1/2/3 Schets: grid nu 10 x 4 meter (breed x hoog, i.p.v. het
+      vierkante 15x15 grid van Maatvoering), met de vaste opmerking "Dit is het buitenaanzicht"
+      boven de schets.
+- [ ] Pagina 13 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-12).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres

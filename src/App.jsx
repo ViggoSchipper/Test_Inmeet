@@ -68,7 +68,7 @@ const GRID_VAKJES = 15;
 // Hoeveel stappen "Ongedaan maken" onthoudt (ouder dan dit wordt vergeten).
 const MAX_UNDO_STAPPEN = 15;
 
-function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300 }) {
+function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState("pen");
@@ -83,10 +83,12 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
     ctx.save();
     ctx.strokeStyle = "#e5ddc8";
     ctx.lineWidth = 1;
-    for (let i = 1; i < GRID_VAKJES; i++) {
-      const x = (w / GRID_VAKJES) * i;
+    for (let i = 1; i < gridCols; i++) {
+      const x = (w / gridCols) * i;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      const y = (h / GRID_VAKJES) * i;
+    }
+    for (let i = 1; i < gridRows; i++) {
+      const y = (h / gridRows) * i;
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
     }
     ctx.restore();
@@ -232,10 +234,14 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
         <button style={styles.toolBtn(false)} onClick={clearCanvas}>🗑️ Wissen</button>
       </div>
       <canvas ref={canvasRef}
-        style={square ? { ...styles.canvas, width: "min(100%, 70vh)", aspectRatio: "1 / 1", margin: "0 auto" } : { ...styles.canvas, height }}
+        style={
+          square ? { ...styles.canvas, width: "min(100%, 70vh)", aspectRatio: "1 / 1", margin: "0 auto" }
+          : aspectRatio ? { ...styles.canvas, width: "100%", aspectRatio, margin: "0 auto" }
+          : { ...styles.canvas, height }
+        }
         onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
-      {grid && <div style={{ ...styles.hint, marginTop: 6, textAlign: "center" }}>Elk vakje = 1 x 1 meter (grid van {GRID_VAKJES} x {GRID_VAKJES} m)</div>}
+      {grid && <div style={{ ...styles.hint, marginTop: 6, textAlign: "center" }}>Elk vakje = 1 x 1 meter (grid van {gridCols} x {gridRows} m)</div>}
     </div>
   );
 }
@@ -1048,7 +1054,10 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 1 — Schets</p></div>
-        <div style={styles.sectionBody}><DrawingCanvas id="kozijn1" value={data.schetsKozijn1} onChange={v => set("schetsKozijn1", v)} /></div>
+        <div style={styles.sectionBody}>
+          <div style={{ ...styles.hint, marginBottom: 8, color: GOLD, fontWeight: 600 }}>Dit is het buitenaanzicht</div>
+          <DrawingCanvas id="kozijn1" value={data.schetsKozijn1} onChange={v => set("schetsKozijn1", v)} grid gridCols={10} gridRows={4} aspectRatio="10 / 4" />
+        </div>
       </div>
     </div>,
     // 8: Kozijn 2
@@ -1057,7 +1066,10 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 2 — Schets</p></div>
-        <div style={styles.sectionBody}><DrawingCanvas id="kozijn2" value={data.schetsKozijn2} onChange={v => set("schetsKozijn2", v)} /></div>
+        <div style={styles.sectionBody}>
+          <div style={{ ...styles.hint, marginBottom: 8, color: GOLD, fontWeight: 600 }}>Dit is het buitenaanzicht</div>
+          <DrawingCanvas id="kozijn2" value={data.schetsKozijn2} onChange={v => set("schetsKozijn2", v)} grid gridCols={10} gridRows={4} aspectRatio="10 / 4" />
+        </div>
       </div>
     </div>,
     // 10: Kozijn 3
@@ -1066,7 +1078,10 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Kozijn 3 — Schets</p></div>
-        <div style={styles.sectionBody}><DrawingCanvas id="kozijn3" value={data.schetsKozijn3} onChange={v => set("schetsKozijn3", v)} /></div>
+        <div style={styles.sectionBody}>
+          <div style={{ ...styles.hint, marginBottom: 8, color: GOLD, fontWeight: 600 }}>Dit is het buitenaanzicht</div>
+          <DrawingCanvas id="kozijn3" value={data.schetsKozijn3} onChange={v => set("schetsKozijn3", v)} grid gridCols={10} gridRows={4} aspectRatio="10 / 4" />
+        </div>
       </div>
     </div>,
 
