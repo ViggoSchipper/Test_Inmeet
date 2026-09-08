@@ -64,7 +64,12 @@
       "Buitenstopcontact": alleen aanvinken + aantal 1 of 2, met vaste opmerking "NIKO 9005
       inbouw dubbel horizontaal" (geen losse merk/type/kleur-velden meer). Warmte/Koude toont nu
       alleen nog Airco (WTW-unit en Vloerverwarming weg).
-- [ ] Pagina 15 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-14).
+- [x] Pagina 15 E-installatie Tekening: grid van 15x15 meter zoals bij Maatvoering Schets
+      toegevoegd. Legenda-symbolen (Centraal doos/Spot/Schakelaar/Dimmer/Stopcontact) kunnen nu
+      met de vinger/muis vanuit de legenda de tekening in gesleept worden (werkt op basis van
+      pointer events, dus ook op tablet/touch) i.p.v. dat je ze zelf moest natekenen. Werkt samen
+      met "Ongedaan maken". Hint-tekst bijgewerkt (WCD -> stopcontacten).
+- [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres

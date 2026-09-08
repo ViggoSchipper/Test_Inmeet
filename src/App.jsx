@@ -69,12 +69,14 @@ const GRID_VAKJES = 15;
 // Hoeveel stappen "Ongedaan maken" onthoudt (ouder dan dit wordt vergeten).
 const MAX_UNDO_STAPPEN = 15;
 
-function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null, maxVh = 70 }) {
+function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null, maxVh = 70, symbols = null }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState("pen");
   const [color, setColor] = useState("#1a1a1a");
   const [canUndo, setCanUndo] = useState(false);
+  const [sleepSymbool, setSleepSymbool] = useState(null);
+  const [sleepPos, setSleepPos] = useState({ x: 0, y: 0 });
   const lastPos = useRef(null);
   const loadedValueRef = useRef(null);
   // Snapshots (dataURLs) van het canvas vóór elke actie, voor "Ongedaan maken".
@@ -218,8 +220,59 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
     exportImage();
   };
 
+  // Sleep-vanuit-legenda: een symbool wordt met de vinger/muis vanaf een
+  // legenda-chip naar het tekenvak gesleept en daar op de losgelaten positie
+  // "gestempeld" (als tekst op het canvas getekend, net als een pen-streek).
+  const stempelSymbool = (sym, clientX, clientY) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return;
+    const scaleX = canvas.offsetWidth / rect.width;
+    const scaleY = canvas.offsetHeight / rect.height;
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+    bewaarVoorUndo();
+    const ctx = canvas.getContext("2d");
+    ctx.save();
+    ctx.font = "26px sans-serif";
+    ctx.fillStyle = "#1a1a1a";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(sym, x, y);
+    ctx.restore();
+    exportImage();
+  };
+
+  const startSleepSymbool = (sym) => (e) => {
+    e.preventDefault();
+    setSleepSymbool(sym);
+    setSleepPos({ x: e.clientX, y: e.clientY });
+    const verplaats = (ev) => setSleepPos({ x: ev.clientX, y: ev.clientY });
+    const loslaten = (ev) => {
+      stempelSymbool(sym, ev.clientX, ev.clientY);
+      setSleepSymbool(null);
+      window.removeEventListener("pointermove", verplaats);
+      window.removeEventListener("pointerup", loslaten);
+    };
+    window.addEventListener("pointermove", verplaats);
+    window.addEventListener("pointerup", loslaten);
+  };
+
   return (
     <div>
+      {symbols && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+          {symbols.map(({ sym, label }) => (
+            <div key={label} onPointerDown={startSleepSymbool(sym)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px", border: `1px solid ${GOLD}55`, borderRadius: 8, background: "#fdfcf8", cursor: "grab", touchAction: "none", userSelect: "none" }}>
+              <span style={{ fontSize: 18, fontFamily: "monospace" }}>{sym}</span>
+              <span style={{ fontSize: 11, color: "#666" }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {symbols && <div style={{ ...styles.hint, marginBottom: 8 }}>Sleep een symbool hierboven naar de tekening om te plaatsen</div>}
       <div style={styles.canvasToolbar}>
         {["pen", "eraser"].map(t => (
           <button key={t} style={styles.toolBtn(tool === t)} onClick={() => setTool(t)}>
@@ -243,6 +296,11 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
         onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
       {grid && <div style={{ ...styles.hint, marginTop: 6, textAlign: "center" }}>Elk vakje = 1 x 1 meter (grid van {gridCols} x {gridRows} m)</div>}
+      {sleepSymbool && (
+        <div style={{ position: "fixed", left: sleepPos.x, top: sleepPos.y, transform: "translate(-50%, -50%)", pointerEvents: "none", fontSize: 28, fontFamily: "monospace", color: GOLD, textShadow: "0 0 4px white, 0 0 4px white", zIndex: 9999 }}>
+          {sleepSymbool}
+        </div>
+      )}
     </div>
   );
 }
@@ -1333,17 +1391,17 @@ export default function App() {
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>E-installatie tekening</p></div>
         <div style={styles.sectionBody}>
-          <div style={styles.hint}>Hoogte en positie WCD's en afstand wand-verlichting aangeven</div>
-          <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 16, marginTop: 10 }}>
-            <div style={{ fontSize: 12, color: BLACK }}>
-              <div style={{ marginBottom: 8, fontWeight: 600 }}>Legenda:</div>
-              {[["⊗", "Centraal doos"], ["○", "Spot"], ["◌", "Schakelaar"], ["◉", "Dimmer"], ["⊣", "Stopcontact"]].map(([sym, lbl]) => (
-                <div key={lbl} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, fontSize: 12 }}>
-                  <span style={{ fontSize: 16, fontFamily: "monospace" }}>{sym}</span> {lbl}
-                </div>
-              ))}
-            </div>
-            <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)} />
+          <div style={styles.hint}>Hoogte en positie stopcontacten en afstand wand-verlichting aangeven</div>
+          <div style={{ marginTop: 10 }}>
+            <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)}
+              grid square gridCols={15} gridRows={15}
+              symbols={[
+                { sym: "⊗", label: "Centraal doos" },
+                { sym: "○", label: "Spot" },
+                { sym: "◌", label: "Schakelaar" },
+                { sym: "◉", label: "Dimmer" },
+                { sym: "⊣", label: "Stopcontact" },
+              ]} />
           </div>
         </div>
       </div>
