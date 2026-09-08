@@ -19,10 +19,18 @@
 - [ ] Pagina 5 t/m 19: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-4).
 
 ## Vóór overgang naar productie
-- [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Azure-adres.
+- [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
+      (steady-moxie-5e89b5.netlify.app).
 - [ ] Client Secret vervaldatum checken: Azure Portal → App registrations → "Addon Inmeet Formulier" →
       Certificates & secrets. (Staat op 24 maanden geldig, exacte datum nog opzoeken.)
 - [ ] SharePoint site-URL/testproject-nummer omzetten van testmap naar echte productiemap.
+- [ ] **Netlify Private → Public beslissen.** Project staat nu op Private (alleen jij, via Netlify-login,
+      kunt de site zien). Zodra collega's de site zonder Netlify-account moeten kunnen gebruiken, moet
+      dit naar Public — maar de app heeft zelf geen inlog/toegangscode, dus dat betekent dat iedereen met
+      de link (en elk ingevuld projectnummer) bij klantgegevens kan. Eerst een eigen toegangscode in de
+      app overwegen vóór dit omgezet wordt.
+- [ ] Netlify-abonnement: nu 1 maand op Pro (€20, 3000 credits) tijdens de bouwfase — na deze maand
+      terugzetten naar Personal (€9, 1000 credits) voor regulier gebruik.
 
 ## Later / optioneel
 - [ ] "Toevoegen aan beginscherm" (Add to Home Screen) instructie voor gebruikers, na afronden optimalisatieronde.
