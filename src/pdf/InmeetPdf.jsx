@@ -351,7 +351,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Vergunning", data.vergunning],
             ["Doorbraak", fmtMM(data.doorbraakMM)],
             ["Constructeur", data.constructeur],
-            ["Kruipruimte", data.kruipruimteStatus],
+            ["Kruipruimte", data.geenKruipruimte ? "Geen kruipruimte aanwezig" : "Aanwezig (zie foto)"],
           ]}
         />
         <Section

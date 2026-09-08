@@ -367,8 +367,7 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.fotoAchterBinnen)) missend.push("Foto achtergevel binnen");
     if (!heeftWaarde(data.fotoAchterBuiten)) missend.push("Foto achtergevel buiten");
-    if (!heeftWaarde(data.kruipruimteStatus)) missend.push("Kruipruimte status");
-    if (data.kruipruimteStatus === "Vloeroplegging foto bijgevoegd" && !heeftWaarde(data.fotoKruipruimte)) missend.push("Foto kruipruimte");
+    if (!data.geenKruipruimte && !heeftWaarde(data.fotoKruipruimte)) missend.push("Foto kruipruimte (of 'Geen kruipruimte aanwezig' aanvinken)");
     if (!heeftWaarde(data.fotoBereikbaarheid)) missend.push("Foto bereikbaarheid");
     return missend;
   },
@@ -445,7 +444,7 @@ export default function App() {
     bouwtekeningen: "", vergunning: "", doorbraakMM: "", constructeur: "",
     // Foto's
     fotoAchterBuiten: null, fotoAchterBinnen: null, fotoKruipruimte: null, fotoBereikbaarheid: null,
-    kruipruimteStatus: "",
+    geenKruipruimte: false,
     // Wandafwerking
     binnenwand: "", stucwerk: "",
     // Gevelbekleding
@@ -877,13 +876,16 @@ export default function App() {
             <PhotoUpload label="Achtergevel Binnen" value={data.fotoAchterBinnen} onChange={v => set("fotoAchterBinnen", v)} />
             <PhotoUpload label="Achtergevel Buiten" value={data.fotoAchterBuiten} onChange={v => set("fotoAchterBuiten", v)} />
             <div>
-              <PhotoUpload label="Kruipruimte" hint="Vloer op funderingsbalk" value={data.fotoKruipruimte} onChange={v => set("fotoKruipruimte", v)} />
-              <div style={{ marginTop: 10 }}>
-                <RadioGroup name="kruipruimte" options={["Vloeroplegging foto bijgevoegd", "Geen kruipruimte aanwezig"]}
-                  value={data.kruipruimteStatus} onChange={v => set("kruipruimteStatus", v)} />
-              </div>
+              {!data.geenKruipruimte && (
+                <PhotoUpload label="Kruipruimte" hint="Vloer op funderingsbalk" value={data.fotoKruipruimte} onChange={v => set("fotoKruipruimte", v)} />
+              )}
+              <label style={{ ...styles.checkLabel, marginTop: data.geenKruipruimte ? 0 : 10 }}>
+                <input type="checkbox" style={{ accentColor: GOLD }} checked={!!data.geenKruipruimte}
+                  onChange={e => set("geenKruipruimte", e.target.checked)} />
+                Geen kruipruimte aanwezig
+              </label>
             </div>
-            <PhotoUpload label="Bereikbaarheid" hint="Weg naar locatie" value={data.fotoBereikbaarheid} onChange={v => set("fotoBereikbaarheid", v)} />
+            <PhotoUpload label="Bereikbaarheid" hint="Doorgang naar de tuin" value={data.fotoBereikbaarheid} onChange={v => set("fotoBereikbaarheid", v)} />
           </div>
         </div>
       </div>

@@ -16,7 +16,12 @@
 - [x] Pagina 4 Voorbereidingen: "Heipalen" hernoemd naar "Bereikbaarheid" (naam klopte niet met de
       vraag), nutteloos "Foto bijgevoegd"-vinkje weggehaald, Bereikbaarheid toegevoegd aan de
       in-app samenvatting (stond er eerst niet in), numeriek toetsenbord bij Doorbraak.
-- [ ] Pagina 5 t/m 19: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-4).
+- [x] Pagina 5 Voorbereiding Foto's: verwarrende "Vloeroplegging foto bijgevoegd"-optie weg, vervangen
+      door simpel vinkje "Geen kruipruimte aanwezig" (fotobox verdwijnt dan). Bereikbaarheid-hint
+      aangepast naar "Doorgang naar de tuin". Verplicht wordt (bij het aanzetten van validatie):
+      Achtergevel Binnen, Achtergevel Buiten, Bereikbaarheid altijd; Kruipruimte-foto verplicht
+      tenzij "Geen kruipruimte aanwezig" is aangevinkt.
+- [ ] Pagina 6 t/m 19: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-5).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
