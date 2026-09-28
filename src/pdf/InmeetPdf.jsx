@@ -360,6 +360,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           fields={[
             ["Ondergrond", data.ondergrond],
             ["Bereikbaarheid", data.bereikbaarheid],
+            ["Rijplaten", data.rijplaten],
             ["Bouwtekeningen", data.bouwtekeningen],
             ["Vergunning", data.vergunning],
             ["Doorbraak", fmtMM(data.doorbraakMM)],

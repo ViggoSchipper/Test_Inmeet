@@ -69,6 +69,9 @@
       met de vinger/muis vanuit de legenda de tekening in gesleept worden (werkt op basis van
       pointer events, dus ook op tablet/touch) i.p.v. dat je ze zelf moest natekenen. Werkt samen
       met "Ongedaan maken". Hint-tekst bijgewerkt (WCD -> stopcontacten).
+- [x] Pagina 4 Voorbereidingen: nieuwe regel "Rijplaten" (Benodigd / N.V.T.) direct onder
+      Bereikbaarheid. Verplicht (bij aanzetten validatie), staat in de in-app samenvatting en in de
+      PDF direct na Bereikbaarheid.
 - [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).
 
 ## Vóór overgang naar productie

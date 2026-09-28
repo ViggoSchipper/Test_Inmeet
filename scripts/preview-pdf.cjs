@@ -51,7 +51,7 @@ const data = {
 
   hoogte: "2600", diepte: "3500", breedteBuiten: "5400", breedteBinnen: "5320",
 
-  ondergrond: "Beton", heipalen: ["Nodig", "Overleg constructeur"],
+  ondergrond: "Klei", bereikbaarheid: ["Kraan"], rijplaten: "Benodigd",
   bouwtekeningen: "Aanwezig", vergunning: "Vergunningsvrij", doorbraakMM: "3200", constructeur: "Bouwadvies Jansen",
   kruipruimteStatus: "Droog, goed bereikbaar",
 
@@ -80,7 +80,7 @@ const data = {
   stopcontacten: ["Wand", "Vloer"], stopMerk: "Niko", stopType: "Original", stopKleur: "Antraciet",
   verlichting: ["Spots", "Inbouwspots plafond"], verlichtingMerk: "Lumina", verlichtingType: "LED dimbaar", verlichtingKleur: "Wit",
   schakelaars: ["Dimmer", "Schakelaar"], schakelaarMerk: "Niko", schakelaarType: "Original", schakelaarKleur: "Antraciet",
-  buitenVerlichting: true, buitenVerlichtingMerk: "Lumina", buitenVerlichtingType: "Wandspot", buitenVerlichtingKleur: "Zwart",
+  buitenVerlichting: ["Spotjes"], buitenVerlichtingMerk: "Lumina", buitenVerlichtingType: "Wandspot", buitenVerlichtingKleur: "Zwart",
   wcd: true, wcdMerk: "Niko", wcdType: "Hor", wcdKleur: "Zwart",
   warmteKoude: ["Vloerverwarming", "Koeling"],
   eOpmerking: "Groepenkast heeft nog 3 vrije groepen.",
