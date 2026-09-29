@@ -84,9 +84,11 @@ const styles = StyleSheet.create({
   sectionTitleText: { fontSize: 10.5, fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: 0.5 },
   fieldGrid: { flexDirection: "row", flexWrap: "wrap" },
   field: { width: "50%", flexDirection: "row", marginBottom: 5, paddingRight: 8 },
-  fieldLabel: { fontSize: 9, color: GREY, width: 105 },
-  fieldValue: { fontSize: 9.5, color: BLACK, fontWeight: 500, flexGrow: 1 },
+  fieldLabel: { fontSize: 9, color: GREY, width: 105, flexShrink: 0 },
+  fieldValue: { fontSize: 9.5, color: BLACK, fontWeight: 500, flexGrow: 1, flexShrink: 1, flexBasis: 0 },
   fieldValueEmpty: { fontSize: 9.5, color: "#c9c9c9", fontStyle: "italic" },
+  meldingBlock: { marginTop: 2, marginBottom: 6, padding: 6, border: `1 solid ${GOLD}`, borderRadius: 3 },
+  meldingText: { fontSize: 9.5, color: BLACK, fontWeight: 700 },
   opmerkingBlock: { marginTop: 2, paddingTop: 6, borderTop: `0.5 solid ${LIGHT_BORDER}` },
   opmerkingLabel: { fontSize: 8.5, color: GREY, marginBottom: 2, textTransform: "uppercase" },
   opmerkingText: { fontSize: 9.5, color: BLACK },
@@ -184,7 +186,7 @@ function Field({ label, value }) {
   );
 }
 
-function Section({ title, fields, opmerking, swatches }) {
+function Section({ title, fields, opmerking, swatches, melding }) {
   return (
     <View style={styles.section} wrap={false}>
       <View style={styles.sectionTitleBar}>
@@ -208,6 +210,11 @@ function Section({ title, fields, opmerking, swatches }) {
           <Field key={label} label={label} value={value} />
         ))}
       </View>
+      {melding ? (
+        <View style={styles.meldingBlock}>
+          <Text style={styles.meldingText}>{melding}</Text>
+        </View>
+      ) : null}
       {opmerking ? (
         <View style={styles.opmerkingBlock}>
           <Text style={styles.opmerkingLabel}>Opmerkingen</Text>
@@ -449,6 +456,8 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Buitenstopcontact", data.wcd ? `Ja, aantal ${waarde(data.wcdAantal) || "?"} (NIKO 9005 inbouw dubbel horizontaal)` : "Nee"],
             ["Warmte/koude", data.warmteKoude],
           ]}
+          melding={data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen"
+            ? "Afmonteren door de klant. Let op: alle garantie op de elektra vervalt zodra de staat anders is dan wanneer de aanbouw de werkplaats verlaat." : null}
           opmerking={waarde(data.eOpmerking)}
         />
         <Section

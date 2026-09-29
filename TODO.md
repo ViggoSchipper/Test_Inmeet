@@ -78,6 +78,9 @@
       (modern) / Anders: met invulvak ernaast; daaronder altijd Kleur Wit/Zwart. Blok verdwijnt bij
       "alleen leidingen en dozen". Losse Merk/Type-velden bij Stopcontacten en Schakelaars weg.
       Validatie, samenvatting en PDF bijgewerkt.
+- [x] E-installaties "alleen leidingen en dozen": garantietekst erbij ("alle garantie op de elektra
+      vervalt zodra de staat anders is dan wanneer de aanbouw de werkplaats verlaat"), ook in de
+      samenvatting en als opvallend kader in de PDF. PDF: lange waarden lopen niet meer over de rand.
 - [x] Merknaam overal aan elkaar: "AddOn" (keuzes, PDF-voettekst/voorblad, browsertitel, logo-alt).
 - [ ] Pagina 14 E-installaties: rest van de pagina (verlichting, schakelaars, buiten, warmte/koude)
       nog samen doorlopen.
