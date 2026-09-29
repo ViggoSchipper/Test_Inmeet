@@ -158,6 +158,15 @@ function waarde(v) {
   return String(v).trim();
 }
 
+// Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
+function schakelmateriaalTekst(data) {
+  if (data.eUitvoering === "Add On doet alleen leidingwerk en dozen") return "N.v.t. (afmonteren door klant)";
+  if (data.schakelMerk === "Anders") return data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders";
+  const label = { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
+  if (!label) return "";
+  return data.schakelKleur ? `${label} - ${data.schakelKleur}` : label;
+}
+
 // Zet gekozen opties + bijbehorende aantallen om in leesbare tekst,
 // bijv. ["Enkel", "Dubbel"] + {Enkel: "3", Dubbel: "1"} => "Enkel (3x), Dubbel (1x)".
 function metAantal(items, aantallen) {
@@ -425,14 +434,14 @@ export default function InmeetPdf({ data, logoSrc }) {
         <Section
           title="E-installaties"
           fields={[
+            ["Uitvoering", data.eUitvoering],
+            ["Schakelmateriaal", schakelmateriaalTekst(data)],
             ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
             ["Stopcontacten - Anders", data.stopcontactenAnders],
-            ["Stopcontacten Merk/Type", data.stopMerkType],
             ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
             ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
             ["Verlichting Merk/Type", data.verlichtingMerkType],
             ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-            ["Schakelaars Merk/Type", data.schakelaarMerkType],
             ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],
             ["Buiten verlichting kleur", data.buitenSpotjesKleur],
             ["Buiten verlichting Merk/Type", data.buitenVerlichtingMerkType],

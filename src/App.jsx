@@ -13,6 +13,8 @@ import fotoKerama from "./assets/gevel/kerama.jpg";
 import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
 import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
 import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
+import fotoGira55 from "./assets/elektra/gira55.jpg";
+import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 // @react-pdf/renderer is een zware library (~500KB gzipped). Die wordt pas
 // ingeladen op het moment dat de opmeter daadwerkelijk op "PDF bekijken"
 // klikt (zie bekijkPdf hieronder), zodat de eerste keer laden van de app
@@ -398,6 +400,15 @@ const PAGES = [
   "W-installaties", "W-installatie Tekening", "Samenvatting"
 ];
 
+// Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
+function schakelmateriaalTekst(data) {
+  if (data.eUitvoering === E_UITVOERING_LEIDINGWERK) return "N.v.t. (afmonteren door klant)";
+  if (data.schakelMerk === "Anders") return data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders";
+  const label = { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
+  if (!label) return "";
+  return data.schakelKleur ? `${label} - ${data.schakelKleur}` : label;
+}
+
 // --- Verplichte-veldvalidatie -------------------------------------------
 // Per pagina (zelfde volgorde/index als PAGES) een functie die controleert
 // of alle verplichte velden op die pagina zijn ingevuld. Geeft een lijst
@@ -443,6 +454,9 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
 // te kunnen bladeren. De validatieregels hieronder blijven gewoon staan -
 // zet dit terug op true voor de grote eindtest / productie.
 const VALIDATIE_ACTIEF = false;
+
+const E_UITVOERING_COMPLEET = "Add On levert en monteert alles";
+const E_UITVOERING_LEIDINGWERK = "Add On doet alleen leidingwerk en dozen";
 
 const PAGE_VALIDATORS = [
   // 0: Contact
@@ -535,9 +549,18 @@ const PAGE_VALIDATORS = [
   // 13: E-installaties - veel losse, optionele keuzes; alleen checken dat
   // de pagina niet helemaal leeg is.
   (data) => {
+    const missend = [];
+    if (!heeftWaarde(data.eUitvoering)) missend.push("Uitvoering elektra");
+    if (data.eUitvoering === E_UITVOERING_COMPLEET) {
+      if (!heeftWaarde(data.schakelMerk)) missend.push("Merk/Type schakelmateriaal");
+      else if (data.schakelMerk === "Anders") {
+        if (!heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type schakelmateriaal (Anders)");
+      } else if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur schakelmateriaal");
+    }
     const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
       heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
-    return iets ? [] : ["Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude"];
+    if (!iets) missend.push("Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude");
+    return missend;
   },
   // 14: E-installatie Tekening - geen verplichte velden.
   null,
@@ -592,11 +615,12 @@ export default function App() {
     lichtstraat: "", lichtstraatLengteMM: "", lichtstraatBreedteMM: "", lichtstraatKleur: "", lichtstraatDelenGlas: "",
     schetsLichtstraatPositie: null, dakOpmerking: "",
     // E-installaties
-    stopcontacten: [], stopcontactenAnders: "", stopMerkType: "",
+    eUitvoering: "", schakelMerk: "", schakelMerkAnders: "", schakelKleur: "",
+    stopcontacten: [], stopcontactenAnders: "",
     stopAantalEnkel: "", stopAantalDubbel: "", stopAantalTripel: "", stopAantalAnders: "",
     verlichting: [], verlichtingMerkType: "", verlichtingSpotjesKleur: "",
     verAantalCD: "", verAantalSpotjes: "", verAantalHanglamp: "",
-    schakelaars: [], schakelaarMerkType: "",
+    schakelaars: [],
     schAantalSchakelaar: "", schAantalDimmer: "", schAantalSensor: "",
     buitenVerlichting: [], buitenVerlichtingMerkType: "", buitenSpotjesKleur: "",
     buitenAantalSpotjes: "", buitenAantalUpDown: "",
@@ -1317,6 +1341,56 @@ export default function App() {
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>E-installaties</p></div>
         <div style={styles.sectionBody}>
           <div style={{ fontSize: 11, color: GOLD, marginBottom: 12, fontStyle: "italic" }}>Positie op tekening aangeven gekoppeld met letters. Schakelaar A → spotjes A</div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Uitvoering</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK].map(opt => (
+              <label key={opt} style={styles.radioLabel} onClick={() => set("eUitvoering", opt)}>
+                <input type="radio" readOnly checked={data.eUitvoering === opt} style={{ accentColor: GOLD }} />
+                {opt}
+              </label>
+            ))}
+          </div>
+          {data.eUitvoering === E_UITVOERING_LEIDINGWERK && (
+            <div style={{ ...styles.hint, marginTop: 6 }}>Het afmonteren (schakelaars, stopcontacten, verlichting) gebeurt door de klant.</div>
+          )}
+          {data.eUitvoering !== E_UITVOERING_LEIDINGWERK && (
+            <>
+              <div style={styles.divider} />
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Merk/Type schakelmateriaal</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                {[{ val: "Gira 55", sub: "Standaard", foto: fotoGira55 }, { val: "Busch-Jaeger", sub: "Modern", foto: fotoBuschJaeger }].map(opt => (
+                  <div key={opt.val} style={{ ...styles.optionCard(data.schakelMerk === opt.val), padding: "6px 10px", display: "flex", alignItems: "center", gap: 8 }}
+                    onClick={() => set("schakelMerk", opt.val)}>
+                    <div style={{ width: 88, height: 88, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "#fff" }}>
+                      <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <input type="radio" readOnly checked={data.schakelMerk === opt.val} style={{ accentColor: GOLD }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600 }}>{opt.val}</div>
+                        <div style={{ fontSize: 11, color: "#888" }}>{opt.sub}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <label style={styles.radioLabel} onClick={() => set("schakelMerk", "Anders")}>
+                  <input type="radio" readOnly checked={data.schakelMerk === "Anders"} style={{ accentColor: GOLD }} />
+                  Anders
+                </label>
+              </div>
+              {data.schakelMerk === "Anders" && (
+                <input style={{ ...styles.input, marginTop: 8 }} placeholder="Merk, type en kleur..." value={data.schakelMerkAnders}
+                  onChange={e => set("schakelMerkAnders", e.target.value)} />
+              )}
+              {(data.schakelMerk === "Gira 55" || data.schakelMerk === "Busch-Jaeger") && (
+                <div style={{ ...styles.row, marginTop: 8 }}>
+                  <div style={styles.label}>Kleur:</div>
+                  <RadioGroup name="schakelKleur" options={["Wit", "Zwart"]} value={data.schakelKleur} onChange={v => set("schakelKleur", v)} />
+                </div>
+              )}
+            </>
+          )}
+          <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Stopcontacten</div>
           <CheckGroupAantal options={["Enkel", "Dubbel", "Tripel", "Anders"]} values={data.stopcontacten} onChange={v => set("stopcontacten", v)}
             aantallen={{ Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders }}
@@ -1325,10 +1399,6 @@ export default function App() {
               <input style={{ ...styles.input, marginTop: 6 }} placeholder="Omschrijving..." value={data.stopcontactenAnders}
                 onChange={e => set("stopcontactenAnders", e.target.value)} />
             )} />
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
-            <input style={styles.input} value={data.stopMerkType} onChange={e => set("stopMerkType", e.target.value)} />
-          </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Binnen verlichting</div>
           <CheckGroupAantal options={["CD", "Spotjes", "Hanglamp"]} values={data.verlichting} onChange={v => set("verlichting", v)}
@@ -1349,10 +1419,6 @@ export default function App() {
           <CheckGroupAantal options={["Schakelaar", "Dimmer", "Sensor"]} values={data.schakelaars} onChange={v => set("schakelaars", v)}
             aantallen={{ Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor }}
             onAantalChange={(opt, val) => set({ Schakelaar: "schAantalSchakelaar", Dimmer: "schAantalDimmer", Sensor: "schAantalSensor" }[opt], val)} />
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
-            <input style={styles.input} value={data.schakelaarMerkType} onChange={e => set("schakelaarMerkType", e.target.value)} />
-          </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Buiten E-installaties</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -1497,14 +1563,14 @@ export default function App() {
             ["Kozijn 3", [["Type", data.k3Type], ["Opties", data.k3Opties.join(", ")], ["Raamtype", data.k3RaamType], ["Harmonica delen", data.k3HarmonicaDelen], ["Harmonica richting", data.k3HarmonicaRichting], ["Ventilatierooster", data.k3Ventilatierooster], ["Materiaal", data.k3Materiaal], ["RAL", data.k3RAL], ["Glas", data.k3Glas], ["Breedte", `${data.k3Breedte} MM`], ["Hoogte", `${data.k3Hoogte} MM`]]],
             ["Dak", [["Dakbedekking", data.dakbedekking], ["Dakrand", data.dakrandAfwerking], ["Dakrand RAL", data.dakrandKleur], ["Overstek", data.overstek === "Ja" ? `Ja, ${data.overstekMM} MM, RAL ${data.overstekRAL}` : "N.V.T."], ["Lichtstraat", data.lichtstraat], ["Lichtstraat afmeting", (data.lichtstraatLengteMM || data.lichtstraatBreedteMM) ? `${data.lichtstraatLengteMM} x ${data.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", data.lichtstraatKleur], ["Lichtstraat delen glas", data.lichtstraatDelenGlas]]],
             ["E-installaties", [
+              ["Uitvoering", data.eUitvoering],
+              ["Schakelmateriaal", schakelmateriaalTekst(data)],
               ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
               ["Stopcontacten - Anders", data.stopcontactenAnders],
-              ["Stopcontacten Merk/Type", data.stopMerkType],
               ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
               ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
               ["Verlichting Merk/Type", data.verlichtingMerkType],
               ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-              ["Schakelaars Merk/Type", data.schakelaarMerkType],
               ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],
               ["Buiten verlichting kleur", data.buitenSpotjesKleur],
               ["Buiten verlichting Merk/Type", data.buitenVerlichtingMerkType],
