@@ -1,4 +1,4 @@
-// Add On Aanbouw op Maat - Inmeet Formulier App
+// AddOn Aanbouw op Maat - Inmeet Formulier App
 // Full React SPA - works as iPad PWA
 
 import { useState, useRef, useEffect } from "react";
@@ -403,8 +403,9 @@ const PAGES = [
 // Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
 function schakelmateriaalTekst(data) {
   if (data.eUitvoering === E_UITVOERING_LEIDINGWERK) return "N.v.t. (afmonteren door klant)";
-  if (data.schakelMerk === "Anders") return data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders";
-  const label = { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
+  const label = data.schakelMerk === "Anders"
+    ? (data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders")
+    : { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
   if (!label) return "";
   return data.schakelKleur ? `${label} - ${data.schakelKleur}` : label;
 }
@@ -455,8 +456,8 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
 // zet dit terug op true voor de grote eindtest / productie.
 const VALIDATIE_ACTIEF = false;
 
-const E_UITVOERING_COMPLEET = "Add On levert en monteert alles";
-const E_UITVOERING_LEIDINGWERK = "Add On doet alleen leidingwerk en dozen";
+const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
+const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
 
 const PAGE_VALIDATORS = [
   // 0: Contact
@@ -553,9 +554,8 @@ const PAGE_VALIDATORS = [
     if (!heeftWaarde(data.eUitvoering)) missend.push("Uitvoering elektra");
     if (data.eUitvoering === E_UITVOERING_COMPLEET) {
       if (!heeftWaarde(data.schakelMerk)) missend.push("Merk/Type schakelmateriaal");
-      else if (data.schakelMerk === "Anders") {
-        if (!heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type schakelmateriaal (Anders)");
-      } else if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur schakelmateriaal");
+      else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type schakelmateriaal (Anders)");
+      if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur schakelmateriaal");
     }
     const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
       heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
@@ -1373,21 +1373,19 @@ export default function App() {
                     </div>
                   </div>
                 ))}
-                <label style={styles.radioLabel} onClick={() => set("schakelMerk", "Anders")}>
-                  <input type="radio" readOnly checked={data.schakelMerk === "Anders"} style={{ accentColor: GOLD }} />
-                  Anders
-                </label>
-              </div>
-              {data.schakelMerk === "Anders" && (
-                <input style={{ ...styles.input, marginTop: 8 }} placeholder="Merk, type en kleur..." value={data.schakelMerkAnders}
-                  onChange={e => set("schakelMerkAnders", e.target.value)} />
-              )}
-              {(data.schakelMerk === "Gira 55" || data.schakelMerk === "Busch-Jaeger") && (
-                <div style={{ ...styles.row, marginTop: 8 }}>
-                  <div style={styles.label}>Kleur:</div>
-                  <RadioGroup name="schakelKleur" options={["Wit", "Zwart"]} value={data.schakelKleur} onChange={v => set("schakelKleur", v)} />
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <label style={styles.radioLabel} onClick={() => set("schakelMerk", "Anders")}>
+                    <input type="radio" readOnly checked={data.schakelMerk === "Anders"} style={{ accentColor: GOLD }} />
+                    Anders:
+                  </label>
+                  <input style={{ ...styles.input, width: 200 }} placeholder="Merk en type..." value={data.schakelMerkAnders}
+                    onFocus={() => set("schakelMerk", "Anders")} onChange={e => set("schakelMerkAnders", e.target.value)} />
                 </div>
-              )}
+              </div>
+              <div style={{ ...styles.row, marginTop: 8 }}>
+                <div style={styles.label}>Kleur:</div>
+                <RadioGroup name="schakelKleur" options={["Wit", "Zwart"]} value={data.schakelKleur} onChange={v => set("schakelKleur", v)} />
+              </div>
             </>
           )}
           <div style={styles.divider} />
@@ -1611,7 +1609,7 @@ export default function App() {
   return (
     <div style={styles.app}>
       <div style={styles.header}>
-        <img src={logoUrl} alt="Add On Aanbouw op Maat" style={styles.logoImg} />
+        <img src={logoUrl} alt="AddOn Aanbouw op Maat" style={styles.logoImg} />
         <div style={styles.pageTitle}>{PAGES[page]}</div>
         <div style={styles.progress}>
           {PAGES.map((_, i) => <div key={i} style={styles.progressDot(i === page, i < page)} />)}

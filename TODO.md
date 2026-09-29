@@ -72,11 +72,13 @@
 - [x] Pagina 4 Voorbereidingen: nieuwe regel "Rijplaten" (Benodigd / N.V.T.) direct onder
       Bereikbaarheid. Verplicht (bij aanzetten validatie), staat in de in-app samenvatting en in de
       PDF direct na Bereikbaarheid.
-- [x] Pagina 14 E-installaties (ronde 2, deel 1): bovenaan nieuwe keuze "Uitvoering": Add On levert en
-      monteert alles / Add On doet alleen leidingwerk en dozen (afmonteren door klant). Daaronder
-      "Merk/Type schakelmateriaal" met foto: Gira 55 (standaard) / Busch-Jaeger (modern) + kleur
-      Wit/Zwart, of Anders met invulveld. Blok verdwijnt bij "alleen leidingwerk". Losse Merk/Type-
-      velden bij Stopcontacten en Schakelaars weg. Validatie, samenvatting en PDF bijgewerkt.
+- [x] Pagina 14 E-installaties (ronde 2, deel 1): bovenaan nieuwe keuze "Uitvoering": AddOn levert en
+      monteert alles incl. afmontage / AddOn verzorgt alleen leidingen en dozen (afmonteren door
+      klant). Daaronder "Merk/Type schakelmateriaal" met foto: Gira 55 (standaard) / Busch-Jaeger
+      (modern) / Anders: met invulvak ernaast; daaronder altijd Kleur Wit/Zwart. Blok verdwijnt bij
+      "alleen leidingen en dozen". Losse Merk/Type-velden bij Stopcontacten en Schakelaars weg.
+      Validatie, samenvatting en PDF bijgewerkt.
+- [x] Merknaam overal aan elkaar: "AddOn" (keuzes, PDF-voettekst/voorblad, browsertitel, logo-alt).
 - [ ] Pagina 14 E-installaties: rest van de pagina (verlichting, schakelaars, buiten, warmte/koude)
       nog samen doorlopen.
 - [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).

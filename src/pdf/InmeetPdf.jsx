@@ -160,9 +160,10 @@ function waarde(v) {
 
 // Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
 function schakelmateriaalTekst(data) {
-  if (data.eUitvoering === "Add On doet alleen leidingwerk en dozen") return "N.v.t. (afmonteren door klant)";
-  if (data.schakelMerk === "Anders") return data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders";
-  const label = { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
+  if (data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen") return "N.v.t. (afmonteren door klant)";
+  const label = data.schakelMerk === "Anders"
+    ? (data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders")
+    : { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
   if (!label) return "";
   return data.schakelKleur ? `${label} - ${data.schakelKleur}` : label;
 }
@@ -236,7 +237,7 @@ function PageChrome({ data, pageLabel, children, logoSrc }) {
       {children}
 
       <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>Add On Aanbouw op Maat — Inmeetformulier</Text>
+        <Text style={styles.footerText}>AddOn Aanbouw op Maat — Inmeetformulier</Text>
         <Text
           style={styles.footerText}
           render={({ pageNumber, totalPages }) => `Pagina ${pageNumber} / ${totalPages}`}
@@ -303,7 +304,7 @@ export default function InmeetPdf({ data, logoSrc }) {
   return (
     <Document
       title={`Inmeetformulier ${data.projectnummer || ""} ${data.naam || ""}`.trim()}
-      author="Add On Aanbouw op Maat"
+      author="AddOn Aanbouw op Maat"
     >
       {/* --- Voorpagina --- */}
       <PageChrome data={data} pageLabel="Overzicht" logoSrc={logoSrc}>
@@ -311,7 +312,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           <Text style={styles.coverTitle}>
             Inmeet<Text style={styles.coverAccent}>formulier</Text>
           </Text>
-          <Text style={styles.coverSubtitle}>Add On Aanbouw op Maat</Text>
+          <Text style={styles.coverSubtitle}>AddOn Aanbouw op Maat</Text>
 
           <View style={styles.coverRow}>
             <Text style={styles.coverLabel}>Projectnummer</Text>

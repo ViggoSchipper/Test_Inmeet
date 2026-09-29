@@ -77,7 +77,7 @@ const data = {
   lichtstraat: "Ja", lichtsturaatFormaat: "2000x1000", lichtsturaatKleur: "Antraciet",
   dakVorm: "Plat dak", dakOpmerking: "Afschot richting achtertuin.",
 
-  eUitvoering: "Add On levert en monteert alles", schakelMerk: "Gira 55", schakelKleur: "Wit",
+  eUitvoering: "AddOn levert en monteert alles incl. afmontage", schakelMerk: "Gira 55", schakelKleur: "Wit",
   stopcontacten: ["Enkel", "Dubbel"], stopAantalEnkel: "2", stopAantalDubbel: "3",
   verlichting: ["Spots", "Inbouwspots plafond"], verlichtingMerk: "Lumina", verlichtingType: "LED dimbaar", verlichtingKleur: "Wit",
   schakelaars: ["Dimmer", "Schakelaar"], schakelaarMerk: "Niko", schakelaarType: "Original", schakelaarKleur: "Antraciet",
