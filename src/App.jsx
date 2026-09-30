@@ -477,7 +477,7 @@ const WANDLAMPEN = [
   ] },
   { serie: "Levi Up & Down", opties: [
     { kleur: "Mat zwart", code: "7745", foto: fotoLeviMatZwart },
-    { kleur: "Antraciet RAL 7022", code: "7746", foto: fotoLeviAntraciet, opmerking: "Alleen leverbaar in RAL 7021 (niet in RAL 7016)" },
+    { kleur: "Antraciet RAL 7022", code: "7746", foto: fotoLeviAntraciet },
   ] },
   { serie: "Noa Down", opties: [
     { kleur: "Verzinkt", code: "7760", foto: fotoNoaVerzinkt },
