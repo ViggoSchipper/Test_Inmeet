@@ -387,6 +387,10 @@ export default function InmeetPdf({ data, logoSrc }) {
             <Text style={styles.coverValue}>{datumNL(data.datum) || "—"}</Text>
           </View>
           <View style={styles.coverRow}>
+            <Text style={styles.coverLabel}>Ingemeten door</Text>
+            <Text style={styles.coverValue}>{waarde(data.ingemetenDoor) || "—"}</Text>
+          </View>
+          <View style={styles.coverRow}>
             <Text style={styles.coverLabel}>Adres</Text>
             <Text style={styles.coverValue}>
               {[data.adres, [data.postcode, data.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ") || "—"}

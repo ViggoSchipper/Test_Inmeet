@@ -41,3 +41,13 @@ body {
      wordt. */
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Grotere tikvlakken voor de iPad: rondjes en vinkjes 22 px (ook waar
+   inline een kleinere maat staat), zodat ze met een vinger goed te raken zijn. */
+input[type="radio"],
+input[type="checkbox"] {
+  width: 22px !important;
+  height: 22px !important;
+  flex-shrink: 0;
+  cursor: pointer;
+}

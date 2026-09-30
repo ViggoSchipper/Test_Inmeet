@@ -147,8 +147,13 @@
       schalen mee bij draaien iPad; mm-velden en aantallen cijfertoetsenbord + alleen cijfers; teksten
       (Contactgegevens, Binnenwandafwerking, Dakrandafwerking, E-mail, Driedubbele, N.V.T., datum
       dd-mm-jjjj); validatie: Aanhef niet verplicht, Raam/Harmonicawand type verplicht.
-- [ ] Nog voorleggen: 11 handtekening + naam inmeter, 13 "Extra foto's", 14 samenvatting als eindcontrole,
-      19 grotere tikvlakken, HWA N.V.T.-optie.
+- [x] "Ingemeten door" op Contact (onthouden op het apparaat), in samenvatting en PDF-voorblad. Geen handtekening (bewust).
+- [x] Samenvatting als eindcontrole: blok "Nog niet compleet" met knoppen naar de pagina, per onderdeel
+      "Aanpassen ›", opmerkingen erbij, foto's en tekeningen als miniaturen.
+- [x] Grotere tikvlakken: rondjes/vinkjes 22 px, rijen min. 40 px, grotere teken-knoppen en kleurbolletjes.
+- [x] Begrijpelijke melding als het project niet opgehaald kan worden (geen verbinding).
+- [ ] Nog beslissen: "Extra foto's" (onbeperkt foto's met omschrijving op Voorbereiding foto's).
+- HWA blijft altijd verplicht (geen N.V.T.) - bewuste keuze.
 - [x] Foto-vakken: niet meer alleen camera; iPad biedt nu "Foto maken" of "Fotobibliotheek".
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
 - [ ] Pagina 17 Samenvatting: nog doorlopen.

@@ -55,10 +55,11 @@ const styles = {
   input: { border: `1px solid #ddd`, borderRadius: 6, padding: "8px 12px", fontSize: 13, flex: 1, minWidth: 140, outline: "none", color: BLACK },
   inputSmall: { border: `1px solid #ddd`, borderRadius: 6, padding: "8px 12px", fontSize: 13, width: 100, outline: "none", color: BLACK },
   textarea: { border: `1px solid #ddd`, borderRadius: 6, padding: "10px 12px", fontSize: 13, width: "100%", minHeight: 80, resize: "vertical", outline: "none", color: BLACK, fontFamily: "inherit", boxSizing: "border-box" },
-  radioGroup: { display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" },
-  radioLabel: { display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: BLACK, cursor: "pointer" },
-  checkGroup: { display: "flex", flexDirection: "column", gap: 8 },
-  checkLabel: { display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BLACK, cursor: "pointer" },
+  // Tikvlakken minstens ~40 px hoog, zodat ze op de iPad goed te raken zijn.
+  radioGroup: { display: "flex", columnGap: 20, rowGap: 2, flexWrap: "wrap", alignItems: "center" },
+  radioLabel: { display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: BLACK, cursor: "pointer", minHeight: 40 },
+  checkGroup: { display: "flex", flexDirection: "column", gap: 2 },
+  checkLabel: { display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: BLACK, cursor: "pointer", minHeight: 40 },
   divider: { height: 1, background: `${GOLD}33`, margin: "12px 0" },
   // Navigatiebalk staat onderaan de pagina (na de inhoud), niet vast over de inhoud heen.
   nav: { background: "white", borderTop: `2px solid ${GOLD}`, padding: "12px 20px", display: "flex", justifyContent: "space-between" },
@@ -68,7 +69,7 @@ const styles = {
   photoThumb: { width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 6, marginTop: 8 },
   canvas: { border: `2px solid ${GOLD}`, borderRadius: 8, cursor: "crosshair", touchAction: "none", display: "block", width: "100%", background: "white" },
   canvasToolbar: { display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" },
-  toolBtn: (active) => ({ background: active ? GOLD : "white", color: active ? "white" : GOLD, border: `1.5px solid ${GOLD}`, borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 }),
+  toolBtn: (active) => ({ background: active ? GOLD : "white", color: active ? "white" : GOLD, border: `1.5px solid ${GOLD}`, borderRadius: 6, padding: "10px 16px", fontSize: 13, cursor: "pointer", fontWeight: 600, minHeight: 40 }),
   badge: { background: `${GOLD}22`, color: GOLD, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 },
   optionCard: (selected) => ({ border: `2px solid ${selected ? GOLD : "#e0e0e0"}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", background: selected ? `${GOLD}11` : "white", transition: "all 0.15s" }),
   subSection: { background: "#fdfcf8", border: `1px solid ${GOLD}33`, borderRadius: 8, padding: "12px 14px", marginTop: 10 },
@@ -261,7 +262,7 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
         ))}
         {["#1a1a1a", "#B69148", "#e74c3c", "#2980b9"].map(c => (
           <div key={c} onClick={() => { setTool("pen"); setColor(c); }}
-            style={{ width: 24, height: 24, borderRadius: "50%", background: c, cursor: "pointer", border: color === c && tool === "pen" ? "3px solid #333" : "2px solid #eee" }} />
+            style={{ width: 36, height: 36, borderRadius: "50%", background: c, cursor: "pointer", border: color === c && tool === "pen" ? "3px solid #333" : "2px solid #eee" }} />
         ))}
         <button style={{ ...styles.toolBtn(false), opacity: canUndo ? 1 : 0.4, cursor: canUndo ? "pointer" : "default" }}
           onClick={ongedaanMaken} disabled={!canUndo}>↩️ Ongedaan maken</button>
@@ -307,6 +308,12 @@ function fotoInlezen(file) {
     img.src = url;
   });
 }
+
+// Naam van de inmeter onthouden op dit apparaat, zodat die bij een volgend
+// formulier al ingevuld staat.
+const INMETER_SLEUTEL = "addon-inmeter";
+function laatsteInmeter() { try { return localStorage.getItem(INMETER_SLEUTEL) || ""; } catch { return ""; } }
+function bewaarInmeter(naam) { try { localStorage.setItem(INMETER_SLEUTEL, naam); } catch { /* niet fataal */ } }
 
 // Maten (mm) en aantallen: alleen hele getallen.
 const alleenCijfers = (v) => String(v).replace(/[^0-9]/g, "");
@@ -489,6 +496,16 @@ const WANDLAMPEN = [
 ].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
 const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
 const VERDELER_LET_OP = "LET OP: het ophangen en aansluiten van de verdeler gebeurt altijd op stelpost, vanwege de verschillende situaties. Op de locatie van de verdeler dient een stopcontact aanwezig te zijn. Is dit er niet, dan dient dit met AddOn afgestemd te worden. AddOn kan op de plek van de verdeler voor € 300,- incl. btw een stopcontact realiseren.";
+// Foto's en tekeningen in de samenvatting: [veld, omschrijving, pagina-index].
+const SAMENVATTING_BEELDEN = [
+  ["fotoAchterBuiten", "Achtergevel buiten", 4], ["fotoAchterBinnen", "Achtergevel binnen", 4],
+  ["fotoKruipruimte", "Kruipruimte", 4], ["fotoBereikbaarheid", "Bereikbaarheid", 4],
+  ["steenstripAndersFoto", "Steenstrip (anders)", 5], ["composietAndersFoto", "Composiet (anders)", 5],
+  ["schetsMaatvoering", "Schets maatvoering", 2], ["schetsKozijn1", "Schets kozijn 1", 7],
+  ["schetsKozijn2", "Schets kozijn 2", 9], ["schetsKozijn3", "Schets kozijn 3", 11],
+  ["schetsLichtstraatPositie", "Positie lichtstraat", 12], ["fotoVerdeler", "Bestaande verdeler", 14],
+  ["schetsEinstallatie", "Installatietekening", 15],
+];
 const HOTEL_VERLICHTING = ["Binnen: Spotjes", "Binnen: Hanglamp", "Binnen: Wandlampjes", "Buiten: Spotjes", "Buiten: Wandlamp"];
 const WCD_TYPE = "Dubbel NIKO inbouw horizontaal zwart";
 const E_GARANTIE_TEKST = "zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra.";
@@ -549,6 +566,7 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.projectnummer)) missend.push("Projectnummer");
     if (!heeftWaarde(data.naam)) missend.push("Naam");
+    if (!heeftWaarde(data.ingemetenDoor)) missend.push("Ingemeten door");
     // Aanhef is bewust niet verplicht (wel invulbaar).
     if (!heeftWaarde(data.telefoon)) missend.push("Telefoon");
     if (!heeftWaarde(data.mail)) missend.push("E-mail");
@@ -655,6 +673,7 @@ export default function App() {
     // Contact
     projectnummer: "",
     geslacht: "", naam: "", datum: new Date().toISOString().split("T")[0],
+    ingemetenDoor: laatsteInmeter(),
     telefoon: "", mail: "", plaats: "", adres: "", postcode: "", opmerkingen: "",
     // Maatvoering
     hoogte: "", diepteBuiten: "", diepteBinnen: "", breedteBuiten: "", breedteBinnen: "",
@@ -815,11 +834,16 @@ export default function App() {
       // eslint-disable-next-line no-unused-vars
       const { schetsWinstallatie, ...opgeslagen } = json.data || {};
       // Schoon beginnen (geen restjes van een ander project) en de datum van vandaag houden.
-      setData({ ...beginStaatRef.current, ...opgeslagen, projectnummer, datum: beginStaatRef.current.datum });
+      // Datum en inmeter horen bij dít bezoek, niet bij de opgeslagen versie.
+      setData({ ...beginStaatRef.current, ...opgeslagen, projectnummer, datum: beginStaatRef.current.datum, ingemetenDoor: data.ingemetenDoor || beginStaatRef.current.ingemetenDoor });
       gevuldUitProjectRef.current = true;
       setProjectStatus({ loading: false, error: null, foundVersion: json.versie, nextVersion: json.versie + 1 });
-    } catch (err) {
-      setProjectStatus({ loading: false, error: err.message, foundVersion: null, nextVersion: 1 });
+    } catch {
+      // Geen of slecht bereik, of SharePoint niet bereikbaar: begrijpelijke melding
+      // i.p.v. een technische foutmelding. Invullen kan gewoon doorgaan.
+      opgehaaldNrRef.current = ""; // bij opnieuw wegtikken nog een keer proberen
+      setProjectStatus({ loading: false, foundVersion: null, nextVersion: 1,
+        error: "Kon het project niet ophalen uit SharePoint (geen verbinding?). Je kunt gewoon verder met invullen; tik later nog eens in het projectnummer om het opnieuw te proberen." });
     }
   };
 
@@ -872,7 +896,7 @@ export default function App() {
     const vandaag = new Date().toISOString().slice(0, 10);
     negeerWijzigingRef.current = true;
     gewijzigdRef.current = false;
-    setData({ ...beginStaatRef.current, datum: vandaag });
+    setData({ ...beginStaatRef.current, datum: vandaag, ingemetenDoor: data.ingemetenDoor });
     opgehaaldNrRef.current = "";
     gevuldUitProjectRef.current = false;
     setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
@@ -1094,6 +1118,7 @@ export default function App() {
   };
 
   const sd = schoneData(data); // opgeschoonde gegevens voor samenvatting en legenda
+  const naarPagina = (i) => { setFoutmeldingen([]); setPage(i); };
   const mmTekst = (v) => (heeftWaarde(v) ? `${v} MM` : "");
   const pages = [
     // 0: Contact
@@ -1142,6 +1167,9 @@ export default function App() {
           <div style={styles.row}>
             <div style={styles.label}>Datum:</div>
             <input type="date" style={styles.input} value={data.datum} onChange={e => set("datum", e.target.value)} />
+            <div style={styles.label}>Ingemeten door:</div>
+            <input style={styles.input} placeholder="Naam inmeter" value={data.ingemetenDoor}
+              onChange={e => { set("ingemetenDoor", e.target.value); bewaarInmeter(e.target.value); }} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
@@ -1858,17 +1886,44 @@ export default function App() {
           <p style={styles.sectionTitle}>Samenvatting — {sd.naam || "Klant"}</p>
         </div>
         <div style={styles.sectionBody}>
+          {(() => {
+            // Eindcontrole: wat ontbreekt er nog? Alleen een waarschuwing, je kunt
+            // altijd versturen (zolang de validatie niet hard aanstaat).
+            // Het installatieblok (pagina 16) meldt E en W samen; die splitsen we hier
+            // weer uit naar hun eigen pagina (14 E-installaties, 15 W-installaties).
+            const ontbreekt = PAGE_VALIDATORS.flatMap((v, i) => {
+              const m = v ? v(data) : [];
+              if (i !== 15) return [[i, m]];
+              const deel = (prefix) => m.filter(x => x.startsWith(prefix)).map(x => x.slice(prefix.length));
+              return [[13, deel("E-installaties: ")], [14, deel("W-installaties: ")]];
+            }).filter(([, m]) => m.length > 0);
+            return ontbreekt.length === 0 ? (
+              <div style={{ background: "#eaf6ec", border: "1.5px solid #2e7d32", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#2e7d32", fontWeight: 600 }}>
+                ✓ Alles is ingevuld.
+              </div>
+            ) : (
+              <div style={{ background: "#fdf6e7", border: `1.5px solid ${GOLD}`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>Nog niet compleet — controleer vóór het versturen:</div>
+                {ontbreekt.map(([i, m]) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "baseline", marginBottom: 4, flexWrap: "wrap" }}>
+                    <button onClick={() => naarPagina(i)} style={{ ...styles.btnPrev, padding: "2px 10px", fontSize: 12 }}>{PAGES[i]} ›</button>
+                    <span style={{ color: "#555" }}>{m.join(", ")}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
           {[
-            ["Contact", [["Projectnummer", sd.projectnummer], ["Naam", sd.naam], ["Aanhef", sd.geslacht], ["Datum", (sd.datum || "").split("-").reverse().join("-")], ["Telefoon", sd.telefoon], ["E-mail", sd.mail], ["Adres", [sd.adres, [sd.postcode, sd.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")]]],
-            ["Maatvoering", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
-            ["Voorbereidingen", [["Ondergrond", sd.ondergrond], ["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
-            ["Wandafwerking", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
-            ["Gevelbekleding", [["Steenstrips", sd.steenstrip === "Anders" ? sd.steenstripAnders : sd.steenstrip], ["Voegkleur", sd.steenstripVoegkleur], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
-            ["Kozijn 1", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
-            ["Kozijn 2", [["Type", sd.k2Type], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
-            ["Kozijn 3", [["Type", sd.k3Type], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],
-            ["Dak", [["Dakbedekking", sd.dakbedekking], ["Dakrand", sd.dakrandAfwerking], ["Dakrand RAL", sd.dakrandKleur], ["Overstek", sd.overstek === "Ja" ? ["Ja", mmTekst(sd.overstekMM), sd.overstekRAL && `RAL ${sd.overstekRAL}`].filter(Boolean).join(", ") : sd.overstek], ["Lichtstraat", sd.lichtstraat], ["Lichtstraat afmeting", (sd.lichtstraatLengteMM || sd.lichtstraatBreedteMM) ? `${sd.lichtstraatLengteMM} x ${sd.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", sd.lichtstraatKleur], ["Lichtstraat delen glas", sd.lichtstraatDelenGlas]]],
-            ["E-installaties", [
+            ["Contact", 0, "opmerkingen", [["Projectnummer", sd.projectnummer], ["Naam", sd.naam], ["Aanhef", sd.geslacht], ["Datum", (sd.datum || "").split("-").reverse().join("-")], ["Ingemeten door", sd.ingemetenDoor], ["Telefoon", sd.telefoon], ["E-mail", sd.mail], ["Adres", [sd.adres, [sd.postcode, sd.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")]]],
+            ["Maatvoering", 1, "", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
+            ["Voorbereidingen", 3, "", [["Ondergrond", sd.ondergrond], ["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
+            ["Wandafwerking", 5, "", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
+            ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip === "Anders" ? sd.steenstripAnders : sd.steenstrip], ["Voegkleur", sd.steenstripVoegkleur], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
+            ["Kozijn 1", 6, "k1Opmerking", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
+            ["Kozijn 2", 8, "k2Opmerking", [["Type", sd.k2Type], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
+            ["Kozijn 3", 10, "k3Opmerking", [["Type", sd.k3Type], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],
+            ["Dak", 12, "dakOpmerking", [["Dakbedekking", sd.dakbedekking], ["Dakrand", sd.dakrandAfwerking], ["Dakrand RAL", sd.dakrandKleur], ["Overstek", sd.overstek === "Ja" ? ["Ja", mmTekst(sd.overstekMM), sd.overstekRAL && `RAL ${sd.overstekRAL}`].filter(Boolean).join(", ") : sd.overstek], ["Lichtstraat", sd.lichtstraat], ["Lichtstraat afmeting", (sd.lichtstraatLengteMM || sd.lichtstraatBreedteMM) ? `${sd.lichtstraatLengteMM} x ${sd.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", sd.lichtstraatKleur], ["Lichtstraat delen glas", sd.lichtstraatDelenGlas]]],
+            ["E-installaties", 13, "eOpmerking", [
               ["Uitvoering", sd.eUitvoering],
               ["Merk/Type", schakelmateriaalTekst(data)],
               ["Let op", sd.eUitvoering === E_UITVOERING_LEIDINGWERK ? E_GARANTIE_TEKST : ""],
@@ -1886,7 +1941,7 @@ export default function App() {
               ["Buitenstopcontact", sd.wcd ? `Ja${sd.wcdAantal ? `, aantal ${sd.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : ""],
               ["Airco", (sd.warmteKoude || []).includes("Airco") ? (sd.aircoUitvoering === "Airco" ? `Airco${sd.aircoVermogen ? ` ${sd.aircoVermogen}` : ""}` : sd.aircoUitvoering || "Ja") : ""],
             ]],
-            ["W-installaties", [
+            ["W-installaties", 14, "wOpmerking", [
               ["HWA", sd.hwaMateriaal ? `${sd.hwaMateriaal}${sd.hwaAantal ? ` (${sd.hwaAantal}x)` : ""}` : ""],
               ["Bladvanger / vergaarbak", [sd.bladvanger && "Bladvanger", sd.vergaarbak && "Vergaarbak"].filter(Boolean).join(", ")],
               ["Vorstvrije buitenkraan", sd.buitenkraan],
@@ -1894,17 +1949,39 @@ export default function App() {
               ["Verdeler", sd.vloerverwarming && sd.vloerverwarming !== "N.V.T." ? sd.verdeler : ""],
               ["Warmtebron", sd.vloerverwarming !== "N.V.T." && sd.verdeler === "Verdeler ophangen" ? (sd.warmtebron || []).join(", ") : ""],
             ]],
-          ].map(([title, rows]) => (
+          ].map(([title, pagina, opmerkingVeld, rows]) => (
             <div key={title} style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 6, borderBottom: `1px solid ${GOLD}33`, paddingBottom: 4 }}>{title}</div>
+              <div onClick={() => naarPagina(pagina)} title={`Naar ${PAGES[pagina]}`}
+                style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 6, borderBottom: `1px solid ${GOLD}33`, paddingBottom: 4, cursor: "pointer", display: "flex", justifyContent: "space-between" }}>
+                <span>{title}</span><span style={{ fontWeight: 600, fontSize: 12 }}>Aanpassen ›</span>
+              </div>
               {rows.filter(([, v]) => v).map(([k, v]) => (
                 <div key={k} style={{ display: "flex", gap: 8, fontSize: 12, marginBottom: 4 }}>
                   <span style={{ color: "#888", minWidth: 140 }}>{k}:</span>
                   <span style={{ color: BLACK, fontWeight: 500 }}>{v}</span>
                 </div>
               ))}
+              {opmerkingVeld && heeftWaarde(sd[opmerkingVeld]) && (
+                <div style={{ display: "flex", gap: 8, fontSize: 12, marginBottom: 4 }}>
+                  <span style={{ color: "#888", minWidth: 140 }}>Opmerkingen:</span>
+                  <span style={{ color: BLACK, fontWeight: 500, whiteSpace: "pre-wrap" }}>{sd[opmerkingVeld]}</span>
+                </div>
+              )}
             </div>
           ))}
+          {SAMENVATTING_BEELDEN.some(([veld]) => sd[veld]) && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 8, borderBottom: `1px solid ${GOLD}33`, paddingBottom: 4 }}>Foto's en tekeningen</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
+                {SAMENVATTING_BEELDEN.filter(([veld]) => sd[veld]).map(([veld, label, pagina]) => (
+                  <div key={veld} onClick={() => naarPagina(pagina)} style={{ cursor: "pointer" }} title={`Naar ${PAGES[pagina]}`}>
+                    <img src={sd[veld]} alt={label} style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: 6, border: "1px solid #e0e0e0", display: "block", background: "white" }} />
+                    <div style={{ fontSize: 11, color: "#666", marginTop: 3 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={styles.divider} />
           <button style={{ ...styles.btnPrev, width: "100%", fontSize: 15, padding: "12px", marginBottom: 10, opacity: pdfStatus.loading ? 0.6 : 1, cursor: pdfStatus.loading ? "default" : "pointer" }}
             disabled={pdfStatus.loading}

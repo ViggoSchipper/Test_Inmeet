@@ -24,8 +24,8 @@ const KLEUREN = ["#1a1a1a", "#B69148", "#e74c3c", "#2980b9"];
 let teller = 0;
 const nieuwId = () => `o${Date.now().toString(36)}${(teller++).toString(36)}`;
 
-const knop = (actief) => ({ background: actief ? GOLD : "white", color: actief ? "white" : GOLD, border: `1.5px solid ${GOLD}`, borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 });
-const menuKnop = (actief) => ({ minWidth: 34, padding: "6px 8px", borderRadius: 6, border: `1.5px solid ${GOLD}`, background: actief ? GOLD : "white", color: actief ? "white" : BLACK, fontWeight: 700, fontSize: 13, cursor: "pointer" });
+const knop = (actief) => ({ background: actief ? GOLD : "white", color: actief ? "white" : GOLD, border: `1.5px solid ${GOLD}`, borderRadius: 6, padding: "10px 16px", fontSize: 13, cursor: "pointer", fontWeight: 600, minHeight: 40 });
+const menuKnop = (actief) => ({ minWidth: 40, minHeight: 40, padding: "6px 8px", borderRadius: 6, border: `1.5px solid ${GOLD}`, background: actief ? GOLD : "white", color: actief ? "white" : BLACK, fontWeight: 700, fontSize: 13, cursor: "pointer" });
 
 // Klein SVG-plaatje van een tekensymbool, voor de knoppen en de legenda.
 export function SymboolIcoon({ symbool, grootte = 26, kleur = BLACK }) {
@@ -444,7 +444,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
         {SYMBOLEN.map((s) => (
           <div key={s.key} onPointerDown={startSleep(s)}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", border: `1px solid ${GOLD}55`, borderRadius: 8, background: "#fdfcf8", cursor: "grab", touchAction: "none", userSelect: "none" }}>
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", minHeight: 44, border: `1px solid ${GOLD}55`, borderRadius: 8, background: "#fdfcf8", cursor: "grab", touchAction: "none", userSelect: "none" }}>
             <SymboolIcoon symbool={s} />
             <span style={{ fontSize: 11, color: "#666" }}>{s.label}</span>
           </div>
@@ -460,7 +460,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
         <button style={knop(tool === "maat")} onClick={() => setTool(tool === "maat" ? "pen" : "maat")}>📏 Maatlijn</button>
         {KLEUREN.map((c) => (
           <div key={c} onClick={() => { setTool("pen"); setKleur(c); }}
-            style={{ width: 24, height: 24, borderRadius: "50%", background: c, cursor: "pointer", border: kleur === c && tool === "pen" ? "3px solid #333" : "2px solid #eee" }} />
+            style={{ width: 36, height: 36, borderRadius: "50%", background: c, cursor: "pointer", border: kleur === c && tool === "pen" ? "3px solid #333" : "2px solid #eee" }} />
         ))}
         <button style={{ ...knop(false), opacity: kanOngedaan ? 1 : 0.4, cursor: kanOngedaan ? "pointer" : "default" }} onClick={ongedaanMaken} disabled={!kanOngedaan}>↩️ Ongedaan maken</button>
         <button style={knop(false)} onClick={wissen}>🗑️ Wissen</button>
