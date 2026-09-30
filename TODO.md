@@ -123,6 +123,11 @@
       tikken om te wijzigen/verwijderen). Ongedaan maken werkt voor alles. Opslag: schetsEinstallatie
       (platte PNG voor PDF/SharePoint) + schetsInstallatieStaat (pen-laag + objecten, om later verder
       te bewerken). Hotelschakelaar en Verdeler uit de symbolen en de legenda gehaald.
+- [x] iPad-feedback installatietekening: na één maatlijn automatisch terug naar de pen (Maatlijn-knop
+      is ook aan/uit), symbolen blijven binnen het tekenvlak, tekstvak maatlijn krijgt geen automatische
+      focus (geen schermtoetsenbord tenzij je erin tikt). Legenda nu per symbool met "Opgegeven" (uit E/W)
+      en "Getekend" (telt symbolen in de tekening), oranje bij verschil; ook in de PDF.
+- [x] Foto-vakken: niet meer alleen camera; iPad biedt nu "Foto maken" of "Fotobibliotheek".
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
 - [ ] Pagina 17 Samenvatting: nog doorlopen.
 

@@ -275,11 +275,11 @@ function PhotoUpload({ label, hint, value, onChange }) {
           <>
             <div style={{ fontSize: 28 }}>📷</div>
             <div style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>Foto toevoegen</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>Tik om te uploaden</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Foto maken of kiezen uit fotobibliotheek</div>
           </>
         )}
       </div>
-      <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }}
         onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => onChange(ev.target.result); r.readAsDataURL(f); } }} />
     </div>
   );
@@ -1142,7 +1142,7 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <input ref={steenstripAndersFotoRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+              <input ref={steenstripAndersFotoRef} type="file" accept="image/*" style={{ display: "none" }}
                 onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { set("steenstripAndersFoto", ev.target.result); set("steenstrip", "Anders"); }; r.readAsDataURL(f); } }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" readOnly checked={data.steenstrip === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("steenstrip", "Anders")} />
@@ -1186,7 +1186,7 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <input ref={composietAndersFotoRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+              <input ref={composietAndersFotoRef} type="file" accept="image/*" style={{ display: "none" }}
                 onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { set("composietAndersFoto", ev.target.result); set("composiet", "Anders"); }; r.readAsDataURL(f); } }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" readOnly checked={data.composiet === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("composiet", "Anders")} />
@@ -1632,29 +1632,37 @@ export default function App() {
           </div>
           <div style={{ marginTop: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Legenda</div>
-            <div style={{ ...styles.hint, marginBottom: 8 }}>Wordt automatisch ingevuld vanuit E- en W-installaties.</div>
+            <div style={{ ...styles.hint, marginBottom: 8 }}>Wordt automatisch bijgewerkt: "Opgegeven" komt uit E- en W-installaties, "Getekend" telt de symbolen in de tekening.</div>
             {legendaRijen(data).length === 0 ? (
-              <div style={{ fontSize: 12, color: "#888" }}>Nog niets ingevuld bij E- of W-installaties.</div>
+              <div style={{ fontSize: 12, color: "#888" }}>Nog niets ingevuld bij E- of W-installaties en nog geen symbolen getekend.</div>
             ) : (
               <div style={{ overflowX: "auto" }}>
-                <table style={{ borderCollapse: "collapse", fontSize: 12, minWidth: 420 }}>
+                <table style={{ borderCollapse: "collapse", fontSize: 12, minWidth: 480 }}>
                   <thead>
                     <tr style={{ textAlign: "left", color: "#888" }}>
-                      {["", "Omschrijving", "Kleur", "Type", "Aantal"].map(h => <th key={h} style={{ padding: "4px 8px", borderBottom: `1px solid ${GOLD}55`, fontWeight: 600 }}>{h}</th>)}
+                      {["", "Omschrijving", "Kleur", "Type", "Opgegeven", "Getekend"].map(h => <th key={h} style={{ padding: "4px 8px", borderBottom: `1px solid ${GOLD}55`, fontWeight: 600, textAlign: h === "Opgegeven" || h === "Getekend" ? "right" : "left" }}>{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>
-                    {legendaRijen(data).map(r => (
-                      <tr key={r.omschrijving}>
-                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}><SymboolIcoon symbool={symboolOpKey(r.sym)} grootte={24} /></td>
-                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}>{r.omschrijving}</td>
-                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}>{r.kleur}</td>
-                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}>{r.type}</td>
-                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.aantal}</td>
-                      </tr>
-                    ))}
+                    {legendaRijen(data).map(r => {
+                      const verschil = r.aantal !== r.getekend;
+                      const td = { padding: "2px 8px", borderBottom: "1px solid #eee", background: verschil ? "#fdf1e0" : "transparent" };
+                      return (
+                        <tr key={r.sym}>
+                          <td style={td}><SymboolIcoon symbool={symboolOpKey(r.sym)} grootte={24} /></td>
+                          <td style={td}>{r.omschrijving}{r.detail && <div style={{ fontSize: 10, color: "#888" }}>{r.detail}</div>}</td>
+                          <td style={td}>{r.kleur}</td>
+                          <td style={td}>{r.type}</td>
+                          <td style={{ ...td, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.aantal}</td>
+                          <td style={{ ...td, textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: verschil ? 700 : 400, color: verschil ? "#b9770e" : "inherit" }}>{r.getekend}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+                {legendaRijen(data).some(r => r.aantal !== r.getekend) && (
+                  <div style={{ fontSize: 11, color: "#b9770e", marginTop: 6 }}>Oranje: het aantal in de tekening wijkt af van wat bij E-/W-installaties is opgegeven.</div>
+                )}
               </div>
             )}
           </div>

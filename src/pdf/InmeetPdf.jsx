@@ -304,21 +304,25 @@ function PdfSymbool({ symKey, grootte = 20 }) {
 function InstallatieLegenda({ data }) {
   const rijen = legendaRijen(data);
   if (rijen.length === 0) return null;
-  const kol = [{ w: 28 }, { w: 170 }, { w: 90 }, { w: 170 }, { w: 45, right: true }];
+  const kol = [{ w: 28 }, { w: 150 }, { w: 90 }, { w: 150 }, { w: 50, right: true }, { w: 50, right: true }];
   const cel = (i, extra = {}) => ({ width: kol[i].w, fontSize: 9, paddingVertical: 2, paddingHorizontal: 3, textAlign: kol[i].right ? "right" : "left", ...extra });
   return (
     <View style={{ marginTop: 8 }} wrap={false}>
       <Text style={{ fontSize: 10.5, fontWeight: 700, marginBottom: 4 }}>Legenda</Text>
       <View style={{ flexDirection: "row", borderBottom: `1 solid ${GOLD}` }}>
-        {["", "Omschrijving", "Kleur", "Type", "Aantal"].map((h, i) => <Text key={h + i} style={cel(i, { color: GREY })}>{h}</Text>)}
+        {["", "Omschrijving", "Kleur", "Type", "Opgegeven", "Getekend"].map((h, i) => <Text key={h + i} style={cel(i, { color: GREY })}>{h}</Text>)}
       </View>
       {rijen.map((r) => (
-        <View key={r.omschrijving} style={{ flexDirection: "row", alignItems: "center", borderBottom: "0.5 solid #e5e5e5" }}>
+        <View key={r.sym} style={{ flexDirection: "row", alignItems: "center", borderBottom: "0.5 solid #e5e5e5" }}>
           <View style={cel(0)}><PdfSymbool symKey={r.sym} /></View>
-          <Text style={cel(1)}>{r.omschrijving}</Text>
+          <View style={cel(1)}>
+            <Text>{r.omschrijving}</Text>
+            {r.detail ? <Text style={{ fontSize: 7.5, color: GREY }}>{r.detail}</Text> : null}
+          </View>
           <Text style={cel(2)}>{r.kleur}</Text>
           <Text style={cel(3)}>{r.type}</Text>
           <Text style={cel(4)}>{r.aantal}</Text>
+          <Text style={cel(5, r.aantal !== r.getekend ? { color: "#b9770e", fontWeight: 700 } : {})}>{r.getekend}</Text>
         </View>
       ))}
     </View>

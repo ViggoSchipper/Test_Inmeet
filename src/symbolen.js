@@ -48,9 +48,10 @@ export function tekenSymbool(ctx, symbool, x, y, grootte, kleur = "#1a1a1a") {
 }
 
 // --- Automatische legenda-tabel ------------------------------------------
-// Vult Kleur / Type / Aantal zoveel mogelijk in vanuit wat er bij
-// E-installaties en W-installaties is gekozen. Alleen regels met een aantal
-// komen in de tabel.
+// Eén regel per symbool (zoals de eigen AddOn-legenda). Kleur / Type en het
+// opgegeven aantal komen uit E- en W-installaties; "getekend" telt hoe vaak
+// het symbool in de installatietekening staat. Een symbool komt in de tabel
+// zodra het is opgegeven óf getekend.
 
 const RAL = { Wit: "RAL 9010", Zwart: "RAL 9005" };
 const getal = (v) => {
@@ -58,7 +59,7 @@ const getal = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export function legendaRijen(data) {
+function productRijen(data) {
   const d = data || {};
   const alleenLeidingwerk = d.eUitvoering === "AddOn verzorgt alleen leidingen en dozen";
   const merk = alleenLeidingwerk ? "Klant" : d.schakelMerk === "Anders" ? (d.schakelMerkAnders || "Anders") : (d.schakelMerk || "");
@@ -87,4 +88,29 @@ export function legendaRijen(data) {
     { sym: "buitenkraan", omschrijving: "Buitenkraan", kleur: "", type: "Vorstvrij", aantal: d.buitenkraan === "1" ? 1 : 0 },
   ];
   return rijen.filter((r) => r.aantal > 0);
+}
+
+export function legendaRijen(data) {
+  const d = data || {};
+  const producten = productRijen(d);
+  const getekend = {};
+  ((d.schetsInstallatieStaat && d.schetsInstallatieStaat.objecten) || []).forEach((o) => {
+    if (o.type === "sym") getekend[o.key] = (getekend[o.key] || 0) + 1;
+  });
+  const uniek = (lijst) => [...new Set(lijst.filter(Boolean))].join(" / ");
+  return SYMBOLEN
+    .map((s) => {
+      const rijen = producten.filter((r) => r.sym === s.key);
+      const opgegeven = rijen.reduce((som, r) => som + r.aantal, 0);
+      return {
+        sym: s.key,
+        omschrijving: s.label,
+        kleur: uniek(rijen.map((r) => r.kleur)),
+        type: uniek(rijen.map((r) => r.type)),
+        detail: rijen.length > 1 ? rijen.map((r) => `${r.omschrijving} ${r.aantal}x`).join(", ") : "",
+        aantal: opgegeven,
+        getekend: getekend[s.key] || 0,
+      };
+    })
+    .filter((r) => r.aantal > 0 || r.getekend > 0);
 }

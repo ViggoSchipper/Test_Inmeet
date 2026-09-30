@@ -263,6 +263,13 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
       afstandTotLijn(p, { x: o.x1 * w, y: o.y1 * h }, { x: o.x2 * w, y: o.y2 * h }) <= 12) || null;
   };
 
+  // Houdt een symbool helemaal binnen het tekenvlak (fractie 0..1, met marge van een half symbool).
+  const binnenVlak = (fx, fy) => {
+    const { w, h } = maatRef.current;
+    const mx = (SYM_GROOTTE / 2 + 2) / (w || 1), my = (SYM_GROOTTE / 2 + 2) / (h || 1);
+    return { x: Math.min(1 - mx, Math.max(mx, fx)), y: Math.min(1 - my, Math.max(my, fy)) };
+  };
+
   const rechtTrekken = (a, p) => (Math.abs(p.x - a.x) >= Math.abs(p.y - a.y) ? { x: p.x, y: a.y } : { x: a.x, y: p.y });
 
   const openMaatMenu = (o) => { setMaatTekst(o.tekst || ""); setMenu({ soort: "maat", id: o.id }); };
@@ -311,8 +318,9 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
       if (!i.bewogen && Math.hypot(p.x - i.start.x, p.y - i.start.y) > 6) { bewaarVoorUndo(); i.bewogen = true; }
       if (i.bewogen) {
         const o = objRef.current.find((x) => x.id === i.id);
-        o.x = Math.min(1, Math.max(0, i.orig.x + (p.x - i.start.x) / w));
-        o.y = Math.min(1, Math.max(0, i.orig.y + (p.y - i.start.y) / h));
+        const nieuw = binnenVlak(i.orig.x + (p.x - i.start.x) / w, i.orig.y + (p.y - i.start.y) / h);
+        o.x = nieuw.x;
+        o.y = nieuw.y;
         teken();
       }
     } else if (i.soort === "maat") {
@@ -343,6 +351,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
         exporteer();
         openMaatMenu(o);
       } else teken();
+      setTool("pen"); // na één maatlijn automatisch terug naar de pen
     }
   };
 
@@ -379,7 +388,8 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
       const r = canvasRef.current.getBoundingClientRect();
       if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) return;
       bewaarVoorUndo();
-      objRef.current = [...objRef.current, { id: nieuwId(), type: "sym", key: symbool.key, x: (ev.clientX - r.left) / r.width, y: (ev.clientY - r.top) / r.height, letter: "" }];
+      const plek = binnenVlak((ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height);
+      objRef.current = [...objRef.current, { id: nieuwId(), type: "sym", key: symbool.key, x: plek.x, y: plek.y, letter: "" }];
       exporteer();
       verversUI();
     };
@@ -416,12 +426,12 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
       </div>
       <div style={{ fontSize: 11, color: GOLD, fontStyle: "italic", marginBottom: 8, lineHeight: 1.5 }}>
         Sleep een symbool naar de tekening. Tik op een geplaatst symbool om er een letter (A–E) bij te zetten of het te verwijderen; sleep het om te verplaatsen.
-        Met <b>Maatlijn</b> trek je (vanuit een symbool) een rechte lijn en vul je de maat in.
+        Met <b>Maatlijn</b> trek je (vanuit een symbool) één rechte lijn en vul je de maat in; daarna sta je weer op de pen.
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
         <button style={knop(tool === "pen")} onClick={() => setTool("pen")}>✏️ Pen</button>
         <button style={knop(tool === "eraser")} onClick={() => setTool("eraser")}>⬜ Gum</button>
-        <button style={knop(tool === "maat")} onClick={() => setTool("maat")}>📏 Maatlijn</button>
+        <button style={knop(tool === "maat")} onClick={() => setTool(tool === "maat" ? "pen" : "maat")}>📏 Maatlijn</button>
         {KLEUREN.map((c) => (
           <div key={c} onClick={() => { setTool("pen"); setKleur(c); }}
             style={{ width: 24, height: 24, borderRadius: "50%", background: c, cursor: "pointer", border: kleur === c && tool === "pen" ? "3px solid #333" : "2px solid #eee" }} />
@@ -447,7 +457,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
         {menuObject && menuObject.type === "maat" && (
           <div style={menuStijl}>
             <span style={{ fontSize: 12, color: "#666", width: "100%" }}>Maat / tekst bij de lijn:</span>
-            <input autoFocus value={maatTekst} onChange={(e) => setMaatTekst(e.target.value)} placeholder="bijv. 1200 mm"
+            <input value={maatTekst} onChange={(e) => setMaatTekst(e.target.value)} placeholder="bijv. 1200 mm"
               onKeyDown={(e) => { if (e.key === "Enter") maatOpslaan(); }}
               style={{ flex: 1, minWidth: 0, padding: "6px 8px", border: "1.5px solid #ddd", borderRadius: 6, fontSize: 13 }} />
             <button style={menuKnop(true)} onClick={maatOpslaan}>OK</button>
