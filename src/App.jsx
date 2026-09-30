@@ -486,6 +486,7 @@ const WANDLAMPEN = [
   ] },
 ].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
 const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
+const HOTEL_VERLICHTING = ["Binnen: Spotjes", "Binnen: Hanglamp", "Binnen: Wandlampjes", "Buiten: Spotjes", "Buiten: Wandlamp"];
 const WCD_TYPE = "Dubbel NIKO inbouw horizontaal zwart";
 const E_GARANTIE_TEKST = "zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra.";
 
@@ -587,6 +588,10 @@ const PAGE_VALIDATORS = [
       else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type (Anders)");
       if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur Merk/Type");
     }
+    if (data.hotelschakeling) {
+      if (!heeftWaarde(data.hotelType)) missend.push("Hotelschakeling: dubbel of 3-dubbel");
+      if (!heeftWaarde(data.hotelLampen)) missend.push("Hotelschakeling: welke verlichting");
+    }
     const buiten = data.buitenVerlichting || [];
     if (buiten.includes("Spotjes")) {
       if (!heeftWaarde(data.buitenSpotjesKleur)) missend.push("Kleur buiten spotjes");
@@ -655,10 +660,10 @@ export default function App() {
     eUitvoering: "", schakelMerk: "", schakelMerkAnders: "", schakelKleur: "",
     stopcontacten: [], stopcontactenAnders: "",
     stopAantalEnkel: "", stopAantalDubbel: "", stopAantalTripel: "", stopAantalAnders: "",
-    verlichting: [], verlichtingMerkType: "", verlichtingSpotjesKleur: "",
+    verlichting: [], verlichtingSpotjesKleur: "",
     verAantalSpotjes: "", verAantalHanglamp: "", verAantalWandlampjes: "",
     hanglampOphangen: false, wandlampjesOphangen: false,
-    schakelaars: [],
+    schakelaars: [], hotelschakeling: false, hotelType: "", hotelLampen: [],
     schAantalSchakelaar: "", schAantalDimmer: "", schAantalSensor: "",
     buitenVerlichting: [], buitenSpotjesKleur: "", buitenSpotjesRAL: "",
     buitenAantalSpotjes: "", buitenAantalWandlamp: "", buitenWandlampType: "",
@@ -1465,10 +1470,6 @@ export default function App() {
                 </div>
               );
             }} />
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
-            <input style={styles.input} value={data.verlichtingMerkType} onChange={e => set("verlichtingMerkType", e.target.value)} />
-          </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Buiten E-installaties</div>
           {/* Spotjes */}
@@ -1557,6 +1558,16 @@ export default function App() {
           <CheckGroupAantal options={["Schakelaar", "Dimmer", "Sensor"]} values={data.schakelaars} onChange={v => set("schakelaars", v)}
             aantallen={{ Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor }}
             onAantalChange={(opt, val) => set({ Schakelaar: "schAantalSchakelaar", Dimmer: "schAantalDimmer", Sensor: "schAantalSensor" }[opt], val)} />
+          <label style={styles.checkLabel}>
+            <input type="checkbox" style={{ accentColor: GOLD, width: 16, height: 16 }} checked={data.hotelschakeling} onChange={e => set("hotelschakeling", e.target.checked)} /> Hotelschakeling gewenst
+          </label>
+          {data.hotelschakeling && (
+            <div style={styles.subSection}>
+              <RadioGroup name="hotelType" options={["Dubbel", "3-dubbel"]} value={data.hotelType} onChange={v => set("hotelType", v)} />
+              <div style={{ fontSize: 12, color: "#888", margin: "10px 0 4px" }}>Welke verlichting krijgt een hotelschakeling?</div>
+              <CheckGroup options={HOTEL_VERLICHTING} values={data.hotelLampen} onChange={v => set("hotelLampen", v)} />
+            </div>
+          )}
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Warmte / Koude</div>
           <CheckGroup options={["Airco"]} values={data.warmteKoude} onChange={v => set("warmteKoude", v)} />
@@ -1681,8 +1692,8 @@ export default function App() {
               ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
               ["Hanglamp ophangen", (data.verlichting || []).includes("Hanglamp") ? (data.hanglampOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
               ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
-              ["Verlichting Merk/Type", data.verlichtingMerkType],
               ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
+              ["Hotelschakeling", data.hotelschakeling ? [data.hotelType, (data.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") || "Ja" : ""],
               ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, Wandlamp: data.buitenAantalWandlamp })],
               ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
               ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
