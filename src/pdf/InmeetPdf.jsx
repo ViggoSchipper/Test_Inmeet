@@ -456,7 +456,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
             ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
             ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : "Nee"],
-            ["Warmte/koude", data.warmteKoude],
+            ["Airco", (data.warmteKoude || []).includes("Airco") ? (data.aircoUitvoering === "Airco" ? `Airco${data.aircoVermogen ? ` ${data.aircoVermogen}` : ""}` : data.aircoUitvoering || "Ja") : ""],
           ]}
           melding={data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen"
             ? "Let op: het afmonteren gebeurt door de klant. Zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra." : null}

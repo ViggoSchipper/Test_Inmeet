@@ -84,7 +84,7 @@ const data = {
   buitenVerlichting: ["Spotjes", "Wandlamp"], buitenAantalSpotjes: "4", buitenSpotjesKleur: "Kleur van overstek", buitenSpotjesRAL: "RAL 7016",
   buitenAantalWandlamp: "2", buitenWandlampType: "Levi Up & Down - Mat zwart (7745)",
   wcd: true, wcdAantal: "1",
-  warmteKoude: ["Vloerverwarming", "Koeling"],
+  warmteKoude: ["Airco"], aircoUitvoering: "Airco", aircoVermogen: "4,2 kW",
   eOpmerking: "Groepenkast heeft nog 3 vrije groepen.",
 
   hwaMateriaal: "Zink", bladvanger: true, vergaarbak: false,

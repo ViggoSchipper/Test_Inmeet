@@ -591,6 +591,10 @@ const PAGE_VALIDATORS = [
     if (data.hotelschakeling) {
       if (!heeftWaarde(data.hotelLampen)) missend.push("Hotelschakeling: welke verlichting");
     }
+    if ((data.warmteKoude || []).includes("Airco")) {
+      if (!heeftWaarde(data.aircoUitvoering)) missend.push("Airco: alleen leidingwerk of airco");
+      else if (data.aircoUitvoering === "Airco" && !heeftWaarde(data.aircoVermogen)) missend.push("Airco: vermogen");
+    }
     const buiten = data.buitenVerlichting || [];
     if (buiten.includes("Spotjes")) {
       if (!heeftWaarde(data.buitenSpotjesKleur)) missend.push("Kleur buiten spotjes");
@@ -667,7 +671,7 @@ export default function App() {
     buitenVerlichting: [], buitenSpotjesKleur: "", buitenSpotjesRAL: "",
     buitenAantalSpotjes: "", buitenAantalWandlamp: "", buitenWandlampType: "",
     wcd: false, wcdAantal: "",
-    warmteKoude: [],
+    warmteKoude: [], aircoUitvoering: "", aircoVermogen: "",
     eOpmerking: "",
     schetsEinstallatie: null,
     // W-installaties
@@ -1570,6 +1574,17 @@ export default function App() {
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Warmte / Koude</div>
           <CheckGroup options={["Airco"]} values={data.warmteKoude} onChange={v => set("warmteKoude", v)} />
+          {(data.warmteKoude || []).includes("Airco") && (
+            <div style={styles.subSection}>
+              <RadioGroup name="aircoUitvoering" options={["Alleen leidingwerk (voorbereiding)", "Airco"]} value={data.aircoUitvoering} onChange={v => set("aircoUitvoering", v)} />
+              {data.aircoUitvoering === "Airco" && (
+                <div style={{ ...styles.row, marginTop: 8 }}>
+                  <div style={styles.label}>Vermogen:</div>
+                  <RadioGroup name="aircoVermogen" options={["2,5 kW", "4,2 kW", "5 kW"]} value={data.aircoVermogen} onChange={v => set("aircoVermogen", v)} />
+                </div>
+              )}
+            </div>
+          )}
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / Extra's:</div>
           <textarea style={styles.textarea} value={data.eOpmerking} onChange={e => set("eOpmerking", e.target.value)} />
@@ -1697,7 +1712,7 @@ export default function App() {
               ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
               ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
               ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : ""],
-              ["Warmte/Koude", data.warmteKoude.join(", ")],
+              ["Airco", (data.warmteKoude || []).includes("Airco") ? (data.aircoUitvoering === "Airco" ? `Airco${data.aircoVermogen ? ` ${data.aircoVermogen}` : ""}` : data.aircoUitvoering || "Ja") : ""],
             ]],
             ["W-installaties", [["HWA materiaal", data.hwaMateriaal], ["Warmte", data.warmte], ["Buitenkraan", data.buitenkraan]]],
           ].map(([title, rows]) => (

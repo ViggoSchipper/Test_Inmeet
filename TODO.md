@@ -96,8 +96,8 @@
 - [x] Pagina 14: Merk/Type-vak bij Binnen verlichting weg. Schakelaars: nieuwe optie "Hotelschakeling
       gewenst" -> altijd dubbel (vaste opmerking) + lijst van alle binnen- en buitenverlichting om aan te vinken.
       Samenvatting + PDF bijgewerkt. Levi antraciet is RAL 7022; RAL 7021-opmerking alleen bij Noa.
-- [ ] Pagina 14 E-installaties: rest van de pagina (verlichting, schakelaars, buiten, warmte/koude)
-      nog samen doorlopen.
+- [x] Pagina 14 Warmte/Koude: Airco -> Alleen leidingwerk (voorbereiding) / Airco; bij Airco vermogen
+      2,5 / 4,2 / 5 kW. Samenvatting + PDF bijgewerkt. Pagina 14 is hiermee helemaal doorgelopen.
 - [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).
 
 ## Vóór overgang naar productie
