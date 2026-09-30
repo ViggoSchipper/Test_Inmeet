@@ -20,6 +20,10 @@ import fotoReachZwartBruin from "./assets/wandlamp/reach-zwart-bruin.jpg";
 import fotoReachWit from "./assets/wandlamp/reach-wit.jpg";
 import fotoReachZwart from "./assets/wandlamp/reach-zwart.jpg";
 import fotoLeviMatZwart from "./assets/wandlamp/levi-mat-zwart.jpg";
+import fotoLeviAntraciet from "./assets/wandlamp/levi-antraciet.jpg";
+import fotoNoaVerzinkt from "./assets/wandlamp/noa-verzinkt.jpg";
+import fotoNoaZwart from "./assets/wandlamp/noa-zwart.jpg";
+import fotoNoaAntraciet from "./assets/wandlamp/noa-antraciet.jpg";
 // @react-pdf/renderer is een zware library (~500KB gzipped). Die wordt pas
 // ingeladen op het moment dat de opmeter daadwerkelijk op "PDF bekijken"
 // klikt (zie bekijkPdf hieronder), zodat de eerste keer laden van de app
@@ -463,8 +467,7 @@ const VALIDATIE_ACTIEF = false;
 
 const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
 const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
-// Standaard buiten-wandlampen (bron: Wandlampjes_besteloverzicht.xlsx). Foto's staan in assets/wandlamp;
-// waar nog een https-link staat wordt de foto (nog) van ks-verlichting.nl geladen.
+// Standaard buiten-wandlampen (bron: Wandlampjes_besteloverzicht.xlsx). Foto's staan in assets/wandlamp.
 const WANDLAMPEN = [
   { serie: "Reach Up & Down", opties: [
     { kleur: "Champagne", code: "G97857", foto: fotoReachChampagne },
@@ -474,12 +477,12 @@ const WANDLAMPEN = [
   ] },
   { serie: "Levi Up & Down", opties: [
     { kleur: "Mat zwart", code: "7745", foto: fotoLeviMatZwart },
-    { kleur: "Antraciet RAL 7022", code: "7746", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7746-Levi-Up-Downlighter-antraciet-1200x1200.jpg.webp" },
+    { kleur: "Antraciet RAL 7022", code: "7746", foto: fotoLeviAntraciet, opmerking: "Alleen leverbaar in RAL 7021 (niet in RAL 7016)" },
   ] },
   { serie: "Noa Down", opties: [
-    { kleur: "Verzinkt", code: "7760", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7760-Noa-Downlighter-verzinkt-1200x1200.jpg.webp" },
-    { kleur: "Zwart", code: "7757", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/nostalux/data/buitenverlichting/modern/NOA-LEVI/7757-Noa-Downlighter-zwart-1200x1200.jpg.webp" },
-    { kleur: "Antraciet", code: "7758", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7758-Noa-Downlighter-antraciet-1200x1200.jpg.webp" },
+    { kleur: "Verzinkt", code: "7760", foto: fotoNoaVerzinkt },
+    { kleur: "Zwart", code: "7757", foto: fotoNoaZwart },
+    { kleur: "Antraciet", code: "7758", foto: fotoNoaAntraciet, opmerking: "Alleen leverbaar in RAL 7021 (niet in RAL 7016)" },
   ] },
 ].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
 const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
@@ -1514,6 +1517,7 @@ export default function App() {
                         <label key={o.label} style={{ ...styles.radioLabel, display: "flex", marginBottom: 4 }} onClick={() => set("buitenWandlampType", o.label)}>
                           <input type="radio" readOnly checked={data.buitenWandlampType === o.label} style={{ accentColor: GOLD }} />
                           {o.kleur} <span style={{ color: "#888", fontSize: 11 }}>({o.code})</span>
+                          {o.opmerking && <span style={{ ...styles.hint, marginLeft: 4 }}>{o.opmerking}</span>}
                         </label>
                       ))}
                     </div>

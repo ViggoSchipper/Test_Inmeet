@@ -92,8 +92,7 @@
       aantal + rechts lijst met 9 standaard lampen (Reach/Levi/Noa, uit Wandlampjes_besteloverzicht.xlsx)
       met foto van gekozen lamp, plus Anders ("De klant levert zelf wandlampjes aan en AddOn monteert
       deze."). Buitenstopcontact toont "Dubbel NIKO inbouw horizontaal zwart" + aantal 1/2.
-- [ ] Wandlamp-foto's worden nu direct van ks-verlichting.nl geladen. Beter: foto's in de app zelf
-      opnemen (werkt dan ook offline en breekt niet als ks-verlichting.nl de links wijzigt).
+- [x] Wandlamp-foto's (alle 9) staan nu in de app zelf (src/assets/wandlamp), niet meer via ks-verlichting.nl.
 - [ ] Pagina 14 E-installaties: rest van de pagina (verlichting, schakelaars, buiten, warmte/koude)
       nog samen doorlopen.
 - [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).
