@@ -111,7 +111,12 @@
 - [ ] Backend (Azure Functions) opnieuw deployen zodat Foto_Verdeler ook als los bestand in SharePoint
       komt (api/src/graphHelpers.js is al aangepast). Tot die tijd staat de foto alleen in data.json en PDF.
 - [x] W/K Water weggehaald (gebeurt altijd hetzelfde). Vloerverwarming m² alleen bij Gehele woning.
-- [ ] Pagina 16 Installatietekening: legenda uitbreiden met nieuwe symbolen (hanglamp, wandlamp, etc.).
+- [x] Pagina 16 Installatietekening: symbolen nu getekend volgens de eigen "Elektra Legenda" van AddOn
+      (wandcontactdoos enkel/dubbel/drie dubbel, spotje, hanglamp, wandlamp, schakelaar, dimmer,
+      sensor, hotelschakelaar, UTP, airco, HWA, buitenkraan, verdeler), één bron in src/symbolen.js.
+      Onder de tekening + in de PDF een automatische legenda-tabel (symbool/omschrijving/kleur/type/
+      aantal) vanuit E- en W-installaties. Kleur: Wit=RAL 9010, Zwart=RAL 9005. Hotelschakelaar-aantal
+      = 2 per aangevinkte verlichtingsgroep.
 - [ ] Pagina 17 Samenvatting: nog doorlopen.
 
 ## Vóór overgang naar productie

@@ -13,6 +13,7 @@ import fotoKerama from "./assets/gevel/kerama.jpg";
 import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
 import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
 import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
+import { SYMBOLEN, tekenSymbool, legendaRijen, symboolOpKey } from "./symbolen";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -70,6 +71,20 @@ const styles = {
   foutBanner: { background: "#fdecea", border: "1.5px solid #c0392b", borderRadius: 8, padding: "10px 16px", marginBottom: 14, color: "#c0392b", fontSize: 13 },
   foutBannerTitel: { fontWeight: 700, marginBottom: 4 },
 };
+
+// Klein SVG-plaatje van een tekensymbool (zie symbolen.js), voor de legenda.
+function SymboolIcoon({ symbool, grootte = 26, kleur = "#1a1a1a" }) {
+  return (
+    <svg width={grootte} height={grootte} viewBox="0 0 40 40" style={{ flexShrink: 0 }}>
+      {symbool.paden.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke={kleur} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      ))}
+      {symbool.tekst && (
+        <text x="20" y="21" textAnchor="middle" dominantBaseline="middle" fontSize={symbool.tekst.length > 1 ? 11 : 13} fontWeight="700" fill={kleur} fontFamily="sans-serif">{symbool.tekst}</text>
+      )}
+    </svg>
+  );
+}
 
 // Canvas Drawing Component
 // Gestuurd (controlled) via value/onChange zodat schetsen net als foto's opgeslagen,
@@ -245,13 +260,7 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
     const y = (clientY - rect.top) * scaleY;
     bewaarVoorUndo();
     const ctx = canvas.getContext("2d");
-    ctx.save();
-    ctx.font = "26px sans-serif";
-    ctx.fillStyle = "#1a1a1a";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(sym, x, y);
-    ctx.restore();
+    tekenSymbool(ctx, sym, x, y, 34);
     exportImage();
   };
 
@@ -274,11 +283,11 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
     <div>
       {symbols && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-          {symbols.map(({ sym, label }) => (
-            <div key={label} onPointerDown={startSleepSymbool(sym)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px", border: `1px solid ${GOLD}55`, borderRadius: 8, background: "#fdfcf8", cursor: "grab", touchAction: "none", userSelect: "none" }}>
-              <span style={{ fontSize: 18, fontFamily: "monospace" }}>{sym}</span>
-              <span style={{ fontSize: 11, color: "#666" }}>{label}</span>
+          {symbols.map(sym => (
+            <div key={sym.key} onPointerDown={startSleepSymbool(sym)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", border: `1px solid ${GOLD}55`, borderRadius: 8, background: "#fdfcf8", cursor: "grab", touchAction: "none", userSelect: "none" }}>
+              <SymboolIcoon symbool={sym} />
+              <span style={{ fontSize: 11, color: "#666" }}>{sym.label}</span>
             </div>
           ))}
         </div>
@@ -308,8 +317,8 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
       {grid && <div style={{ ...styles.hint, marginTop: 6, textAlign: "center" }}>Elk vakje = 1 x 1 meter (grid van {gridCols} x {gridRows} m)</div>}
       {sleepSymbool && (
-        <div style={{ position: "fixed", left: sleepPos.x, top: sleepPos.y, transform: "translate(-50%, -50%)", pointerEvents: "none", fontSize: 28, fontFamily: "monospace", color: GOLD, textShadow: "0 0 4px white, 0 0 4px white", zIndex: 9999 }}>
-          {sleepSymbool}
+        <div style={{ position: "fixed", left: sleepPos.x, top: sleepPos.y, transform: "translate(-50%, -50%)", pointerEvents: "none", background: "#ffffffcc", borderRadius: 6, zIndex: 9999 }}>
+          <SymboolIcoon symbool={sleepSymbool} grootte={34} kleur={GOLD} />
         </div>
       )}
     </div>
@@ -1684,15 +1693,35 @@ export default function App() {
           <div style={{ marginTop: 10 }}>
             <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)}
               grid square gridCols={15} gridRows={15}
-              symbols={[
-                { sym: "⊗", label: "Centraal doos" },
-                { sym: "○", label: "Spot" },
-                { sym: "◌", label: "Schakelaar" },
-                { sym: "◉", label: "Dimmer" },
-                { sym: "⊣", label: "Stopcontact" },
-                { sym: "HWA", label: "HWA" },
-                { sym: "BK", label: "Buitenkraan" },
-              ]} />
+              symbols={SYMBOLEN} />
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Legenda</div>
+            <div style={{ ...styles.hint, marginBottom: 8 }}>Wordt automatisch ingevuld vanuit E- en W-installaties.</div>
+            {legendaRijen(data).length === 0 ? (
+              <div style={{ fontSize: 12, color: "#888" }}>Nog niets ingevuld bij E- of W-installaties.</div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ borderCollapse: "collapse", fontSize: 12, minWidth: 420 }}>
+                  <thead>
+                    <tr style={{ textAlign: "left", color: "#888" }}>
+                      {["", "Omschrijving", "Kleur", "Type", "Aantal"].map(h => <th key={h} style={{ padding: "4px 8px", borderBottom: `1px solid ${GOLD}55`, fontWeight: 600 }}>{h}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {legendaRijen(data).map(r => (
+                      <tr key={r.omschrijving}>
+                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}><SymboolIcoon symbool={symboolOpKey(r.sym)} grootte={24} /></td>
+                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}>{r.omschrijving}</td>
+                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}>{r.kleur}</td>
+                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee" }}>{r.type}</td>
+                        <td style={{ padding: "2px 8px", borderBottom: "1px solid #eee", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.aantal}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

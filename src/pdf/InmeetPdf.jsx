@@ -7,7 +7,8 @@
 // Daarom bevat dit bestand puur de opmaak/structuur en géén browser- of
 // Node-specifieke code.
 
-import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet, Font, Svg, Path } from "@react-pdf/renderer";
+import { legendaRijen, symboolOpKey } from "../symbolen";
 
 const GOLD = "#B69148";
 const BLACK = "#1a1a1a";
@@ -283,6 +284,47 @@ const SCHETS_VELDEN = [
   { key: "schetsEinstallatie", label: "Installatietekening (E + W)" },
 ];
 
+// Tekensymbool (zie symbolen.js) als klein vectorplaatje in de PDF.
+function PdfSymbool({ symKey, grootte = 20 }) {
+  const s = symboolOpKey(symKey);
+  if (!s) return null;
+  return (
+    <View style={{ width: grootte, height: grootte, position: "relative" }}>
+      <Svg width={grootte} height={grootte} viewBox="0 0 40 40">
+        {s.paden.map((d, i) => <Path key={i} d={d} stroke={BLACK} strokeWidth={2} fill="none" />)}
+      </Svg>
+      {s.tekst ? (
+        <Text style={{ position: "absolute", top: 0, left: 0, width: grootte, height: grootte, textAlign: "center", fontSize: grootte * (s.tekst.length > 1 ? 0.26 : 0.32), fontWeight: 700, paddingTop: grootte * 0.3 }}>{s.tekst}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+// Legenda onder de installatietekening: symbool, omschrijving, kleur, type, aantal.
+function InstallatieLegenda({ data }) {
+  const rijen = legendaRijen(data);
+  if (rijen.length === 0) return null;
+  const kol = [{ w: 28 }, { w: 170 }, { w: 90 }, { w: 170 }, { w: 45, right: true }];
+  const cel = (i, extra = {}) => ({ width: kol[i].w, fontSize: 9, paddingVertical: 2, paddingHorizontal: 3, textAlign: kol[i].right ? "right" : "left", ...extra });
+  return (
+    <View style={{ marginTop: 8 }} wrap={false}>
+      <Text style={{ fontSize: 10.5, fontWeight: 700, marginBottom: 4 }}>Legenda</Text>
+      <View style={{ flexDirection: "row", borderBottom: `1 solid ${GOLD}` }}>
+        {["", "Omschrijving", "Kleur", "Type", "Aantal"].map((h, i) => <Text key={h + i} style={cel(i, { color: GREY })}>{h}</Text>)}
+      </View>
+      {rijen.map((r) => (
+        <View key={r.omschrijving} style={{ flexDirection: "row", alignItems: "center", borderBottom: "0.5 solid #e5e5e5" }}>
+          <View style={cel(0)}><PdfSymbool symKey={r.sym} /></View>
+          <Text style={cel(1)}>{r.omschrijving}</Text>
+          <Text style={cel(2)}>{r.kleur}</Text>
+          <Text style={cel(3)}>{r.type}</Text>
+          <Text style={cel(4)}>{r.aantal}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function fmtMM(v) {
   const t = waarde(v);
   return t ? `${t} MM` : "";
@@ -507,6 +549,7 @@ export default function InmeetPdf({ data, logoSrc }) {
               <View style={styles.sketchImageWrap}>
                 <Image src={data[s.key]} style={styles.sketchImage} />
               </View>
+              {s.key === "schetsEinstallatie" ? <InstallatieLegenda data={data} /> : null}
             </View>
           ))}
         </PageChrome>
