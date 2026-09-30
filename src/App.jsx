@@ -458,6 +458,26 @@ const VALIDATIE_ACTIEF = false;
 
 const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
 const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
+// Standaard buiten-wandlampen (bron: Wandlampjes_besteloverzicht.xlsx, afbeeldingen van ks-verlichting.nl).
+const WANDLAMPEN = [
+  { serie: "Reach Up & Down", opties: [
+    { kleur: "Champagne", code: "G97857", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7803/7803_Shift_champagne_aan_01-1200x1200w.jpg.webp" },
+    { kleur: "Zwart/Bruin", code: "G97859", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7859/REACH_BRUIN_zwart_SFEER-1200x1200.jpg.webp" },
+    { kleur: "Wit", code: "G97858", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7801/7801_Shift_wit_aan_02-1200x1200.jpg.webp" },
+    { kleur: "Zwart", code: "G97856", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7802/7802_Shift_zwart_aan_02-1200x1200.jpg.webp" },
+  ] },
+  { serie: "Levi Up & Down", opties: [
+    { kleur: "Mat zwart", code: "7745", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/nostalux/data/buitenverlichting/modern/NOA-LEVI/7745-Levi-Up-Downlighter-zwart-1200x1200.jpg.webp" },
+    { kleur: "Antraciet RAL 7022", code: "7746", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7746-Levi-Up-Downlighter-antraciet-1200x1200.jpg.webp" },
+  ] },
+  { serie: "Noa Down", opties: [
+    { kleur: "Verzinkt", code: "7760", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7760-Noa-Downlighter-verzinkt-1200x1200.jpg.webp" },
+    { kleur: "Zwart", code: "7757", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/nostalux/data/buitenverlichting/modern/NOA-LEVI/7757-Noa-Downlighter-zwart-1200x1200.jpg.webp" },
+    { kleur: "Antraciet", code: "7758", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7758-Noa-Downlighter-antraciet-1200x1200.jpg.webp" },
+  ] },
+].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
+const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
+const WCD_TYPE = "Dubbel NIKO inbouw horizontaal zwart";
 const E_GARANTIE_TEKST = "zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra.";
 
 const PAGE_VALIDATORS = [
@@ -558,6 +578,13 @@ const PAGE_VALIDATORS = [
       else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type (Anders)");
       if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur Merk/Type");
     }
+    const buiten = data.buitenVerlichting || [];
+    if (buiten.includes("Spotjes")) {
+      if (!heeftWaarde(data.buitenSpotjesKleur)) missend.push("Kleur buiten spotjes");
+      else if (data.buitenSpotjesKleur === "Kleur van overstek" && !heeftWaarde(data.buitenSpotjesRAL)) missend.push("RAL-code buiten spotjes");
+    }
+    if (buiten.includes("Wandlamp") && !heeftWaarde(data.buitenWandlampType)) missend.push("Type wandlamp");
+    if (data.wcd && !heeftWaarde(data.wcdAantal)) missend.push("Aantal buitenstopcontacten");
     const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
       heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
     if (!iets) missend.push("Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude");
@@ -624,8 +651,8 @@ export default function App() {
     hanglampOphangen: false, wandlampjesOphangen: false,
     schakelaars: [],
     schAantalSchakelaar: "", schAantalDimmer: "", schAantalSensor: "",
-    buitenVerlichting: [], buitenVerlichtingMerkType: "", buitenSpotjesKleur: "",
-    buitenAantalSpotjes: "", buitenAantalUpDown: "",
+    buitenVerlichting: [], buitenSpotjesKleur: "", buitenSpotjesRAL: "",
+    buitenAantalSpotjes: "", buitenAantalWandlamp: "", buitenWandlampType: "",
     wcd: false, wcdAantal: "",
     warmteKoude: [],
     eOpmerking: "",
@@ -639,6 +666,8 @@ export default function App() {
   });
 
   const set = (key, val) => setData(d => ({ ...d, [key]: val }));
+  const buitenHeeft = (opt) => (data.buitenVerlichting || []).includes(opt);
+  const zetBuiten = (opt, aan) => set("buitenVerlichting", aan ? [...(data.buitenVerlichting || []), opt] : (data.buitenVerlichting || []).filter(v => v !== opt));
 
   // --- Projectnummer: bestaande gegevens ophalen bij SharePoint (prefill bij 2e/3e opname) ---
   const [projectStatus, setProjectStatus] = useState({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
@@ -1432,39 +1461,92 @@ export default function App() {
             <input style={styles.input} value={data.verlichtingMerkType} onChange={e => set("verlichtingMerkType", e.target.value)} />
           </div>
           <div style={styles.divider} />
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Buiten E-installaties</div>
+          {/* Spotjes */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <label style={styles.checkLabel}>
+                <input type="checkbox" style={{ accentColor: GOLD, width: 16, height: 16 }} checked={buitenHeeft("Spotjes")} onChange={e => zetBuiten("Spotjes", e.target.checked)} /> Spotjes
+              </label>
+              {buitenHeeft("Spotjes") && (
+                <>
+                  <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
+                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.buitenAantalSpotjes} onChange={e => set("buitenAantalSpotjes", e.target.value)} />
+                </>
+              )}
+            </div>
+            {buitenHeeft("Spotjes") && (
+              <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Kleur:</span>
+                <RadioGroup name="buitenSpotjesKleur" options={["Wit", "Zwart", "Kleur van overstek"]} value={data.buitenSpotjesKleur} onChange={v => set("buitenSpotjesKleur", v)} />
+                {data.buitenSpotjesKleur === "Kleur van overstek" && (
+                  <input style={{ ...styles.inputSmall, width: 120 }} placeholder="RAL-code" value={data.buitenSpotjesRAL} onChange={e => set("buitenSpotjesRAL", e.target.value)} />
+                )}
+              </div>
+            )}
+          </div>
+          {/* Wandlamp: aantal links, standaard opties rechts */}
+          <div style={{ marginBottom: 12, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <label style={styles.checkLabel}>
+                <input type="checkbox" style={{ accentColor: GOLD, width: 16, height: 16 }} checked={buitenHeeft("Wandlamp")} onChange={e => zetBuiten("Wandlamp", e.target.checked)} /> Wandlamp
+              </label>
+              {buitenHeeft("Wandlamp") && (
+                <>
+                  <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
+                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.buitenAantalWandlamp} onChange={e => set("buitenAantalWandlamp", e.target.value)} />
+                </>
+              )}
+            </div>
+            {buitenHeeft("Wandlamp") && (
+              <div style={{ ...styles.subSection, marginTop: 0, flex: "1 1 280px", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+                  {WANDLAMPEN.map(serie => (
+                    <div key={serie.serie} style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{serie.serie}</div>
+                      {serie.opties.map(o => (
+                        <label key={o.label} style={{ ...styles.radioLabel, display: "flex", marginBottom: 4 }} onClick={() => set("buitenWandlampType", o.label)}>
+                          <input type="radio" readOnly checked={data.buitenWandlampType === o.label} style={{ accentColor: GOLD }} />
+                          {o.kleur} <span style={{ color: "#888", fontSize: 11 }}>({o.code})</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                  <label style={{ ...styles.radioLabel, display: "flex" }} onClick={() => set("buitenWandlampType", "Anders")}>
+                    <input type="radio" readOnly checked={data.buitenWandlampType === "Anders"} style={{ accentColor: GOLD }} />
+                    Anders
+                  </label>
+                  {data.buitenWandlampType === "Anders" && (
+                    <div style={{ ...styles.hint, marginTop: 4 }}>De klant levert zelf wandlampjes aan en AddOn monteert deze.</div>
+                  )}
+                </div>
+                {wandlampFoto(data.buitenWandlampType) && (
+                  <img src={wandlampFoto(data.buitenWandlampType)} alt={data.buitenWandlampType}
+                    style={{ width: 160, height: 160, objectFit: "cover", borderRadius: 6, border: "1px solid #e0e0e0", flexShrink: 0 }} />
+                )}
+              </div>
+            )}
+          </div>
+          {/* Buitenstopcontact (WCD) */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <label style={styles.checkLabel}>
+                <input type="checkbox" style={{ accentColor: GOLD, width: 16, height: 16 }} checked={data.wcd} onChange={e => set("wcd", e.target.checked)} /> Buitenstopcontact
+              </label>
+              {data.wcd && <span style={{ ...styles.hint, fontStyle: "normal", fontWeight: 600 }}>{WCD_TYPE}</span>}
+            </div>
+            {data.wcd && (
+              <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
+                <RadioGroup name="wcdAantal" options={["1", "2"]} value={data.wcdAantal} onChange={v => set("wcdAantal", v)} />
+              </div>
+            )}
+          </div>
+          <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Schakelaars</div>
           <CheckGroupAantal options={["Schakelaar", "Dimmer", "Sensor"]} values={data.schakelaars} onChange={v => set("schakelaars", v)}
             aantallen={{ Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor }}
             onAantalChange={(opt, val) => set({ Schakelaar: "schAantalSchakelaar", Dimmer: "schAantalDimmer", Sensor: "schAantalSensor" }[opt], val)} />
-          <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Buiten E-installaties</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div>
-              <CheckGroupAantal options={["Spotjes", "Up/Down lamp"]} values={data.buitenVerlichting} onChange={v => set("buitenVerlichting", v)}
-                aantallen={{ Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown }}
-                onAantalChange={(opt, val) => set({ Spotjes: "buitenAantalSpotjes", "Up/Down lamp": "buitenAantalUpDown" }[opt], val)}
-                extra={opt => opt === "Spotjes" && (
-                  <div style={{ marginTop: 6 }}>
-                    <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Kleur:</span>
-                    <RadioGroup name="buitenSpotjesKleur" options={["Wit", "Zwart", "Antraciet"]} value={data.buitenSpotjesKleur} onChange={v => set("buitenSpotjesKleur", v)} />
-                  </div>
-                )} />
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
-                <input style={styles.input} value={data.buitenVerlichtingMerkType} onChange={e => set("buitenVerlichtingMerkType", e.target.value)} />
-              </div>
-            </div>
-            <div>
-              <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.wcd} onChange={e => set("wcd", e.target.checked)} /> Buitenstopcontact</label>
-              {data.wcd && (
-                <div style={{ marginTop: 8 }}>
-                  <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Aantal:</span>
-                  <RadioGroup name="wcdAantal" options={["1", "2"]} value={data.wcdAantal} onChange={v => set("wcdAantal", v)} />
-                  <div style={{ ...styles.hint, marginTop: 6 }}>Dit is de NIKO 9005 inbouw dubbel horizontaal.</div>
-                </div>
-              )}
-            </div>
-          </div>
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Warmte / Koude</div>
           <CheckGroup options={["Airco"]} values={data.warmteKoude} onChange={v => set("warmteKoude", v)} />
@@ -1591,10 +1673,10 @@ export default function App() {
               ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
               ["Verlichting Merk/Type", data.verlichtingMerkType],
               ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-              ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],
-              ["Buiten verlichting kleur", data.buitenSpotjesKleur],
-              ["Buiten verlichting Merk/Type", data.buitenVerlichtingMerkType],
-              ["Buitenstopcontact", data.wcd ? `Ja, aantal ${data.wcdAantal || "?"} (NIKO 9005 inbouw dubbel horizontaal)` : ""],
+              ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, Wandlamp: data.buitenAantalWandlamp })],
+              ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
+              ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
+              ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : ""],
               ["Warmte/Koude", data.warmteKoude.join(", ")],
             ]],
             ["W-installaties", [["HWA materiaal", data.hwaMateriaal], ["Warmte", data.warmte], ["Buitenkraan", data.buitenkraan]]],

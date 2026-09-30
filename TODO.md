@@ -87,6 +87,13 @@
       centraaldoos toe"). Opties nu Spotjes (aantal + Wit/Zwart) / Hanglamp / Wandlampjes (nieuw).
       Hanglamp en Wandlampjes: aantal, opmerking "AddOn levert alleen de aansluiting en levert/monteert
       geen ..., tenzij de klant deze zelf aanlevert" en vinkje "... ophangen". Samenvatting + PDF bijgewerkt.
+- [x] Pagina 14 Buiten E-installaties: staat nu boven Schakelaars, 3 opties onder elkaar, Merk/Type weg.
+      Spotjes: aantal + kleur Wit/Zwart/Kleur van overstek (met RAL-veld). Up/Down lamp -> Wandlamp:
+      aantal + rechts lijst met 9 standaard lampen (Reach/Levi/Noa, uit Wandlampjes_besteloverzicht.xlsx)
+      met foto van gekozen lamp, plus Anders ("De klant levert zelf wandlampjes aan en AddOn monteert
+      deze."). Buitenstopcontact toont "Dubbel NIKO inbouw horizontaal zwart" + aantal 1/2.
+- [ ] Wandlamp-foto's worden nu direct van ks-verlichting.nl geladen. Beter: foto's in de app zelf
+      opnemen (werkt dan ook offline en breekt niet als ks-verlichting.nl de links wijzigt).
 - [ ] Pagina 14 E-installaties: rest van de pagina (verlichting, schakelaars, buiten, warmte/koude)
       nog samen doorlopen.
 - [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).

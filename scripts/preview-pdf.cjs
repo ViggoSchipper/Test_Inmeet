@@ -81,8 +81,9 @@ const data = {
   stopcontacten: ["Enkel", "Dubbel"], stopAantalEnkel: "2", stopAantalDubbel: "3",
   verlichting: ["Spotjes", "Hanglamp", "Wandlampjes"], verAantalSpotjes: "8", verAantalHanglamp: "1", verAantalWandlampjes: "2", verlichtingSpotjesKleur: "Wit", hanglampOphangen: true, verlichtingMerk: "Lumina", verlichtingType: "LED dimbaar", verlichtingKleur: "Wit",
   schakelaars: ["Dimmer", "Schakelaar"], schakelaarMerk: "Niko", schakelaarType: "Original", schakelaarKleur: "Antraciet",
-  buitenVerlichting: ["Spotjes"], buitenVerlichtingMerk: "Lumina", buitenVerlichtingType: "Wandspot", buitenVerlichtingKleur: "Zwart",
-  wcd: true, wcdMerk: "Niko", wcdType: "Hor", wcdKleur: "Zwart",
+  buitenVerlichting: ["Spotjes", "Wandlamp"], buitenAantalSpotjes: "4", buitenSpotjesKleur: "Kleur van overstek", buitenSpotjesRAL: "RAL 7016",
+  buitenAantalWandlamp: "2", buitenWandlampType: "Levi Up & Down - Mat zwart (7745)",
+  wcd: true, wcdAantal: "1",
   warmteKoude: ["Vloerverwarming", "Koeling"],
   eOpmerking: "Groepenkast heeft nog 3 vrije groepen.",
 

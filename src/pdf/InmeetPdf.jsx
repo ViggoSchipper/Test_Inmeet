@@ -452,10 +452,10 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
             ["Verlichting Merk/Type", data.verlichtingMerkType],
             ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-            ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],
-            ["Buiten verlichting kleur", data.buitenSpotjesKleur],
-            ["Buiten verlichting Merk/Type", data.buitenVerlichtingMerkType],
-            ["Buitenstopcontact", data.wcd ? `Ja, aantal ${waarde(data.wcdAantal) || "?"} (NIKO 9005 inbouw dubbel horizontaal)` : "Nee"],
+            ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, Wandlamp: data.buitenAantalWandlamp })],
+            ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
+            ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
+            ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : "Nee"],
             ["Warmte/koude", data.warmteKoude],
           ]}
           melding={data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen"
