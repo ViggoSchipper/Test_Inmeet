@@ -15,6 +15,7 @@ import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
 import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import { legendaRijen, symboolOpKey } from "./symbolen";
 import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
+import { conceptLaden, conceptBewaren, conceptWissen } from "./concept";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -261,6 +262,34 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
   );
 }
 
+// Verkleint een gekozen foto tot max. 1600 px (langste zijde), als JPEG 80%.
+// Een iPad-foto van 3-5 MB wordt zo ca. 200-400 KB: ruim genoeg voor de PDF,
+// en het versturen vanaf de locatie (4G) blijft snel. Lukt verkleinen niet,
+// dan wordt de originele foto gebruikt.
+const FOTO_MAX_PX = 1600;
+function fotoInlezen(file) {
+  const origineel = () => new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = (ev) => resolve(ev.target.result);
+    r.readAsDataURL(file);
+  });
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const schaal = Math.min(1, FOTO_MAX_PX / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * schaal);
+      c.height = Math.round(img.naturalHeight * schaal);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      try { resolve(c.toDataURL("image/jpeg", 0.8)); } catch { origineel().then(resolve); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); origineel().then(resolve); };
+    img.src = url;
+  });
+}
+
 // Photo Upload Component
 function PhotoUpload({ label, hint, value, onChange }) {
   const inputRef = useRef(null);
@@ -280,7 +309,7 @@ function PhotoUpload({ label, hint, value, onChange }) {
         )}
       </div>
       <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }}
-        onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => onChange(ev.target.result); r.readAsDataURL(f); } }} />
+        onChange={e => { const f = e.target.files[0]; if (f) fotoInlezen(f).then(onChange); e.target.value = ""; }} />
     </div>
   );
 }
@@ -587,6 +616,8 @@ const PAGE_VALIDATORS = [
 
 export default function App() {
   const [page, setPage] = useState(0);
+  // Bij elke andere pagina bovenaan beginnen (de navigatiebalk staat onderaan).
+  useEffect(() => { window.scrollTo(0, 0); }, [page]);
   const [foutmeldingen, setFoutmeldingen] = useState([]);
   const steenstripAndersFotoRef = useRef(null);
   const composietAndersFotoRef = useRef(null);
@@ -648,8 +679,10 @@ export default function App() {
     hwaAantal: "", buitenkraan: "",
     vloerverwarming: "", vloerM2: "", verdeler: "", fotoVerdeler: null, warmtebron: [],
     wOpmerking: "",
-    schetsWinstallatie: null,
   });
+  // Lege beginstaat (met de datum van vandaag), om te kunnen vergelijken en resetten.
+  const beginStaatRef = useRef(null);
+  if (!beginStaatRef.current) beginStaatRef.current = data;
 
   const set = (key, val) => setData(d => ({ ...d, [key]: val }));
   const buitenHeeft = (opt) => (data.buitenVerlichting || []).includes(opt);
@@ -658,8 +691,67 @@ export default function App() {
   // --- Projectnummer: bestaande gegevens ophalen bij SharePoint (prefill bij 2e/3e opname) ---
   const [projectStatus, setProjectStatus] = useState({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
 
+  // Welk projectnummer het laatst is opgehaald, en of het formulier daaruit gevuld is.
+  const opgehaaldNrRef = useRef("");
+  const gevuldUitProjectRef = useRef(false);
+
+  // Heeft de gebruiker al iets ingevuld naast projectnummer en datum?
+  const formulierHeeftInvoer = () => Object.keys(beginStaatRef.current).some(k =>
+    k !== "projectnummer" && k !== "datum" &&
+    JSON.stringify(data[k]) !== JSON.stringify(beginStaatRef.current[k]));
+
+  // --- Concept automatisch bewaren op dit apparaat (zie concept.js) ---
+  const [conceptAanbod, setConceptAanbod] = useState(null); // gevonden concept bij opstarten
+  const [conceptGecheckt, setConceptGecheckt] = useState(false);
+  const gewijzigdRef = useRef(false); // onverstuurde wijzigingen?
+  const eersteDataRef = useRef(true);
+
+  useEffect(() => {
+    conceptLaden().then((c) => {
+      const heeftInvoer = c && c.data && Object.keys(beginStaatRef.current).some(k =>
+        k !== "datum" && JSON.stringify(c.data[k]) !== JSON.stringify(beginStaatRef.current[k]));
+      if (heeftInvoer) setConceptAanbod(c);
+      setConceptGecheckt(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (eersteDataRef.current) { eersteDataRef.current = false; return; }
+    gewijzigdRef.current = true;
+  }, [data]);
+
+  // Eén seconde na de laatste wijziging bewaren (niet zolang de vraag
+  // "doorgaan met concept?" nog openstaat, anders overschrijven we dat concept).
+  useEffect(() => {
+    if (!conceptGecheckt || conceptAanbod || !gewijzigdRef.current) return;
+    const t = setTimeout(() => conceptBewaren(data, page), 1000);
+    return () => clearTimeout(t);
+  }, [data, page, conceptGecheckt, conceptAanbod]);
+
+  useEffect(() => {
+    const waarschuw = (e) => { if (gewijzigdRef.current) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", waarschuw);
+    return () => window.removeEventListener("beforeunload", waarschuw);
+  }, []);
+
+  const conceptHervatten = () => {
+    const c = conceptAanbod;
+    setData({ ...beginStaatRef.current, ...c.data });
+    opgehaaldNrRef.current = (c.data.projectnummer || "").trim();
+    setPage(Math.min(c.page || 0, PAGES.length - 1));
+    setConceptAanbod(null);
+  };
+  const conceptWeggooien = () => {
+    if (!window.confirm("Weet je zeker dat je het bewaarde formulier wilt weggooien en opnieuw wilt beginnen?")) return;
+    conceptWissen();
+    setConceptAanbod(null);
+  };
+
   const projectGegevensOphalen = async (nr) => {
     const projectnummer = (nr || "").trim();
+    // Alleen ophalen als het nummer echt veranderd is (niet bij elk wegtikken uit het veld).
+    if (projectnummer === opgehaaldNrRef.current) return;
+    opgehaaldNrRef.current = projectnummer;
     if (!projectnummer) {
       setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
       return;
@@ -668,6 +760,11 @@ export default function App() {
     try {
       const res = await fetch(`/api/project-ophalen?projectnummer=${encodeURIComponent(projectnummer)}`);
       if (res.status === 404) {
+        // Was het formulier gevuld vanuit een ánder project? Dan die gegevens weghalen.
+        if (gevuldUitProjectRef.current) {
+          gevuldUitProjectRef.current = false;
+          setData({ ...beginStaatRef.current, projectnummer });
+        }
         setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
         return;
       }
@@ -676,7 +773,16 @@ export default function App() {
         throw new Error(body.error || "Kon project niet ophalen");
       }
       const json = await res.json();
-      setData(d => ({ ...d, ...json.data, projectnummer }));
+      if (formulierHeeftInvoer() && !window.confirm(`Voor project ${projectnummer} is versie V${json.versie} gevonden. Wil je de gegevens die je nu hebt ingevuld vervangen door die opgeslagen versie?`)) {
+        setProjectStatus({ loading: false, error: null, foundVersion: json.versie, nextVersion: json.versie + 1 });
+        return;
+      }
+      // Oude, niet meer gebruikte velden niet overnemen (losse W-tekening bestaat niet meer).
+      // eslint-disable-next-line no-unused-vars
+      const { schetsWinstallatie, ...opgeslagen } = json.data || {};
+      // Schoon beginnen (geen restjes van een ander project) en de datum van vandaag houden.
+      setData({ ...beginStaatRef.current, ...opgeslagen, projectnummer, datum: beginStaatRef.current.datum });
+      gevuldUitProjectRef.current = true;
       setProjectStatus({ loading: false, error: null, foundVersion: json.versie, nextVersion: json.versie + 1 });
     } catch (err) {
       setProjectStatus({ loading: false, error: err.message, foundVersion: null, nextVersion: 1 });
@@ -753,12 +859,17 @@ export default function App() {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Opslaan is mislukt");
       setSubmitStatus({ loading: false, error: null, done: true, versie: body.versie });
+      gewijzigdRef.current = false;
+      conceptWissen();
       setProjectStatus(s => ({ ...s, foundVersion: body.versie, nextVersion: body.versie + 1 }));
     } catch (err) {
       setSubmitStatus({ loading: false, error: err.message || "PDF genereren of opslaan is mislukt", done: false, versie: null });
     }
   };
 
+  // Let op: wordt als gewone functie aangeroepen ({KozijnPage(...)}), niet als
+  // <KozijnPage />. Als component-binnen-App zou React de hele pagina bij elke
+  // toetsaanslag opnieuw opbouwen, waardoor invoervelden hun focus verliezen.
   const KozijnPage = ({ prefix, num }) => {
     const type = data[`${prefix}Type`];
     const opties = data[`${prefix}Opties`] || [];
@@ -1143,7 +1254,7 @@ export default function App() {
                 )}
               </div>
               <input ref={steenstripAndersFotoRef} type="file" accept="image/*" style={{ display: "none" }}
-                onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { set("steenstripAndersFoto", ev.target.result); set("steenstrip", "Anders"); }; r.readAsDataURL(f); } }} />
+                onChange={e => { const f = e.target.files[0]; if (f) fotoInlezen(f).then(url => { set("steenstripAndersFoto", url); set("steenstrip", "Anders"); }); e.target.value = ""; }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" readOnly checked={data.steenstrip === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("steenstrip", "Anders")} />
                 <span style={{ fontSize: 12 }}>Type:</span>
@@ -1187,7 +1298,7 @@ export default function App() {
                 )}
               </div>
               <input ref={composietAndersFotoRef} type="file" accept="image/*" style={{ display: "none" }}
-                onChange={e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { set("composietAndersFoto", ev.target.result); set("composiet", "Anders"); }; r.readAsDataURL(f); } }} />
+                onChange={e => { const f = e.target.files[0]; if (f) fotoInlezen(f).then(url => { set("composietAndersFoto", url); set("composiet", "Anders"); }); e.target.value = ""; }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" readOnly checked={data.composiet === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("composiet", "Anders")} />
                 <span style={{ fontSize: 12 }}>Type:</span>
@@ -1224,7 +1335,7 @@ export default function App() {
     </div>,
 
     // 6: Kozijn 1
-    <KozijnPage prefix="k1" num={1} />,
+    KozijnPage({ prefix: "k1", num: 1 }),
     // 7: Kozijn 1 Schets
     <div>
       <div style={styles.section}>
@@ -1236,7 +1347,7 @@ export default function App() {
       </div>
     </div>,
     // 8: Kozijn 2
-    <KozijnPage prefix="k2" num={2} />,
+    KozijnPage({ prefix: "k2", num: 2 }),
     // 9: Kozijn 2 Schets
     <div>
       <div style={styles.section}>
@@ -1248,7 +1359,7 @@ export default function App() {
       </div>
     </div>,
     // 10: Kozijn 3
-    <KozijnPage prefix="k3" num={3} />,
+    KozijnPage({ prefix: "k3", num: 3 }),
     // 11: Kozijn 3 Schets
     <div>
       <div style={styles.section}>
@@ -1753,6 +1864,20 @@ export default function App() {
         </div>
       </div>
       <div style={styles.body}>
+        {conceptAanbod && (
+          <div style={{ background: "#fdf6e7", border: `1.5px solid ${GOLD}`, borderRadius: 8, padding: "12px 16px", marginBottom: 14, fontSize: 13 }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>Er staat nog een niet-verstuurd formulier op dit apparaat</div>
+            <div style={{ color: "#555", marginBottom: 10 }}>
+              {conceptAanbod.data.projectnummer ? `Project ${conceptAanbod.data.projectnummer}` : "Zonder projectnummer"}
+              {conceptAanbod.data.naam ? ` — ${conceptAanbod.data.naam}` : ""}
+              {conceptAanbod.bewaardOp ? `, laatst bewaard op ${new Date(conceptAanbod.bewaardOp).toLocaleString("nl-NL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button style={styles.btnNext} onClick={conceptHervatten}>Doorgaan met dit formulier</button>
+              <button style={styles.btnPrev} onClick={conceptWeggooien}>Nieuw formulier beginnen</button>
+            </div>
+          </div>
+        )}
         {foutmeldingen.length > 0 && (
           <div style={styles.foutBanner}>
             <div style={styles.foutBannerTitel}>Vul eerst het volgende in voor je verder kunt:</div>
@@ -1794,6 +1919,8 @@ export default function App() {
           </button>
         ) : null}
       </div>
+      {/* eslint-disable-next-line no-undef */}
+      <div style={{ textAlign: "center", fontSize: 10, color: "#bbb", padding: "4px 0 8px", background: "white" }}>Versie {typeof __APP_VERSIE__ !== "undefined" ? __APP_VERSIE__ : "?"}</div>
     </div>
   );
 }

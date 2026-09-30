@@ -278,6 +278,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
     e.preventDefault();
     canvasRef.current.setPointerCapture?.(e.pointerId);
     const p = positie(e);
+    bewaarOpenMaatTekst();
     setMenu(null);
     if (tool === "maat") {
       const s = raakSymbool(p);
@@ -368,6 +369,12 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
     setMenu(null);
     exporteer();
   };
+  // Getypte maattekst niet kwijtraken als het menu sluit zonder OK/Enter.
+  const bewaarOpenMaatTekst = () => {
+    if (!menu || menu.soort !== "maat") return;
+    const o = objRef.current.find((x) => x.id === menu.id);
+    if (o && (o.tekst || "") !== maatTekst.trim()) wijzigObject(menu.id, { tekst: maatTekst.trim() });
+  };
   const maatOpslaan = () => {
     const o = objRef.current.find((x) => x.id === menu.id);
     if (o && (o.tekst || "") !== maatTekst.trim()) wijzigObject(menu.id, { tekst: maatTekst.trim() });
@@ -378,6 +385,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
 
   const startSleep = (symbool) => (e) => {
     e.preventDefault();
+    bewaarOpenMaatTekst();
     setMenu(null);
     setSleep({ symbool, x: e.clientX, y: e.clientY });
     const verplaats = (ev) => setSleep({ symbool, x: ev.clientX, y: ev.clientY });
@@ -457,7 +465,7 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
         {menuObject && menuObject.type === "maat" && (
           <div style={menuStijl}>
             <span style={{ fontSize: 12, color: "#666", width: "100%" }}>Maat / tekst bij de lijn:</span>
-            <input value={maatTekst} onChange={(e) => setMaatTekst(e.target.value)} placeholder="bijv. 1200 mm"
+            <input value={maatTekst} onChange={(e) => setMaatTekst(e.target.value)} onBlur={bewaarOpenMaatTekst} placeholder="bijv. 1200 mm"
               onKeyDown={(e) => { if (e.key === "Enter") maatOpslaan(); }}
               style={{ flex: 1, minWidth: 0, padding: "6px 8px", border: "1.5px solid #ddd", borderRadius: 6, fontSize: 13 }} />
             <button style={menuKnop(true)} onClick={maatOpslaan}>OK</button>

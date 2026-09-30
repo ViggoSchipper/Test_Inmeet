@@ -127,6 +127,15 @@
       is ook aan/uit), symbolen blijven binnen het tekenvlak, tekstvak maatlijn krijgt geen automatische
       focus (geen schermtoetsenbord tenzij je erin tikt). Legenda nu per symbool met "Opgegeven" (uit E/W)
       en "Getekend" (telt symbolen in de tekening), oranje bij verschil; ook in de PDF.
+- [x] Review blok A: kozijnpagina's verliezen geen focus meer bij typen; projectnummer haalt alleen
+      opnieuw op als het nummer verandert, vraagt bevestiging als er al invoer is, begint schoon en houdt
+      de datum van vandaag; automatisch concept bewaren op het apparaat (IndexedDB, src/concept.js) met
+      "Doorgaan met dit formulier?" bij opstarten + waarschuwing bij verlaten; foto's verkleind naar max
+      1600 px JPEG 80%; getypte maatlijntekst gaat niet meer verloren; na paginawissel naar boven;
+      versienummer onderaan de app.
+- [ ] Review blok A punt 5: backend eerst nieuwe versie uploaden, dan pas archiveren (vereist backend-deploy).
+- [ ] Review blok B (gegevens die verborgen zijn maar toch in PDF komen, lege rommel in samenvatting,
+      PDF-pagina installatietekening), C (handtekening, nieuw formulier, foto verwijderen, ...) en D.
 - [x] Foto-vakken: niet meer alleen camera; iPad biedt nu "Foto maken" of "Fotobibliotheek".
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
 - [ ] Pagina 17 Samenvatting: nog doorlopen.
