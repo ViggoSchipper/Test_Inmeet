@@ -530,7 +530,7 @@ const valideerW = (data) => {
   if (!heeftWaarde(data.buitenkraan)) missend.push("Vorstvrije buitenkraan");
   if (!heeftWaarde(data.vloerverwarming)) missend.push("Vloerverwarming");
   else if (data.vloerverwarming !== "N.V.T.") {
-    if (!heeftWaarde(data.vloerM2)) missend.push("Vloerverwarming m²");
+    if (data.vloerverwarming === "Gehele woning" && !heeftWaarde(data.vloerM2)) missend.push("Vloerverwarming m²");
     if (!heeftWaarde(data.verdeler)) missend.push("Verdeler aanwezig of ophangen");
     else if (data.verdeler === "Verdeler aanwezig" && !heeftWaarde(data.fotoVerdeler)) missend.push("Foto bestaande verdeler");
     else if (data.verdeler === "Verdeler ophangen" && !heeftWaarde(data.warmtebron)) missend.push("Warmtebron");
@@ -702,7 +702,6 @@ export default function App() {
     hwaMateriaal: "", bladvanger: false, vergaarbak: false,
     hwaAantal: "", buitenkraan: "",
     vloerverwarming: "", vloerM2: "", verdeler: "", fotoVerdeler: null, warmtebron: [],
-    wkWater: "",
     wOpmerking: "",
     schetsWinstallatie: null,
   });
@@ -1644,12 +1643,14 @@ export default function App() {
           <RadioGroup name="vloerverwarming" options={["N.V.T.", "Aanbouw", "Gehele woning"]} value={data.vloerverwarming} onChange={v => set("vloerverwarming", v)} />
           {(data.vloerverwarming === "Aanbouw" || data.vloerverwarming === "Gehele woning") && (
             <div style={styles.subSection}>
+              {data.vloerverwarming === "Gehele woning" && (
+                <div style={{ ...styles.row, marginBottom: 8 }}>
+                  <div style={styles.label}>Oppervlakte:</div>
+                  <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.vloerM2} onChange={e => set("vloerM2", e.target.value)} />
+                  <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>m²</span>
+                </div>
+              )}
               <div style={styles.row}>
-                <div style={styles.label}>Oppervlakte:</div>
-                <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.vloerM2} onChange={e => set("vloerM2", e.target.value)} />
-                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>m²</span>
-              </div>
-              <div style={{ ...styles.row, marginTop: 8 }}>
                 <div style={styles.label}>Verdeler:</div>
                 <RadioGroup name="verdeler" options={["Verdeler aanwezig", "Verdeler ophangen"]} value={data.verdeler} onChange={v => set("verdeler", v)} />
               </div>
@@ -1667,9 +1668,6 @@ export default function App() {
               )}
             </div>
           )}
-          <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>W/K Water</div>
-          <input style={styles.input} value={data.wkWater} onChange={e => set("wkWater", e.target.value)} />
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / Extra's:</div>
           <textarea style={styles.textarea} value={data.wOpmerking} onChange={e => set("wOpmerking", e.target.value)} />
@@ -1739,10 +1737,9 @@ export default function App() {
               ["HWA", data.hwaMateriaal ? `${data.hwaMateriaal}${data.hwaAantal ? ` (${data.hwaAantal}x)` : ""}` : ""],
               ["Bladvanger / vergaarbak", [data.bladvanger && "Bladvanger", data.vergaarbak && "Vergaarbak"].filter(Boolean).join(", ")],
               ["Vorstvrije buitenkraan", data.buitenkraan],
-              ["Vloerverwarming", data.vloerverwarming && data.vloerverwarming !== "N.V.T." && data.vloerM2 ? `${data.vloerverwarming} (${data.vloerM2} m²)` : data.vloerverwarming],
+              ["Vloerverwarming", data.vloerverwarming === "Gehele woning" && data.vloerM2 ? `${data.vloerverwarming} (${data.vloerM2} m²)` : data.vloerverwarming],
               ["Verdeler", data.vloerverwarming && data.vloerverwarming !== "N.V.T." ? data.verdeler : ""],
               ["Warmtebron", data.vloerverwarming !== "N.V.T." && data.verdeler === "Verdeler ophangen" ? (data.warmtebron || []).join(", ") : ""],
-              ["W/K Water", data.wkWater],
             ]],
           ].map(([title, rows]) => (
             <div key={title} style={{ marginBottom: 16 }}>

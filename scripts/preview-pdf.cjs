@@ -89,7 +89,6 @@ const data = {
 
   hwaMateriaal: "Zwart-zink", hwaAantal: "2", bladvanger: true, vergaarbak: false,
   buitenkraan: "1", vloerverwarming: "Aanbouw", vloerM2: "24", verdeler: "Verdeler ophangen", warmtebron: ["CV-ketel"],
-  wkWater: "",
   wOpmerking: "Aansluiting op bestaande ketel in bijkeuken.",
 
   ...dummyImages,

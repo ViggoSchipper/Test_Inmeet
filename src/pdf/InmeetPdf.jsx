@@ -471,11 +471,10 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Vorstvrije buitenkraan", data.buitenkraan],
             ["Vloerverwarming", data.vloerverwarming],
             ...(data.vloerverwarming && data.vloerverwarming !== "N.V.T." ? [
-              ["Oppervlakte", data.vloerM2 ? `${data.vloerM2} m²` : ""],
+              ...(data.vloerverwarming === "Gehele woning" ? [["Oppervlakte", data.vloerM2 ? `${data.vloerM2} m²` : ""]] : []),
               ["Verdeler", data.verdeler],
               ...(data.verdeler === "Verdeler ophangen" ? [["Warmtebron", data.warmtebron]] : []),
             ] : []),
-            ["Warm/koud water", data.wkWater],
           ]}
           melding={data.vloerverwarming && data.vloerverwarming !== "N.V.T." && data.verdeler === "Verdeler ophangen"
             ? "LET OP: het ophangen en aansluiten van de verdeler gebeurt altijd op stelpost, vanwege de verschillende situaties. Op de locatie van de verdeler dient een stopcontact aanwezig te zijn. Is dit er niet, dan dient dit met AddOn afgestemd te worden. AddOn kan op de plek van de verdeler voor € 300,- incl. btw een stopcontact realiseren." : null}
