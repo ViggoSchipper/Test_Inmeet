@@ -486,6 +486,7 @@ const WANDLAMPEN = [
   ] },
 ].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
 const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
+const VERDELER_LET_OP = "LET OP: het ophangen en aansluiten van de verdeler gebeurt altijd op stelpost, vanwege de verschillende situaties. Op de locatie van de verdeler dient een stopcontact aanwezig te zijn. Is dit er niet, dan dient dit met AddOn afgestemd te worden. AddOn kan op de plek van de verdeler voor € 300,- incl. btw een stopcontact realiseren.";
 const HOTEL_VERLICHTING = ["Binnen: Spotjes", "Binnen: Hanglamp", "Binnen: Wandlampjes", "Buiten: Spotjes", "Buiten: Wandlamp"];
 const WCD_TYPE = "Dubbel NIKO inbouw horizontaal zwart";
 const E_GARANTIE_TEKST = "zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra.";
@@ -520,9 +521,22 @@ const valideerE = (data) => {
   return missend;
 };
 
-// W-installaties: HWA is altijd relevant (elk dak heeft een hemelwaterafvoer),
-// de rest is projectafhankelijk.
-const valideerW = (data) => (heeftWaarde(data.hwaMateriaal) ? [] : ["HWA materiaal"]);
+// W-installaties: HWA, buitenkraan en vloerverwarming altijd beantwoorden;
+// bij vloerverwarming ook m², verdeler en (foto of warmtebron).
+const valideerW = (data) => {
+  const missend = [];
+  if (!heeftWaarde(data.hwaMateriaal)) missend.push("HWA materiaal");
+  else if (!heeftWaarde(data.hwaAantal)) missend.push("HWA aantal");
+  if (!heeftWaarde(data.buitenkraan)) missend.push("Vorstvrije buitenkraan");
+  if (!heeftWaarde(data.vloerverwarming)) missend.push("Vloerverwarming");
+  else if (data.vloerverwarming !== "N.V.T.") {
+    if (!heeftWaarde(data.vloerM2)) missend.push("Vloerverwarming m²");
+    if (!heeftWaarde(data.verdeler)) missend.push("Verdeler aanwezig of ophangen");
+    else if (data.verdeler === "Verdeler aanwezig" && !heeftWaarde(data.fotoVerdeler)) missend.push("Foto bestaande verdeler");
+    else if (data.verdeler === "Verdeler ophangen" && !heeftWaarde(data.warmtebron)) missend.push("Warmtebron");
+  }
+  return missend;
+};
 
 // Pagina-index van de drie pagina's in het installatieblok.
 const INSTALLATIE_TABS = [[13, "E-installaties"], [14, "W-installaties"], [15, "Tekening"]];
@@ -686,8 +700,9 @@ export default function App() {
     schetsEinstallatie: null,
     // W-installaties
     hwaMateriaal: "", bladvanger: false, vergaarbak: false,
-    warmte: "", warmteScope: "", warmteM2: "", ketel: false, stadsverwarming: false,
-    buitenkraan: "", buitenkraanKleur: "", wkWater: "",
+    hwaAantal: "", buitenkraan: "",
+    vloerverwarming: "", vloerM2: "", verdeler: "", fotoVerdeler: null, warmtebron: [],
+    wkWater: "",
     wOpmerking: "",
     schetsWinstallatie: null,
   });
@@ -1608,38 +1623,53 @@ export default function App() {
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>W-installaties</p></div>
         <div style={styles.sectionBody}>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>HWA (Hemelwaterafvoer)</div>
-          <RadioGroup name="hwa" options={["PVC", "Zink", "Zwart"]} value={data.hwaMateriaal} onChange={v => set("hwaMateriaal", v)} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <RadioGroup name="hwa" options={["PVC", "Zink", "Zwart-zink"]} value={data.hwaMateriaal} onChange={v => set("hwaMateriaal", v)} />
+            {data.hwaMateriaal && (
+              <>
+                <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
+                <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.hwaAantal} onChange={e => set("hwaAantal", e.target.value)} />
+              </>
+            )}
+          </div>
           <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
             <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.bladvanger} onChange={e => set("bladvanger", e.target.checked)} /> Bladvanger</label>
             <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.vergaarbak} onChange={e => set("vergaarbak", e.target.checked)} /> Vergaarbak</label>
           </div>
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Warmte / Koude</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div>
-              <RadioGroup name="warmtew" options={["Vloerverwarming", "Stadsverwarming"]} value={data.warmte} onChange={v => set("warmte", v)} />
-              {data.warmte === "Vloerverwarming" && (
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Vorstvrije buitenkraan</div>
+          <RadioGroup name="buitenkraan" options={["1", "N.V.T."]} value={data.buitenkraan} onChange={v => set("buitenkraan", v)} />
+          <div style={styles.divider} />
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Vloerverwarming</div>
+          <RadioGroup name="vloerverwarming" options={["N.V.T.", "Aanbouw", "Gehele woning"]} value={data.vloerverwarming} onChange={v => set("vloerverwarming", v)} />
+          {(data.vloerverwarming === "Aanbouw" || data.vloerverwarming === "Gehele woning") && (
+            <div style={styles.subSection}>
+              <div style={styles.row}>
+                <div style={styles.label}>Oppervlakte:</div>
+                <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.vloerM2} onChange={e => set("vloerM2", e.target.value)} />
+                <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>m²</span>
+              </div>
+              <div style={{ ...styles.row, marginTop: 8 }}>
+                <div style={styles.label}>Verdeler:</div>
+                <RadioGroup name="verdeler" options={["Verdeler aanwezig", "Verdeler ophangen"]} value={data.verdeler} onChange={v => set("verdeler", v)} />
+              </div>
+              {data.verdeler === "Verdeler aanwezig" && (
+                <div style={{ marginTop: 10, maxWidth: 260 }}>
+                  <PhotoUpload label="Foto bestaande verdeler" hint="Zodat we kunnen zien of de groepen er nog bij kunnen" value={data.fotoVerdeler} onChange={v => set("fotoVerdeler", v)} />
+                </div>
+              )}
+              {data.verdeler === "Verdeler ophangen" && (
                 <div style={{ marginTop: 10 }}>
-                  <RadioGroup name="warmtescope" options={["Aanbouw", "Gehele woning"]} value={data.warmteScope} onChange={v => set("warmteScope", v)} />
-                  {data.warmteScope === "Gehele woning" && <input style={{ ...styles.inputSmall, marginTop: 8 }} placeholder="m²" value={data.warmteM2} onChange={e => set("warmteM2", e.target.value)} />}
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Warmtebron:</div>
+                  <CheckGroup options={["CV-ketel", "Warmtepomp", "Stadsverwarming"]} values={data.warmtebron} onChange={v => set("warmtebron", v)} />
+                  <div style={{ ...styles.hint, marginTop: 8, fontWeight: 600 }}>{VERDELER_LET_OP}</div>
                 </div>
               )}
             </div>
-            <div>
-              <label style={styles.checkLabel}><input type="checkbox" style={{ accentColor: GOLD }} checked={data.ketel} onChange={e => set("ketel", e.target.checked)} /> Ketel</label>
-              <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>W/K Water:</div>
-                <input style={styles.input} value={data.wkWater} onChange={e => set("wkWater", e.target.value)} />
-              </div>
-            </div>
-          </div>
+          )}
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Vorst vrije buitenkraan</div>
-          <div style={styles.row}>
-            <RadioGroup name="buitenkraan" options={["1", "2"]} value={data.buitenkraan} onChange={v => set("buitenkraan", v)} />
-            <div style={styles.label}>Kleur:</div>
-            <input style={{ ...styles.inputSmall }} value={data.buitenkraanKleur} onChange={e => set("buitenkraanKleur", e.target.value)} />
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>W/K Water</div>
+          <input style={styles.input} value={data.wkWater} onChange={e => set("wkWater", e.target.value)} />
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / Extra's:</div>
           <textarea style={styles.textarea} value={data.wOpmerking} onChange={e => set("wOpmerking", e.target.value)} />
@@ -1705,7 +1735,15 @@ export default function App() {
               ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : ""],
               ["Airco", (data.warmteKoude || []).includes("Airco") ? (data.aircoUitvoering === "Airco" ? `Airco${data.aircoVermogen ? ` ${data.aircoVermogen}` : ""}` : data.aircoUitvoering || "Ja") : ""],
             ]],
-            ["W-installaties", [["HWA materiaal", data.hwaMateriaal], ["Warmte", data.warmte], ["Buitenkraan", data.buitenkraan]]],
+            ["W-installaties", [
+              ["HWA", data.hwaMateriaal ? `${data.hwaMateriaal}${data.hwaAantal ? ` (${data.hwaAantal}x)` : ""}` : ""],
+              ["Bladvanger / vergaarbak", [data.bladvanger && "Bladvanger", data.vergaarbak && "Vergaarbak"].filter(Boolean).join(", ")],
+              ["Vorstvrije buitenkraan", data.buitenkraan],
+              ["Vloerverwarming", data.vloerverwarming && data.vloerverwarming !== "N.V.T." && data.vloerM2 ? `${data.vloerverwarming} (${data.vloerM2} m²)` : data.vloerverwarming],
+              ["Verdeler", data.vloerverwarming && data.vloerverwarming !== "N.V.T." ? data.verdeler : ""],
+              ["Warmtebron", data.vloerverwarming !== "N.V.T." && data.verdeler === "Verdeler ophangen" ? (data.warmtebron || []).join(", ") : ""],
+              ["W/K Water", data.wkWater],
+            ]],
           ].map(([title, rows]) => (
             <div key={title} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 6, borderBottom: `1px solid ${GOLD}33`, paddingBottom: 4 }}>{title}</div>

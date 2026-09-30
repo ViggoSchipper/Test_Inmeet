@@ -103,7 +103,14 @@
       tabknoppen om vrij te wisselen zonder controle; pas bij "Volgende" op de tekening worden E en W
       samen gecontroleerd. PDF: één "Installatietekening (E + W)". Tekening wordt opgeslagen onder de
       bestaande naam Schets_Einstallatie (backend ongewijzigd); de losse W-tekening is vervallen.
-- [ ] Pagina 15 W-installaties: nog doorlopen en optimaliseren.
+- [x] Pagina 15 W-installaties: HWA PVC/Zink/Zwart-zink + aantal. Vorstvrije buitenkraan (direct onder
+      HWA): 1 / N.V.T. (kleur en aantal weg). Warmte/Koude -> Vloerverwarming: N.V.T./Aanbouw/Gehele woning,
+      dan m² + Verdeler aanwezig (foto bestaande verdeler) of Verdeler ophangen (warmtebron CV-ketel/
+      Warmtepomp/Stadsverwarming + LET OP-tekst stelpost/stopcontact € 300,-). Ketel-vinkje vervallen.
+      Validatie, samenvatting en PDF bijgewerkt (m² toonde eerst als "MM").
+- [ ] Backend (Azure Functions) opnieuw deployen zodat Foto_Verdeler ook als los bestand in SharePoint
+      komt (api/src/graphHelpers.js is al aangepast). Tot die tijd staat de foto alleen in data.json en PDF.
+- [ ] W/K Water: nog bespreken (nu vrij tekstveld).
 - [ ] Pagina 16 Installatietekening: legenda uitbreiden met nieuwe symbolen (hanglamp, wandlamp, etc.).
 - [ ] Pagina 17 Samenvatting: nog doorlopen.
 

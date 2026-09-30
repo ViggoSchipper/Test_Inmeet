@@ -271,6 +271,7 @@ const FOTO_VELDEN = [
   { key: "fotoBereikbaarheid", label: "Bereikbaarheid werkplek" },
   { key: "steenstripAndersFoto", label: "Gevelbekleding — Steenstrip (Anders)" },
   { key: "composietAndersFoto", label: "Gevelbekleding — Composiet (Anders)" },
+  { key: "fotoVerdeler", label: "Bestaande verdeler (vloerverwarming)" },
 ];
 
 const SCHETS_VELDEN = [
@@ -464,18 +465,20 @@ export default function InmeetPdf({ data, logoSrc }) {
         <Section
           title="W-installaties"
           fields={[
-            ["HWA materiaal", data.hwaMateriaal],
+            ["HWA", data.hwaMateriaal ? `${data.hwaMateriaal}${data.hwaAantal ? ` (${data.hwaAantal}x)` : ""}` : ""],
             ["Bladvanger", data.bladvanger],
             ["Vergaarbak", data.vergaarbak],
-            ["Warmte", data.warmte],
-            ["Warmte scope", data.warmteScope],
-            ["Warmte M2", fmtMM(data.warmteM2)],
-            ["Ketel", data.ketel],
-            ["Stadsverwarming", data.stadsverwarming],
-            ["Buitenkraan", data.buitenkraan],
-            ["Buitenkraan kleur", data.buitenkraanKleur],
+            ["Vorstvrije buitenkraan", data.buitenkraan],
+            ["Vloerverwarming", data.vloerverwarming],
+            ...(data.vloerverwarming && data.vloerverwarming !== "N.V.T." ? [
+              ["Oppervlakte", data.vloerM2 ? `${data.vloerM2} m²` : ""],
+              ["Verdeler", data.verdeler],
+              ...(data.verdeler === "Verdeler ophangen" ? [["Warmtebron", data.warmtebron]] : []),
+            ] : []),
             ["Warm/koud water", data.wkWater],
           ]}
+          melding={data.vloerverwarming && data.vloerverwarming !== "N.V.T." && data.verdeler === "Verdeler ophangen"
+            ? "LET OP: het ophangen en aansluiten van de verdeler gebeurt altijd op stelpost, vanwege de verschillende situaties. Op de locatie van de verdeler dient een stopcontact aanwezig te zijn. Is dit er niet, dan dient dit met AddOn afgestemd te worden. AddOn kan op de plek van de verdeler voor € 300,- incl. btw een stopcontact realiseren." : null}
           opmerking={waarde(data.wOpmerking)}
         />
       </PageChrome>

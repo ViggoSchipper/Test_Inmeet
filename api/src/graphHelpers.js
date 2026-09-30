@@ -10,6 +10,7 @@ const FOTO_VELDEN = {
   fotoAchterBuiten: "Foto_AchtergevelBuiten",
   fotoKruipruimte: "Foto_Kruipruimte",
   fotoBereikbaarheid: "Foto_Bereikbaarheid",
+  fotoVerdeler: "Foto_Verdeler",
 };
 
 const SCHETS_VELDEN = {

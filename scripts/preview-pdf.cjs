@@ -87,9 +87,9 @@ const data = {
   warmteKoude: ["Airco"], aircoUitvoering: "Airco", aircoVermogen: "4,2 kW",
   eOpmerking: "Groepenkast heeft nog 3 vrije groepen.",
 
-  hwaMateriaal: "Zink", bladvanger: true, vergaarbak: false,
-  warmte: "Vloerverwarming", warmteScope: "Hele aanbouw", warmteM2: "24", ketel: true, stadsverwarming: false,
-  buitenkraan: "Ja", buitenkraankleur: "Antraciet", buitenkraanKleur: "Antraciet", wkWater: "Beide",
+  hwaMateriaal: "Zwart-zink", hwaAantal: "2", bladvanger: true, vergaarbak: false,
+  buitenkraan: "1", vloerverwarming: "Aanbouw", vloerM2: "24", verdeler: "Verdeler ophangen", warmtebron: ["CV-ketel"],
+  wkWater: "",
   wOpmerking: "Aansluiting op bestaande ketel in bijkeuken.",
 
   ...dummyImages,
