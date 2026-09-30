@@ -117,6 +117,13 @@
       Onder de tekening + in de PDF een automatische legenda-tabel (symbool/omschrijving/kleur/type/
       aantal) vanuit E- en W-installaties. Kleur: Wit=RAL 9010, Zwart=RAL 9005. Hotelschakelaar-aantal
       = 2 per aangevinkte verlichtingsgroep.
+- [x] Installatietekening (src/InstallatieCanvas.jsx): symbolen blijven losse, aanklikbare onderdelen.
+      Tik op symbool -> letter A-E / verwijderen; symbool verslepen = verplaatsen. Nieuw gereedschap
+      "Maatlijn": alleen horizontaal/verticaal, klikt vast op een symbool, met tekst (achteraf aan te
+      tikken om te wijzigen/verwijderen). Ongedaan maken werkt voor alles. Opslag: schetsEinstallatie
+      (platte PNG voor PDF/SharePoint) + schetsInstallatieStaat (pen-laag + objecten, om later verder
+      te bewerken). Hotelschakelaar en Verdeler uit de symbolen en de legenda gehaald.
+- [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
 - [ ] Pagina 17 Samenvatting: nog doorlopen.
 
 ## Vóór overgang naar productie

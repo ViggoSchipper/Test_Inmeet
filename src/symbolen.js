@@ -17,12 +17,10 @@ export const SYMBOLEN = [
   { key: "schakelaar", label: "Schakelaar", paden: [`${cirkel(14, 26, 4)} M17 23 L29 11 L33 15`] },
   { key: "dimmer", label: "Dimmer", paden: [`${cirkel(14, 26, 4)} M17 23 L29 11 L33 15 M19 11 L27 19 M27 19 L27 14.5 M27 19 L22.5 19`] },
   { key: "sensor", label: "Sensor", paden: [cirkel(20, 20, 11)], tekst: "S" },
-  { key: "hotel", label: "Hotelschakelaar", paden: [`${cirkel(20, 20, 4)} M23 17 L32 8 L36 12 M17 23 L8 32 L4 28`] },
   { key: "utp", label: "UTP", paden: ["M3 20 H22 M22 13 H36 V27 H22 Z"] },
   { key: "airco", label: "Airco", paden: ["M5 12 H35 V28 H5 Z"], tekst: "AC" },
   { key: "hwa", label: "HWA", paden: [`${cirkel(20, 20, 8)} M20 3 V37`] },
   { key: "buitenkraan", label: "Buitenkraan", paden: ["M13 8 H27 M20 8 V36 M20 22 H29 V29 M15 36 H25"] },
-  { key: "verdeler", label: "Verdeler", paden: ["M5 12 H35 V28 H5 Z"], tekst: "VD" },
 ];
 
 export const symboolOpKey = (key) => SYMBOLEN.find((s) => s.key === key);
@@ -84,12 +82,9 @@ export function legendaRijen(data) {
     { sym: "schakelaar", omschrijving: "Schakelaar", kleur, type: merk, aantal: heeft("schakelaars", "Schakelaar") ? getal(d.schAantalSchakelaar) : 0 },
     { sym: "dimmer", omschrijving: "Dimmer", kleur, type: merk, aantal: heeft("schakelaars", "Dimmer") ? getal(d.schAantalDimmer) : 0 },
     { sym: "sensor", omschrijving: "Sensor", kleur, type: merk, aantal: heeft("schakelaars", "Sensor") ? getal(d.schAantalSensor) : 0 },
-    // Dubbele hotelschakeling: 2 schakelaars per aangevinkte verlichtingsgroep.
-    { sym: "hotel", omschrijving: "Hotelschakelaar", kleur, type: merk, aantal: d.hotelschakeling ? 2 * (d.hotelLampen || []).length : 0 },
     { sym: "airco", omschrijving: "Airco", kleur: "", type: d.aircoUitvoering === "Airco" ? (d.aircoVermogen || "Airco") : "Leidingwerk", aantal: airco ? 1 : 0 },
     { sym: "hwa", omschrijving: "HWA", kleur: hwaKleur, type: hwaType, aantal: d.hwaMateriaal ? getal(d.hwaAantal) : 0 },
     { sym: "buitenkraan", omschrijving: "Buitenkraan", kleur: "", type: "Vorstvrij", aantal: d.buitenkraan === "1" ? 1 : 0 },
-    { sym: "verdeler", omschrijving: "Verdeler", kleur: "", type: "Ophangen (stelpost)", aantal: d.vloerverwarming && d.vloerverwarming !== "N.V.T." && d.verdeler === "Verdeler ophangen" ? 1 : 0 },
   ];
   return rijen.filter((r) => r.aantal > 0);
 }

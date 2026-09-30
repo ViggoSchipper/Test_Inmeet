@@ -13,7 +13,8 @@ import fotoKerama from "./assets/gevel/kerama.jpg";
 import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
 import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
 import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
-import { SYMBOLEN, tekenSymbool, legendaRijen, symboolOpKey } from "./symbolen";
+import { legendaRijen, symboolOpKey } from "./symbolen";
+import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -35,13 +36,13 @@ const BLACK = "#1a1a1a";
 const LIGHT = "#f5f5f5";
 
 const styles = {
-  app: { fontFamily: "'Segoe UI', sans-serif", background: LIGHT, minHeight: "100vh", width: "100vw", boxSizing: "border-box", overflowX: "hidden", padding: 0, margin: 0 },
+  app: { fontFamily: "'Segoe UI', sans-serif", background: LIGHT, minHeight: "100vh", width: "100vw", boxSizing: "border-box", overflowX: "hidden", padding: 0, margin: 0, display: "flex", flexDirection: "column" },
   header: { borderTop: `5px solid ${GOLD}`, background: "white", padding: "12px 20px", borderBottom: `2px solid ${GOLD}`, display: "flex", alignItems: "center", gap: 14, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.07)" },
   logoImg: { height: 32, width: "auto", display: "block" },
   pageTitle: { fontSize: 18, fontWeight: 600, color: BLACK, marginLeft: 4 },
   progress: { display: "flex", gap: 4, marginLeft: "auto", alignItems: "center" },
   progressDot: (active, done) => ({ width: active ? 10 : 6, height: active ? 10 : 6, borderRadius: "50%", background: done ? GOLD : active ? BLACK : "#ccc", transition: "all 0.2s" }),
-  body: { padding: "20px 24px 100px", width: "100%" },
+  body: { padding: "20px 24px 24px", width: "100%", boxSizing: "border-box", flex: 1 },
   section: { background: "white", borderRadius: 10, border: `1px solid #e8e8e8`, marginBottom: 16, overflow: "hidden", width: "100%" },
   sectionHeader: { padding: "10px 16px", borderBottom: `1px solid ${GOLD}`, background: "white" },
   sectionTitle: { fontSize: 14, fontWeight: 700, color: BLACK, margin: 0 },
@@ -57,7 +58,8 @@ const styles = {
   checkGroup: { display: "flex", flexDirection: "column", gap: 8 },
   checkLabel: { display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BLACK, cursor: "pointer" },
   divider: { height: 1, background: `${GOLD}33`, margin: "12px 0" },
-  nav: { position: "fixed", bottom: 0, left: 0, right: 0, background: "white", borderTop: `2px solid ${GOLD}`, padding: "12px 20px", display: "flex", justifyContent: "space-between" },
+  // Navigatiebalk staat onderaan de pagina (na de inhoud), niet vast over de inhoud heen.
+  nav: { background: "white", borderTop: `2px solid ${GOLD}`, padding: "12px 20px", display: "flex", justifyContent: "space-between" },
   btnPrev: { background: "white", border: `2px solid ${GOLD}`, color: GOLD, borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
   btnNext: { background: GOLD, border: "none", color: "white", borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
   photoBox: { border: `2px dashed ${GOLD}`, borderRadius: 8, padding: 16, textAlign: "center", cursor: "pointer", background: "#fdfcf8", minHeight: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 },
@@ -72,20 +74,6 @@ const styles = {
   foutBannerTitel: { fontWeight: 700, marginBottom: 4 },
 };
 
-// Klein SVG-plaatje van een tekensymbool (zie symbolen.js), voor de legenda.
-function SymboolIcoon({ symbool, grootte = 26, kleur = "#1a1a1a" }) {
-  return (
-    <svg width={grootte} height={grootte} viewBox="0 0 40 40" style={{ flexShrink: 0 }}>
-      {symbool.paden.map((d, i) => (
-        <path key={i} d={d} fill="none" stroke={kleur} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-      ))}
-      {symbool.tekst && (
-        <text x="20" y="21" textAnchor="middle" dominantBaseline="middle" fontSize={symbool.tekst.length > 1 ? 11 : 13} fontWeight="700" fill={kleur} fontFamily="sans-serif">{symbool.tekst}</text>
-      )}
-    </svg>
-  );
-}
-
 // Canvas Drawing Component
 // Gestuurd (controlled) via value/onChange zodat schetsen net als foto's opgeslagen,
 // vooraf ingevuld (prefill bij 2e opname) en gewijzigd kunnen worden.
@@ -95,14 +83,12 @@ const GRID_VAKJES = 15;
 // Hoeveel stappen "Ongedaan maken" onthoudt (ouder dan dit wordt vergeten).
 const MAX_UNDO_STAPPEN = 15;
 
-function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null, maxVh = 70, symbols = null }) {
+function DrawingCanvas({ id, value, onChange, grid = false, square = false, height = 300, gridCols = GRID_VAKJES, gridRows = GRID_VAKJES, aspectRatio = null, maxVh = 70 }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [tool, setTool] = useState("pen");
   const [color, setColor] = useState("#1a1a1a");
   const [canUndo, setCanUndo] = useState(false);
-  const [sleepSymbool, setSleepSymbool] = useState(null);
-  const [sleepPos, setSleepPos] = useState({ x: 0, y: 0 });
   const lastPos = useRef(null);
   const loadedValueRef = useRef(null);
   // Snapshots (dataURLs) van het canvas vóór elke actie, voor "Ongedaan maken".
@@ -246,53 +232,8 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
     exportImage();
   };
 
-  // Sleep-vanuit-legenda: een symbool wordt met de vinger/muis vanaf een
-  // legenda-chip naar het tekenvak gesleept en daar op de losgelaten positie
-  // "gestempeld" (als tekst op het canvas getekend, net als een pen-streek).
-  const stempelSymbool = (sym, clientX, clientY) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return;
-    const scaleX = canvas.offsetWidth / rect.width;
-    const scaleY = canvas.offsetHeight / rect.height;
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
-    bewaarVoorUndo();
-    const ctx = canvas.getContext("2d");
-    tekenSymbool(ctx, sym, x, y, 34);
-    exportImage();
-  };
-
-  const startSleepSymbool = (sym) => (e) => {
-    e.preventDefault();
-    setSleepSymbool(sym);
-    setSleepPos({ x: e.clientX, y: e.clientY });
-    const verplaats = (ev) => setSleepPos({ x: ev.clientX, y: ev.clientY });
-    const loslaten = (ev) => {
-      stempelSymbool(sym, ev.clientX, ev.clientY);
-      setSleepSymbool(null);
-      window.removeEventListener("pointermove", verplaats);
-      window.removeEventListener("pointerup", loslaten);
-    };
-    window.addEventListener("pointermove", verplaats);
-    window.addEventListener("pointerup", loslaten);
-  };
-
   return (
     <div>
-      {symbols && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-          {symbols.map(sym => (
-            <div key={sym.key} onPointerDown={startSleepSymbool(sym)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", border: `1px solid ${GOLD}55`, borderRadius: 8, background: "#fdfcf8", cursor: "grab", touchAction: "none", userSelect: "none" }}>
-              <SymboolIcoon symbool={sym} />
-              <span style={{ fontSize: 11, color: "#666" }}>{sym.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {symbols && <div style={{ ...styles.hint, marginBottom: 8 }}>Sleep een symbool hierboven naar de tekening om te plaatsen</div>}
       <div style={styles.canvasToolbar}>
         {["pen", "eraser"].map(t => (
           <button key={t} style={styles.toolBtn(tool === t)} onClick={() => setTool(t)}>
@@ -316,11 +257,6 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
         onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
       {grid && <div style={{ ...styles.hint, marginTop: 6, textAlign: "center" }}>Elk vakje = 1 x 1 meter (grid van {gridCols} x {gridRows} m)</div>}
-      {sleepSymbool && (
-        <div style={{ position: "fixed", left: sleepPos.x, top: sleepPos.y, transform: "translate(-50%, -50%)", pointerEvents: "none", background: "#ffffffcc", borderRadius: 6, zIndex: 9999 }}>
-          <SymboolIcoon symbool={sleepSymbool} grootte={34} kleur={GOLD} />
-        </div>
-      )}
     </div>
   );
 }
@@ -706,7 +642,7 @@ export default function App() {
     wcd: false, wcdAantal: "",
     warmteKoude: [], aircoUitvoering: "", aircoVermogen: "",
     eOpmerking: "",
-    schetsEinstallatie: null,
+    schetsEinstallatie: null, schetsInstallatieStaat: null,
     // W-installaties
     hwaMateriaal: "", bladvanger: false, vergaarbak: false,
     hwaAantal: "", buitenkraan: "",
@@ -1691,9 +1627,8 @@ export default function App() {
         <div style={styles.sectionBody}>
           <div style={styles.hint}>E: hoogte en positie stopcontacten en afstand wand-verlichting aangeven. W: posities aangeven vanuit binnenmaat aanbouw.</div>
           <div style={{ marginTop: 10 }}>
-            <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)}
-              grid square gridCols={15} gridRows={15}
-              symbols={SYMBOLEN} />
+            <InstallatieCanvas staat={data.schetsInstallatieStaat} fallbackAfbeelding={data.schetsEinstallatie}
+              onChange={(png, staat) => setData(d => ({ ...d, schetsEinstallatie: png, schetsInstallatieStaat: staat }))} />
           </div>
           <div style={{ marginTop: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Legenda</div>
