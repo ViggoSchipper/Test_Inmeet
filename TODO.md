@@ -152,7 +152,9 @@
       "Aanpassen ›", opmerkingen erbij, foto's en tekeningen als miniaturen.
 - [x] Grotere tikvlakken: rondjes/vinkjes 22 px, rijen min. 40 px, grotere teken-knoppen en kleurbolletjes.
 - [x] Begrijpelijke melding als het project niet opgehaald kan worden (geen verbinding).
-- [ ] Nog beslissen: "Extra foto's" (onbeperkt foto's met omschrijving op Voorbereiding foto's).
+- [x] Nieuwe pagina 17 "Extra foto's" (4 optionele foto's met omschrijving) vóór de Samenvatting; app heeft
+      nu 18 pagina's. In samenvatting (miniaturen), PDF (omschrijving als onderschrift) en backend
+      (Foto_Extra1..4, actief na backend-deploy).
 - HWA blijft altijd verplicht (geen N.V.T.) - bewuste keuze.
 - [x] Foto-vakken: niet meer alleen camera; iPad biedt nu "Foto maken" of "Fotobibliotheek".
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).

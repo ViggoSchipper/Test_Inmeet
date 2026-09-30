@@ -413,7 +413,7 @@ const PAGES = [
   "Contact", "Maatvoering", "Maatvoering Schets", "Voorbereidingen", "Voorbereiding Foto's",
   "Wandafwerking & Gevelbekleding", "Kozijn 1", "Kozijn 1 Schets", "Kozijn 2", "Kozijn 2 Schets",
   "Kozijn 3", "Kozijn 3 Schets", "Dak & Lichtstraat", "E-installaties", "W-installaties",
-  "Installatietekening", "Samenvatting"
+  "Installatietekening", "Extra foto's", "Samenvatting"
 ];
 
 // Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
@@ -505,6 +505,8 @@ const SAMENVATTING_BEELDEN = [
   ["schetsKozijn2", "Schets kozijn 2", 9], ["schetsKozijn3", "Schets kozijn 3", 11],
   ["schetsLichtstraatPositie", "Positie lichtstraat", 12], ["fotoVerdeler", "Bestaande verdeler", 14],
   ["schetsEinstallatie", "Installatietekening", 15],
+  ["extraFoto1", "Extra foto 1", 16], ["extraFoto2", "Extra foto 2", 16],
+  ["extraFoto3", "Extra foto 3", 16], ["extraFoto4", "Extra foto 4", 16],
 ];
 const HOTEL_VERLICHTING = ["Binnen: Spotjes", "Binnen: Hanglamp", "Binnen: Wandlampjes", "Buiten: Spotjes", "Buiten: Wandlamp"];
 const WCD_TYPE = "Dubbel NIKO inbouw horizontaal zwart";
@@ -658,6 +660,8 @@ const PAGE_VALIDATORS = [
     ...valideerE(data).map(m => `E-installaties: ${m}`),
     ...valideerW(data).map(m => `W-installaties: ${m}`),
   ],
+  // 16: Extra foto's - optioneel.
+  null,
 ];
 
 export default function App() {
@@ -728,6 +732,9 @@ export default function App() {
     hwaAantal: "", buitenkraan: "",
     vloerverwarming: "", vloerM2: "", verdeler: "", fotoVerdeler: null, warmtebron: [],
     wOpmerking: "",
+    // Extra foto's
+    extraFoto1: null, extraFoto1Omschrijving: "", extraFoto2: null, extraFoto2Omschrijving: "",
+    extraFoto3: null, extraFoto3Omschrijving: "", extraFoto4: null, extraFoto4Omschrijving: "",
   });
   // Lege beginstaat (met de datum van vandaag), om te kunnen vergelijken en resetten.
   const beginStaatRef = useRef(null);
@@ -1879,7 +1886,26 @@ export default function App() {
       </div>
     </div>,
 
-    // 16: Samenvatting
+    // 16: Extra foto's (optioneel, 4 stuks met omschrijving)
+    <div>
+      <div style={styles.section}>
+        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Extra foto's</p></div>
+        <div style={styles.sectionBody}>
+          <div style={{ ...styles.hint, marginBottom: 12 }}>Optioneel: leg hier extra situaties vast die van belang zijn, met een korte omschrijving (bijv. meterkast, bestaande afvoer, scheur in de gevel).</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+            {[1, 2, 3, 4].map(n => (
+              <div key={n}>
+                <PhotoUpload label={`Extra foto ${n}`} value={data[`extraFoto${n}`]} onChange={v => set(`extraFoto${n}`, v)} />
+                <input style={{ ...styles.input, marginTop: 8, width: "100%", boxSizing: "border-box" }} placeholder="Omschrijving (bijv. meterkast)"
+                  value={data[`extraFoto${n}Omschrijving`]} onChange={e => set(`extraFoto${n}Omschrijving`, e.target.value)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>,
+
+    // 17: Samenvatting
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
@@ -1973,12 +1999,12 @@ export default function App() {
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 8, borderBottom: `1px solid ${GOLD}33`, paddingBottom: 4 }}>Foto's en tekeningen</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
-                {SAMENVATTING_BEELDEN.filter(([veld]) => sd[veld]).map(([veld, label, pagina]) => (
+                {SAMENVATTING_BEELDEN.filter(([veld]) => sd[veld]).map(([veld, standaardLabel, pagina]) => { const label = sd[`${veld}Omschrijving`] || standaardLabel; return (
                   <div key={veld} onClick={() => naarPagina(pagina)} style={{ cursor: "pointer" }} title={`Naar ${PAGES[pagina]}`}>
                     <img src={sd[veld]} alt={label} style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: 6, border: "1px solid #e0e0e0", display: "block", background: "white" }} />
                     <div style={{ fontSize: 11, color: "#666", marginTop: 3 }}>{label}</div>
                   </div>
-                ))}
+                ); })}
               </div>
             </div>
           )}

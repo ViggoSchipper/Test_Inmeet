@@ -13,6 +13,10 @@ const FOTO_VELDEN = {
   fotoVerdeler: "Foto_Verdeler",
   steenstripAndersFoto: "Foto_SteenstripAnders",
   composietAndersFoto: "Foto_ComposietAnders",
+  extraFoto1: "Foto_Extra1",
+  extraFoto2: "Foto_Extra2",
+  extraFoto3: "Foto_Extra3",
+  extraFoto4: "Foto_Extra4",
 };
 
 const SCHETS_VELDEN = {

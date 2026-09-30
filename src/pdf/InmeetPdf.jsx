@@ -274,6 +274,10 @@ const FOTO_VELDEN = [
   { key: "steenstripAndersFoto", label: "Gevelbekleding — Steenstrip (Anders)" },
   { key: "composietAndersFoto", label: "Gevelbekleding — Composiet (Anders)" },
   { key: "fotoVerdeler", label: "Bestaande verdeler (vloerverwarming)" },
+  { key: "extraFoto1", label: "Extra foto 1" },
+  { key: "extraFoto2", label: "Extra foto 2" },
+  { key: "extraFoto3", label: "Extra foto 3" },
+  { key: "extraFoto4", label: "Extra foto 4" },
 ];
 
 const SCHETS_VELDEN = [
@@ -547,7 +551,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             {aanwezigeFotos.map((f) => (
               <View key={f.key} style={styles.photoCard} wrap={false}>
                 <Image src={data[f.key]} style={styles.photoImage} />
-                <Text style={styles.photoCaption}>{f.label}</Text>
+                <Text style={styles.photoCaption}>{waarde(data[`${f.key}Omschrijving`]) || f.label}</Text>
               </View>
             ))}
           </View>
