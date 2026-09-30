@@ -98,7 +98,14 @@
       Samenvatting + PDF bijgewerkt. Levi antraciet is RAL 7022; RAL 7021-opmerking alleen bij Noa.
 - [x] Pagina 14 Warmte/Koude: Airco -> Alleen leidingwerk (voorbereiding) / Airco; bij Airco vermogen
       2,5 / 4,2 / 5 kW. Samenvatting + PDF bijgewerkt. Pagina 14 is hiermee helemaal doorgelopen.
-- [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).
+- [x] Installatieblok: volgorde nu 14 E-installaties -> 15 W-installaties -> 16 Installatietekening
+      (E + W op één tekening) -> 17 Samenvatting (app heeft nu 17 pagina's). Bovenaan het blok 3
+      tabknoppen om vrij te wisselen zonder controle; pas bij "Volgende" op de tekening worden E en W
+      samen gecontroleerd. PDF: één "Installatietekening (E + W)". Tekening wordt opgeslagen onder de
+      bestaande naam Schets_Einstallatie (backend ongewijzigd); de losse W-tekening is vervallen.
+- [ ] Pagina 15 W-installaties: nog doorlopen en optimaliseren.
+- [ ] Pagina 16 Installatietekening: legenda uitbreiden met nieuwe symbolen (hanglamp, wandlamp, etc.).
+- [ ] Pagina 17 Samenvatting: nog doorlopen.
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres

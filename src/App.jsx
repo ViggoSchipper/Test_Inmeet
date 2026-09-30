@@ -405,8 +405,8 @@ function CheckGroupAantal({ options, values, onChange, aantallen, onAantalChange
 const PAGES = [
   "Contact", "Maatvoering", "Maatvoering Schets", "Voorbereidingen", "Voorbereiding Foto's",
   "Wandafwerking & Gevelbekleding", "Kozijn 1", "Kozijn 1 Schets", "Kozijn 2", "Kozijn 2 Schets",
-  "Kozijn 3", "Kozijn 3 Schets", "Dak & Lichtstraat", "E-installaties", "E-installatie Tekening",
-  "W-installaties", "W-installatie Tekening", "Samenvatting"
+  "Kozijn 3", "Kozijn 3 Schets", "Dak & Lichtstraat", "E-installaties", "W-installaties",
+  "Installatietekening", "Samenvatting"
 ];
 
 // Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
@@ -489,6 +489,43 @@ const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.la
 const HOTEL_VERLICHTING = ["Binnen: Spotjes", "Binnen: Hanglamp", "Binnen: Wandlampjes", "Buiten: Spotjes", "Buiten: Wandlamp"];
 const WCD_TYPE = "Dubbel NIKO inbouw horizontaal zwart";
 const E_GARANTIE_TEKST = "zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra.";
+
+// E-installaties: veel losse, optionele keuzes; checken dat de pagina niet
+// helemaal leeg is en dat alles wat aangevinkt is compleet is.
+const valideerE = (data) => {
+  const missend = [];
+  if (!heeftWaarde(data.eUitvoering)) missend.push("Uitvoering elektra");
+  if (data.eUitvoering === E_UITVOERING_COMPLEET) {
+    if (!heeftWaarde(data.schakelMerk)) missend.push("Merk/Type");
+    else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type (Anders)");
+    if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur Merk/Type");
+  }
+  if (data.hotelschakeling) {
+    if (!heeftWaarde(data.hotelLampen)) missend.push("Hotelschakeling: welke verlichting");
+  }
+  if ((data.warmteKoude || []).includes("Airco")) {
+    if (!heeftWaarde(data.aircoUitvoering)) missend.push("Airco: alleen leidingwerk of airco");
+    else if (data.aircoUitvoering === "Airco" && !heeftWaarde(data.aircoVermogen)) missend.push("Airco: vermogen");
+  }
+  const buiten = data.buitenVerlichting || [];
+  if (buiten.includes("Spotjes")) {
+    if (!heeftWaarde(data.buitenSpotjesKleur)) missend.push("Kleur buiten spotjes");
+    else if (data.buitenSpotjesKleur === "Kleur van overstek" && !heeftWaarde(data.buitenSpotjesRAL)) missend.push("RAL-code buiten spotjes");
+  }
+  if (buiten.includes("Wandlamp") && !heeftWaarde(data.buitenWandlampType)) missend.push("Type wandlamp");
+  if (data.wcd && !heeftWaarde(data.wcdAantal)) missend.push("Aantal buitenstopcontacten");
+  const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
+    heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
+  if (!iets) missend.push("Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude");
+  return missend;
+};
+
+// W-installaties: HWA is altijd relevant (elk dak heeft een hemelwaterafvoer),
+// de rest is projectafhankelijk.
+const valideerW = (data) => (heeftWaarde(data.hwaMateriaal) ? [] : ["HWA materiaal"]);
+
+// Pagina-index van de drie pagina's in het installatieblok.
+const INSTALLATIE_TABS = [[13, "E-installaties"], [14, "W-installaties"], [15, "Tekening"]];
 
 const PAGE_VALIDATORS = [
   // 0: Contact
@@ -578,42 +615,15 @@ const PAGE_VALIDATORS = [
     }
     return missend;
   },
-  // 13: E-installaties - veel losse, optionele keuzes; alleen checken dat
-  // de pagina niet helemaal leeg is.
-  (data) => {
-    const missend = [];
-    if (!heeftWaarde(data.eUitvoering)) missend.push("Uitvoering elektra");
-    if (data.eUitvoering === E_UITVOERING_COMPLEET) {
-      if (!heeftWaarde(data.schakelMerk)) missend.push("Merk/Type");
-      else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type (Anders)");
-      if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur Merk/Type");
-    }
-    if (data.hotelschakeling) {
-      if (!heeftWaarde(data.hotelLampen)) missend.push("Hotelschakeling: welke verlichting");
-    }
-    if ((data.warmteKoude || []).includes("Airco")) {
-      if (!heeftWaarde(data.aircoUitvoering)) missend.push("Airco: alleen leidingwerk of airco");
-      else if (data.aircoUitvoering === "Airco" && !heeftWaarde(data.aircoVermogen)) missend.push("Airco: vermogen");
-    }
-    const buiten = data.buitenVerlichting || [];
-    if (buiten.includes("Spotjes")) {
-      if (!heeftWaarde(data.buitenSpotjesKleur)) missend.push("Kleur buiten spotjes");
-      else if (data.buitenSpotjesKleur === "Kleur van overstek" && !heeftWaarde(data.buitenSpotjesRAL)) missend.push("RAL-code buiten spotjes");
-    }
-    if (buiten.includes("Wandlamp") && !heeftWaarde(data.buitenWandlampType)) missend.push("Type wandlamp");
-    if (data.wcd && !heeftWaarde(data.wcdAantal)) missend.push("Aantal buitenstopcontacten");
-    const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
-      heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
-    if (!iets) missend.push("Minimaal één keuze bij stopcontacten, verlichting, schakelaars of warmte/koude");
-    return missend;
-  },
-  // 14: E-installatie Tekening - geen verplichte velden.
+  // 13-15: Installatieblok (E-installaties, W-installaties, Installatietekening).
+  // Binnen het blok mag je vrij wisselen zonder controle; pas bij "Volgende"
+  // op de tekening wordt alles van E en W in één keer gecontroleerd.
   null,
-  // 15: W-installaties - HWA is altijd relevant (elk dak heeft een
-  // hemelwaterafvoer), de rest is projectafhankelijk.
-  (data) => (heeftWaarde(data.hwaMateriaal) ? [] : ["HWA materiaal"]),
-  // 16: W-installatie Tekening - geen verplichte velden.
   null,
+  (data) => [
+    ...valideerE(data).map(m => `E-installaties: ${m}`),
+    ...valideerW(data).map(m => `W-installaties: ${m}`),
+  ],
 ];
 
 export default function App() {
@@ -1592,28 +1602,7 @@ export default function App() {
       </div>
     </div>,
 
-    // 14: E-installatie Tekening
-    <div>
-      <div style={styles.section}>
-        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>E-installatie tekening</p></div>
-        <div style={styles.sectionBody}>
-          <div style={styles.hint}>Hoogte en positie stopcontacten en afstand wand-verlichting aangeven</div>
-          <div style={{ marginTop: 10 }}>
-            <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)}
-              grid square gridCols={15} gridRows={15}
-              symbols={[
-                { sym: "⊗", label: "Centraal doos" },
-                { sym: "○", label: "Spot" },
-                { sym: "◌", label: "Schakelaar" },
-                { sym: "◉", label: "Dimmer" },
-                { sym: "⊣", label: "Stopcontact" },
-              ]} />
-          </div>
-        </div>
-      </div>
-    </div>,
-
-    // 15: W-installaties
+    // 14: W-installaties
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>W-installaties</p></div>
@@ -1658,28 +1647,30 @@ export default function App() {
       </div>
     </div>,
 
-    // 16: W-installatie Tekening
+    // 15: Installatietekening (E + W op één tekening)
     <div>
       <div style={styles.section}>
-        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>W-installatie tekening</p></div>
+        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Installatietekening</p></div>
         <div style={styles.sectionBody}>
-          <div style={styles.hint}>Afmetingen voor positie aangeven vanuit binnenmaat aanbouw</div>
-          <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 16, marginTop: 10 }}>
-            <div style={{ fontSize: 12, color: BLACK }}>
-              <div style={{ marginBottom: 8, fontWeight: 600 }}>Legenda:</div>
-              {[["○", "HWA"], ["BK", "Buitenkraan"]].map(([sym, lbl]) => (
-                <div key={lbl} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, fontSize: 12 }}>
-                  <span style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 700 }}>{sym}</span> {lbl}
-                </div>
-              ))}
-            </div>
-            <DrawingCanvas id="winstallatie" value={data.schetsWinstallatie} onChange={v => set("schetsWinstallatie", v)} />
+          <div style={styles.hint}>E: hoogte en positie stopcontacten en afstand wand-verlichting aangeven. W: posities aangeven vanuit binnenmaat aanbouw.</div>
+          <div style={{ marginTop: 10 }}>
+            <DrawingCanvas id="einstallatie" value={data.schetsEinstallatie} onChange={v => set("schetsEinstallatie", v)}
+              grid square gridCols={15} gridRows={15}
+              symbols={[
+                { sym: "⊗", label: "Centraal doos" },
+                { sym: "○", label: "Spot" },
+                { sym: "◌", label: "Schakelaar" },
+                { sym: "◉", label: "Dimmer" },
+                { sym: "⊣", label: "Stopcontact" },
+                { sym: "HWA", label: "HWA" },
+                { sym: "BK", label: "Buitenkraan" },
+              ]} />
           </div>
         </div>
       </div>
     </div>,
 
-    // 17: Samenvatting
+    // 16: Samenvatting
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
@@ -1759,6 +1750,16 @@ export default function App() {
           <div style={styles.foutBanner}>
             <div style={styles.foutBannerTitel}>Vul eerst het volgende in voor je verder kunt:</div>
             <div>{foutmeldingen.join(", ")}</div>
+          </div>
+        )}
+        {INSTALLATIE_TABS.some(([i]) => i === page) && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+            {INSTALLATIE_TABS.map(([i, label]) => (
+              <button key={i} onClick={() => { setFoutmeldingen([]); setPage(i); }}
+                style={{ ...styles.optionCard(i === page), padding: "8px 16px", fontSize: 13, fontWeight: 600, color: BLACK }}>
+                {label}
+              </button>
+            ))}
           </div>
         )}
         {pages[page]}

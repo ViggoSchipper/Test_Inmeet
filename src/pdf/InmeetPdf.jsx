@@ -279,8 +279,7 @@ const SCHETS_VELDEN = [
   { key: "schetsKozijn2", label: "Schets — Kozijn 2" },
   { key: "schetsKozijn3", label: "Schets — Kozijn 3" },
   { key: "schetsLichtstraatPositie", label: "Schets — Positie lichtstraat op dak" },
-  { key: "schetsEinstallatie", label: "Schets — Elektra installatie" },
-  { key: "schetsWinstallatie", label: "Schets — Water/CV installatie" },
+  { key: "schetsEinstallatie", label: "Installatietekening (E + W)" },
 ];
 
 function fmtMM(v) {
