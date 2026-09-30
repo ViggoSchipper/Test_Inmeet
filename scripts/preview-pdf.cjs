@@ -80,7 +80,7 @@ const data = {
   eUitvoering: "AddOn levert en monteert alles incl. afmontage", schakelMerk: "Gira 55", schakelKleur: "Wit",
   stopcontacten: ["Enkel", "Dubbel"], stopAantalEnkel: "2", stopAantalDubbel: "3",
   verlichting: ["Spotjes", "Hanglamp", "Wandlampjes"], verAantalSpotjes: "8", verAantalHanglamp: "1", verAantalWandlampjes: "2", verlichtingSpotjesKleur: "Wit", hanglampOphangen: true, verlichtingMerk: "Lumina", verlichtingType: "LED dimbaar", verlichtingKleur: "Wit",
-  schakelaars: ["Dimmer", "Schakelaar"], hotelschakeling: true, hotelType: "Dubbel", hotelLampen: ["Binnen: Spotjes", "Buiten: Wandlamp"], schakelaarMerk: "Niko", schakelaarType: "Original", schakelaarKleur: "Antraciet",
+  schakelaars: ["Dimmer", "Schakelaar"], hotelschakeling: true, hotelLampen: ["Binnen: Spotjes", "Buiten: Wandlamp"], schakelaarMerk: "Niko", schakelaarType: "Original", schakelaarKleur: "Antraciet",
   buitenVerlichting: ["Spotjes", "Wandlamp"], buitenAantalSpotjes: "4", buitenSpotjesKleur: "Kleur van overstek", buitenSpotjesRAL: "RAL 7016",
   buitenAantalWandlamp: "2", buitenWandlampType: "Levi Up & Down - Mat zwart (7745)",
   wcd: true, wcdAantal: "1",

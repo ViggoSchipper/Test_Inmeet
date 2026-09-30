@@ -451,7 +451,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Hanglamp ophangen", (data.verlichting || []).includes("Hanglamp") ? (data.hanglampOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
             ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
             ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-            ["Hotelschakeling", data.hotelschakeling ? [data.hotelType, (data.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") || "Ja" : ""],
+            ["Hotelschakeling", data.hotelschakeling ? ["Dubbel", (data.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") : ""],
             ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, Wandlamp: data.buitenAantalWandlamp })],
             ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
             ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],

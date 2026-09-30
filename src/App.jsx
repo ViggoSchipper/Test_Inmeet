@@ -589,7 +589,6 @@ const PAGE_VALIDATORS = [
       if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur Merk/Type");
     }
     if (data.hotelschakeling) {
-      if (!heeftWaarde(data.hotelType)) missend.push("Hotelschakeling: dubbel of 3-dubbel");
       if (!heeftWaarde(data.hotelLampen)) missend.push("Hotelschakeling: welke verlichting");
     }
     const buiten = data.buitenVerlichting || [];
@@ -663,7 +662,7 @@ export default function App() {
     verlichting: [], verlichtingSpotjesKleur: "",
     verAantalSpotjes: "", verAantalHanglamp: "", verAantalWandlampjes: "",
     hanglampOphangen: false, wandlampjesOphangen: false,
-    schakelaars: [], hotelschakeling: false, hotelType: "", hotelLampen: [],
+    schakelaars: [], hotelschakeling: false, hotelLampen: [],
     schAantalSchakelaar: "", schAantalDimmer: "", schAantalSensor: "",
     buitenVerlichting: [], buitenSpotjesKleur: "", buitenSpotjesRAL: "",
     buitenAantalSpotjes: "", buitenAantalWandlamp: "", buitenWandlampType: "",
@@ -1563,7 +1562,7 @@ export default function App() {
           </label>
           {data.hotelschakeling && (
             <div style={styles.subSection}>
-              <RadioGroup name="hotelType" options={["Dubbel", "3-dubbel"]} value={data.hotelType} onChange={v => set("hotelType", v)} />
+              <div style={styles.hint}>AddOn past altijd een dubbele hotelschakeling toe.</div>
               <div style={{ fontSize: 12, color: "#888", margin: "10px 0 4px" }}>Welke verlichting krijgt een hotelschakeling?</div>
               <CheckGroup options={HOTEL_VERLICHTING} values={data.hotelLampen} onChange={v => set("hotelLampen", v)} />
             </div>
@@ -1693,7 +1692,7 @@ export default function App() {
               ["Hanglamp ophangen", (data.verlichting || []).includes("Hanglamp") ? (data.hanglampOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
               ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
               ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-              ["Hotelschakeling", data.hotelschakeling ? [data.hotelType, (data.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") || "Ja" : ""],
+              ["Hotelschakeling", data.hotelschakeling ? ["Dubbel", (data.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") : ""],
               ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, Wandlamp: data.buitenAantalWandlamp })],
               ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
               ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
