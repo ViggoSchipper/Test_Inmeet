@@ -554,9 +554,9 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.eUitvoering)) missend.push("Uitvoering elektra");
     if (data.eUitvoering === E_UITVOERING_COMPLEET) {
-      if (!heeftWaarde(data.schakelMerk)) missend.push("Merk/Type schakelmateriaal");
-      else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type schakelmateriaal (Anders)");
-      if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur schakelmateriaal");
+      if (!heeftWaarde(data.schakelMerk)) missend.push("Merk/Type");
+      else if (data.schakelMerk === "Anders" && !heeftWaarde(data.schakelMerkAnders)) missend.push("Merk/Type (Anders)");
+      if (!heeftWaarde(data.schakelKleur)) missend.push("Kleur Merk/Type");
     }
     const iets = heeftWaarde(data.stopcontacten) || heeftWaarde(data.verlichting) || heeftWaarde(data.schakelaars) ||
       heeftWaarde(data.warmteKoude) || heeftWaarde(data.buitenVerlichting) || data.wcd;
@@ -1360,7 +1360,7 @@ export default function App() {
           {data.eUitvoering !== E_UITVOERING_LEIDINGWERK && (
             <>
               <div style={styles.divider} />
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Merk/Type schakelmateriaal</div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Merk/Type:</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                 {[{ val: "Gira 55", sub: "Standaard", foto: fotoGira55 }, { val: "Busch-Jaeger", sub: "Modern", foto: fotoBuschJaeger }].map(opt => (
                   <div key={opt.val} style={{ ...styles.optionCard(data.schakelMerk === opt.val), padding: "6px 10px", display: "flex", alignItems: "center", gap: 8 }}
@@ -1566,7 +1566,7 @@ export default function App() {
             ["Dak", [["Dakbedekking", data.dakbedekking], ["Dakrand", data.dakrandAfwerking], ["Dakrand RAL", data.dakrandKleur], ["Overstek", data.overstek === "Ja" ? `Ja, ${data.overstekMM} MM, RAL ${data.overstekRAL}` : "N.V.T."], ["Lichtstraat", data.lichtstraat], ["Lichtstraat afmeting", (data.lichtstraatLengteMM || data.lichtstraatBreedteMM) ? `${data.lichtstraatLengteMM} x ${data.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", data.lichtstraatKleur], ["Lichtstraat delen glas", data.lichtstraatDelenGlas]]],
             ["E-installaties", [
               ["Uitvoering", data.eUitvoering],
-              ["Schakelmateriaal", schakelmateriaalTekst(data)],
+              ["Merk/Type", schakelmateriaalTekst(data)],
               ["Let op", data.eUitvoering === E_UITVOERING_LEIDINGWERK ? E_GARANTIE_TEKST : ""],
               ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
               ["Stopcontacten - Anders", data.stopcontactenAnders],

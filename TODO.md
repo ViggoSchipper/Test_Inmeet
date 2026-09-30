@@ -74,7 +74,7 @@
       PDF direct na Bereikbaarheid.
 - [x] Pagina 14 E-installaties (ronde 2, deel 1): bovenaan nieuwe keuze "Uitvoering": AddOn levert en
       monteert alles incl. afmontage / AddOn verzorgt alleen leidingen en dozen (afmonteren door
-      klant). Daaronder "Merk/Type schakelmateriaal" met foto: Gira 55 (standaard) / Busch-Jaeger
+      klant). Daaronder "Merk/Type:" met foto: Gira 55 (standaard) / Busch-Jaeger
       (modern) / Anders: met invulvak ernaast; daaronder altijd Kleur Wit/Zwart. Blok verdwijnt bij
       "alleen leidingen en dozen". Losse Merk/Type-velden bij Stopcontacten en Schakelaars weg.
       Validatie, samenvatting en PDF bijgewerkt.

@@ -443,7 +443,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           title="E-installaties"
           fields={[
             ["Uitvoering", data.eUitvoering],
-            ["Schakelmateriaal", schakelmateriaalTekst(data)],
+            ["Merk/Type", schakelmateriaalTekst(data)],
             ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
             ["Stopcontacten - Anders", data.stopcontactenAnders],
             ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
