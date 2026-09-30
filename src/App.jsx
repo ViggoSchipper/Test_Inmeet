@@ -15,6 +15,11 @@ import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
 import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
+import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
+import fotoReachZwartBruin from "./assets/wandlamp/reach-zwart-bruin.jpg";
+import fotoReachWit from "./assets/wandlamp/reach-wit.jpg";
+import fotoReachZwart from "./assets/wandlamp/reach-zwart.jpg";
+import fotoLeviMatZwart from "./assets/wandlamp/levi-mat-zwart.jpg";
 // @react-pdf/renderer is een zware library (~500KB gzipped). Die wordt pas
 // ingeladen op het moment dat de opmeter daadwerkelijk op "PDF bekijken"
 // klikt (zie bekijkPdf hieronder), zodat de eerste keer laden van de app
@@ -458,16 +463,17 @@ const VALIDATIE_ACTIEF = false;
 
 const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
 const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
-// Standaard buiten-wandlampen (bron: Wandlampjes_besteloverzicht.xlsx, afbeeldingen van ks-verlichting.nl).
+// Standaard buiten-wandlampen (bron: Wandlampjes_besteloverzicht.xlsx). Foto's staan in assets/wandlamp;
+// waar nog een https-link staat wordt de foto (nog) van ks-verlichting.nl geladen.
 const WANDLAMPEN = [
   { serie: "Reach Up & Down", opties: [
-    { kleur: "Champagne", code: "G97857", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7803/7803_Shift_champagne_aan_01-1200x1200w.jpg.webp" },
-    { kleur: "Zwart/Bruin", code: "G97859", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7859/REACH_BRUIN_zwart_SFEER-1200x1200.jpg.webp" },
-    { kleur: "Wit", code: "G97858", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7801/7801_Shift_wit_aan_02-1200x1200.jpg.webp" },
-    { kleur: "Zwart", code: "G97856", foto: "https://www.ks-verlichting.nl/image/cache/catalog/7802/7802_Shift_zwart_aan_02-1200x1200.jpg.webp" },
+    { kleur: "Champagne", code: "G97857", foto: fotoReachChampagne },
+    { kleur: "Zwart/Bruin", code: "G97859", foto: fotoReachZwartBruin },
+    { kleur: "Wit", code: "G97858", foto: fotoReachWit },
+    { kleur: "Zwart", code: "G97856", foto: fotoReachZwart },
   ] },
   { serie: "Levi Up & Down", opties: [
-    { kleur: "Mat zwart", code: "7745", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/nostalux/data/buitenverlichting/modern/NOA-LEVI/7745-Levi-Up-Downlighter-zwart-1200x1200.jpg.webp" },
+    { kleur: "Mat zwart", code: "7745", foto: fotoLeviMatZwart },
     { kleur: "Antraciet RAL 7022", code: "7746", foto: "https://www.ks-verlichting.nl/image/cache/catalog/data/img/data/buitenverlichting/modern/NOA-LEVI/7746-Levi-Up-Downlighter-antraciet-1200x1200.jpg.webp" },
   ] },
   { serie: "Noa Down", opties: [
