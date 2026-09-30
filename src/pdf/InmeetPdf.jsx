@@ -457,7 +457,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Warmte/koude", data.warmteKoude],
           ]}
           melding={data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen"
-            ? "Afmonteren door de klant. Let op: alle garantie op de elektra vervalt zodra de staat anders is dan wanneer de aanbouw de werkplaats verlaat." : null}
+            ? "Let op: het afmonteren gebeurt door de klant. Zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra." : null}
           opmerking={waarde(data.eOpmerking)}
         />
         <Section

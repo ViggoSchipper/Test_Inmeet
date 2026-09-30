@@ -458,6 +458,7 @@ const VALIDATIE_ACTIEF = false;
 
 const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
 const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
+const E_GARANTIE_TEKST = "zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra.";
 
 const PAGE_VALIDATORS = [
   // 0: Contact
@@ -1353,7 +1354,7 @@ export default function App() {
           {data.eUitvoering === E_UITVOERING_LEIDINGWERK && (
             <div style={{ ...styles.hint, marginTop: 6 }}>
               Het afmonteren (schakelaars, stopcontacten, verlichting) gebeurt door de klant.<br />
-              <strong>Let op: alle garantie op de elektra vervalt zodra de staat anders is dan wanneer de aanbouw de werkplaats verlaat.</strong>
+              <strong>Let op: {E_GARANTIE_TEKST}</strong>
             </div>
           )}
           {data.eUitvoering !== E_UITVOERING_LEIDINGWERK && (
@@ -1566,7 +1567,7 @@ export default function App() {
             ["E-installaties", [
               ["Uitvoering", data.eUitvoering],
               ["Schakelmateriaal", schakelmateriaalTekst(data)],
-              ["Let op", data.eUitvoering === E_UITVOERING_LEIDINGWERK ? "Alle garantie op de elektra vervalt zodra de staat anders is dan wanneer de aanbouw de werkplaats verlaat." : ""],
+              ["Let op", data.eUitvoering === E_UITVOERING_LEIDINGWERK ? E_GARANTIE_TEKST : ""],
               ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
               ["Stopcontacten - Anders", data.stopcontactenAnders],
               ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
