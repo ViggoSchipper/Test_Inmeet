@@ -620,7 +620,8 @@ export default function App() {
     stopcontacten: [], stopcontactenAnders: "",
     stopAantalEnkel: "", stopAantalDubbel: "", stopAantalTripel: "", stopAantalAnders: "",
     verlichting: [], verlichtingMerkType: "", verlichtingSpotjesKleur: "",
-    verAantalCD: "", verAantalSpotjes: "", verAantalHanglamp: "",
+    verAantalSpotjes: "", verAantalHanglamp: "", verAantalWandlampjes: "",
+    hanglampOphangen: false, wandlampjesOphangen: false,
     schakelaars: [],
     schAantalSchakelaar: "", schAantalDimmer: "", schAantalSensor: "",
     buitenVerlichting: [], buitenVerlichtingMerkType: "", buitenSpotjesKleur: "",
@@ -1402,16 +1403,30 @@ export default function App() {
                 onChange={e => set("stopcontactenAnders", e.target.value)} />
             )} />
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Binnen verlichting</div>
-          <CheckGroupAantal options={["CD", "Spotjes", "Hanglamp"]} values={data.verlichting} onChange={v => set("verlichting", v)}
-            aantallen={{ CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp }}
-            onAantalChange={(opt, val) => set({ CD: "verAantalCD", Spotjes: "verAantalSpotjes", Hanglamp: "verAantalHanglamp" }[opt], val)}
-            extra={opt => opt === "Spotjes" && (
-              <div style={{ marginTop: 6 }}>
-                <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Kleur:</span>
-                <RadioGroup name="verlichtingSpotjesKleur" options={["Wit", "Zwart"]} value={data.verlichtingSpotjesKleur} onChange={v => set("verlichtingSpotjesKleur", v)} />
-              </div>
-            )} />
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Binnen verlichting</div>
+          <div style={{ ...styles.hint, marginBottom: 8 }}>AddOn past altijd een ingestucte centraaldoos toe.</div>
+          <CheckGroupAantal options={["Spotjes", "Hanglamp", "Wandlampjes"]} values={data.verlichting} onChange={v => set("verlichting", v)}
+            aantallen={{ Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp, Wandlampjes: data.verAantalWandlampjes }}
+            onAantalChange={(opt, val) => set({ Spotjes: "verAantalSpotjes", Hanglamp: "verAantalHanglamp", Wandlampjes: "verAantalWandlampjes" }[opt], val)}
+            extra={opt => {
+              if (opt === "Spotjes") return (
+                <div style={{ marginTop: 6 }}>
+                  <span style={{ fontSize: 12, color: "#888", marginRight: 8 }}>Kleur:</span>
+                  <RadioGroup name="verlichtingSpotjesKleur" options={["Wit", "Zwart"]} value={data.verlichtingSpotjesKleur} onChange={v => set("verlichtingSpotjesKleur", v)} />
+                </div>
+              );
+              const lamp = { Hanglamp: { naam: "hanglamp", veld: "hanglampOphangen", label: "Hanglamp ophangen" },
+                Wandlampjes: { naam: "wandlampjes", veld: "wandlampjesOphangen", label: "Wandlampjes ophangen" } }[opt];
+              if (!lamp) return null;
+              return (
+                <div style={{ marginTop: 6 }}>
+                  <div style={styles.hint}>AddOn levert alleen de aansluiting en levert/monteert geen {lamp.naam}, tenzij de klant deze zelf aanlevert.</div>
+                  <label style={{ ...styles.checkLabel, marginTop: 6 }}>
+                    <input type="checkbox" style={{ accentColor: GOLD }} checked={data[lamp.veld]} onChange={e => set(lamp.veld, e.target.checked)} /> {lamp.label}
+                  </label>
+                </div>
+              );
+            }} />
           <div style={{ marginTop: 10 }}>
             <div style={{ fontSize: 11, color: "#888" }}>Merk/Type:</div>
             <input style={styles.input} value={data.verlichtingMerkType} onChange={e => set("verlichtingMerkType", e.target.value)} />
@@ -1570,8 +1585,10 @@ export default function App() {
               ["Let op", data.eUitvoering === E_UITVOERING_LEIDINGWERK ? E_GARANTIE_TEKST : ""],
               ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
               ["Stopcontacten - Anders", data.stopcontactenAnders],
-              ["Verlichting", metAantal(data.verlichting, { CD: data.verAantalCD, Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp })],
+              ["Verlichting", metAantal(data.verlichting, { Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp, Wandlampjes: data.verAantalWandlampjes })],
               ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
+              ["Hanglamp ophangen", (data.verlichting || []).includes("Hanglamp") ? (data.hanglampOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
+              ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
               ["Verlichting Merk/Type", data.verlichtingMerkType],
               ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
               ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, "Up/Down lamp": data.buitenAantalUpDown })],

@@ -79,7 +79,7 @@ const data = {
 
   eUitvoering: "AddOn levert en monteert alles incl. afmontage", schakelMerk: "Gira 55", schakelKleur: "Wit",
   stopcontacten: ["Enkel", "Dubbel"], stopAantalEnkel: "2", stopAantalDubbel: "3",
-  verlichting: ["Spots", "Inbouwspots plafond"], verlichtingMerk: "Lumina", verlichtingType: "LED dimbaar", verlichtingKleur: "Wit",
+  verlichting: ["Spotjes", "Hanglamp", "Wandlampjes"], verAantalSpotjes: "8", verAantalHanglamp: "1", verAantalWandlampjes: "2", verlichtingSpotjesKleur: "Wit", hanglampOphangen: true, verlichtingMerk: "Lumina", verlichtingType: "LED dimbaar", verlichtingKleur: "Wit",
   schakelaars: ["Dimmer", "Schakelaar"], schakelaarMerk: "Niko", schakelaarType: "Original", schakelaarKleur: "Antraciet",
   buitenVerlichting: ["Spotjes"], buitenVerlichtingMerk: "Lumina", buitenVerlichtingType: "Wandspot", buitenVerlichtingKleur: "Zwart",
   wcd: true, wcdMerk: "Niko", wcdType: "Hor", wcdKleur: "Zwart",

@@ -83,6 +83,10 @@
       garantie van AddOn op de elektra."), ook in de
       samenvatting en als opvallend kader in de PDF. PDF: lange waarden lopen niet meer over de rand.
 - [x] Merknaam overal aan elkaar: "AddOn" (keuzes, PDF-voettekst/voorblad, browsertitel, logo-alt).
+- [x] Pagina 14 Binnen verlichting: CD weg (vaste opmerking "AddOn past altijd een ingestucte
+      centraaldoos toe"). Opties nu Spotjes (aantal + Wit/Zwart) / Hanglamp / Wandlampjes (nieuw).
+      Hanglamp en Wandlampjes: aantal, opmerking "AddOn levert alleen de aansluiting en levert/monteert
+      geen ..., tenzij de klant deze zelf aanlevert" en vinkje "... ophangen". Samenvatting + PDF bijgewerkt.
 - [ ] Pagina 14 E-installaties: rest van de pagina (verlichting, schakelaars, buiten, warmte/koude)
       nog samen doorlopen.
 - [ ] Pagina 16 t/m 18: nog doorlopen en optimaliseren (zelfde aanpak als pagina 1-15).
