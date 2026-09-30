@@ -1975,7 +1975,8 @@ export default function App() {
               ["Verdeler", sd.vloerverwarming && sd.vloerverwarming !== "N.V.T." ? sd.verdeler : ""],
               ["Warmtebron", sd.vloerverwarming !== "N.V.T." && sd.verdeler === "Verdeler ophangen" ? (sd.warmtebron || []).join(", ") : ""],
             ]],
-          ].map(([title, pagina, opmerkingVeld, rows]) => (
+          ].filter(([title]) => !(title === "Kozijn 2" && !sd.k2Type) && !(title === "Kozijn 3" && !sd.k3Type))
+           .map(([title, pagina, opmerkingVeld, rows]) => (
             <div key={title} style={{ marginBottom: 16 }}>
               <div onClick={() => naarPagina(pagina)} title={`Naar ${PAGES[pagina]}`}
                 style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 6, borderBottom: `1px solid ${GOLD}33`, paddingBottom: 4, cursor: "pointer", display: "flex", justifyContent: "space-between" }}>

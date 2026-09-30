@@ -108,8 +108,6 @@
       dan (alleen bij Gehele woning) m² + Verdeler aanwezig (foto bestaande verdeler) of Verdeler ophangen (warmtebron CV-ketel/
       Warmtepomp/Stadsverwarming + LET OP-tekst stelpost/stopcontact € 300,-). Ketel-vinkje vervallen.
       Validatie, samenvatting en PDF bijgewerkt (m² toonde eerst als "MM").
-- [ ] Backend (Azure Functions) opnieuw deployen zodat Foto_Verdeler ook als los bestand in SharePoint
-      komt (api/src/graphHelpers.js is al aangepast). Tot die tijd staat de foto alleen in data.json en PDF.
 - [x] W/K Water weggehaald (gebeurt altijd hetzelfde). Vloerverwarming m² alleen bij Gehele woning.
 - [x] Pagina 16 Installatietekening: symbolen nu getekend volgens de eigen "Elektra Legenda" van AddOn
       (wandcontactdoos enkel/dubbel/drie dubbel, spotje, hanglamp, wandlamp, schakelaar, dimmer,
@@ -158,7 +156,10 @@
 - HWA blijft altijd verplicht (geen N.V.T.) - bewuste keuze.
 - [x] Foto-vakken: niet meer alleen camera; iPad biedt nu "Foto maken" of "Fotobibliotheek".
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
-- [ ] Pagina 17 Samenvatting: nog doorlopen.
+- [x] Samenvatting doorgelopen (eindcontrole, zie hierboven). Lege Kozijn 2/3 niet meer in samenvatting en PDF.
+
+- [x] Eindrun (30-09): complete invulronde met validatie AAN (tijdelijke testbuild) loopt door alle 18
+      pagina's zonder blokkade; samenvatting "Alles is ingevuld"; PDF (8 pag.) en gegevens gecontroleerd.
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres

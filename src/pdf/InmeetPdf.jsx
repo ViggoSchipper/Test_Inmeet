@@ -479,8 +479,9 @@ export default function InmeetPdf({ data, logoSrc }) {
       {/* --- Kozijnen --- */}
       <PageChrome data={data} pageLabel="Kozijnen" logoSrc={logoSrc}>
         <Section title="Kozijn 1" fields={kozijnFields("k1")} opmerking={waarde(data.k1Opmerking)} />
-        <Section title="Kozijn 2" fields={kozijnFields("k2")} opmerking={waarde(data.k2Opmerking)} />
-        <Section title="Kozijn 3" fields={kozijnFields("k3")} opmerking={waarde(data.k3Opmerking)} />
+        {/* Kozijn 2 en 3 zijn optioneel: alleen tonen als er een type gekozen is. */}
+        {waarde(data.k2Type) ? <Section title="Kozijn 2" fields={kozijnFields("k2")} opmerking={waarde(data.k2Opmerking)} /> : null}
+        {waarde(data.k3Type) ? <Section title="Kozijn 3" fields={kozijnFields("k3")} opmerking={waarde(data.k3Opmerking)} /> : null}
       </PageChrome>
 
       {/* --- Dak & installaties --- */}
