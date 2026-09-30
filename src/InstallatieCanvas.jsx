@@ -201,6 +201,24 @@ export default function InstallatieCanvas({ staat, fallbackAfbeelding, onChange,
     if (staat) { laatsteStaatRef.current = staat; laadStaat(staat); }
     else if (fallbackAfbeelding) { objRef.current = []; laadBasis(fallbackAfbeelding, teken); }
     else teken();
+    // Schermgrootte verandert (bijv. iPad gedraaid): canvas en pen-laag
+    // meeschalen. Symbolen/maatlijnen staan als fractie opgeslagen en
+    // schuiven dus vanzelf goed mee.
+    const ro = new ResizeObserver(() => {
+      const nw = canvas.offsetWidth, nh = canvas.offsetHeight;
+      const { w: ow } = maatRef.current;
+      if (!nw || nw === ow) return;
+      const oud = basisRef.current;
+      const nieuw = document.createElement("canvas");
+      nieuw.width = nw * dpr; nieuw.height = nh * dpr;
+      nieuw.getContext("2d").drawImage(oud, 0, 0, nieuw.width, nieuw.height);
+      basisRef.current = nieuw;
+      maatRef.current = { w: nw, h: nh, dpr };
+      canvas.width = nw * dpr; canvas.height = nh * dpr;
+      teken();
+    });
+    ro.observe(canvas);
+    return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

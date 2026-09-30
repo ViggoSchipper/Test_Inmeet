@@ -1,3 +1,5 @@
+import { E_UITVOERING_LEIDINGWERK } from "./schoon";
+
 // Tekensymbolen voor de installatietekening, gelijk aan de "Elektra Legenda"
 // die AddOn ook bij het tekenen gebruikt. Eén bron voor alles: de legenda-
 // knoppen in de app, het stempelen op de tekening (canvas, via Path2D) en de
@@ -10,7 +12,7 @@ const boog = (x) => `M${x} 12 A8 8 0 0 0 ${x} 28`; // "(" die met zijn linkerkan
 export const SYMBOLEN = [
   { key: "wcd1", label: "Enkele wandcontactdoos", paden: [`M4 20 H14 M14 12 V28 ${boog(22)}`] },
   { key: "wcd2", label: "Dubbele wandcontactdoos", paden: [`M4 20 H12 M12 12 V28 ${boog(20)} ${boog(27)}`] },
-  { key: "wcd3", label: "Drie dubbele wandcontactdoos", paden: [`M2 20 H9 M9 12 V28 ${boog(17)} ${boog(23)} ${boog(29)}`] },
+  { key: "wcd3", label: "Driedubbele wandcontactdoos", paden: [`M2 20 H9 M9 12 V28 ${boog(17)} ${boog(23)} ${boog(29)}`] },
   { key: "spot", label: "Spotje", paden: [`${cirkel(20, 20, 9)} M13.6 13.6 L26.4 26.4 M26.4 13.6 L13.6 26.4`] },
   { key: "hanglamp", label: "Hanglamp", paden: [cirkel(20, 20, 11)], tekst: "HL" },
   { key: "wandlamp", label: "Wandlamp", paden: [cirkel(20, 20, 11)], tekst: "WL" },
@@ -61,7 +63,7 @@ const getal = (v) => {
 
 function productRijen(data) {
   const d = data || {};
-  const alleenLeidingwerk = d.eUitvoering === "AddOn verzorgt alleen leidingen en dozen";
+  const alleenLeidingwerk = d.eUitvoering === E_UITVOERING_LEIDINGWERK;
   const merk = alleenLeidingwerk ? "Klant" : d.schakelMerk === "Anders" ? (d.schakelMerkAnders || "Anders") : (d.schakelMerk || "");
   const kleur = alleenLeidingwerk ? "" : (RAL[d.schakelKleur] || d.schakelKleur || "");
   const heeft = (lijst, optie) => (d[lijst] || []).includes(optie);
@@ -73,7 +75,7 @@ function productRijen(data) {
   const rijen = [
     { sym: "wcd1", omschrijving: "Enkele wandcontactdoos", kleur, type: merk, aantal: heeft("stopcontacten", "Enkel") ? getal(d.stopAantalEnkel) : 0 },
     { sym: "wcd2", omschrijving: "Dubbele wandcontactdoos", kleur, type: merk, aantal: heeft("stopcontacten", "Dubbel") ? getal(d.stopAantalDubbel) : 0 },
-    { sym: "wcd3", omschrijving: "Drie dubbele wandcontactdoos", kleur, type: merk, aantal: heeft("stopcontacten", "Tripel") ? getal(d.stopAantalTripel) : 0 },
+    { sym: "wcd3", omschrijving: "Driedubbele wandcontactdoos", kleur, type: merk, aantal: heeft("stopcontacten", "Tripel") ? getal(d.stopAantalTripel) : 0 },
     { sym: "wcd2", omschrijving: "Buitenstopcontact", kleur: RAL.Zwart, type: "NIKO inbouw hor.", aantal: d.wcd ? getal(d.wcdAantal) : 0 },
     { sym: "spot", omschrijving: "Spotje binnen", kleur: RAL[d.verlichtingSpotjesKleur] || "", type: "", aantal: heeft("verlichting", "Spotjes") ? getal(d.verAantalSpotjes) : 0 },
     { sym: "spot", omschrijving: "Spotje buiten", kleur: buitenSpotKleur, type: "", aantal: heeft("buitenVerlichting", "Spotjes") ? getal(d.buitenAantalSpotjes) : 0 },

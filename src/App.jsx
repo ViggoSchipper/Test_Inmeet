@@ -16,6 +16,7 @@ import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import { legendaRijen, symboolOpKey } from "./symbolen";
 import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
 import { conceptLaden, conceptBewaren, conceptWissen } from "./concept";
+import { schoneData, kozijnOpties, kozijnVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -140,6 +141,23 @@ function DrawingCanvas({ id, value, onChange, grid = false, square = false, heig
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     if (value) drawImageOnCanvas(canvas, ctx, value);
     else legeAchtergrond(canvas, ctx);
+    // Schermgrootte verandert (bijv. iPad gedraaid): canvas meeschalen en de
+    // bestaande tekening opnieuw (geschaald) neerzetten, zodat nieuwe lijnen
+    // weer precies onder de vinger komen.
+    let vorigeBreedte = canvas.offsetWidth;
+    const ro = new ResizeObserver(() => {
+      const w = canvas.offsetWidth, h = canvas.offsetHeight;
+      if (!w || w === vorigeBreedte) return;
+      vorigeBreedte = w;
+      const huidig = canvas.toDataURL("image/png");
+      canvas.width = w * window.devicePixelRatio;
+      canvas.height = h * window.devicePixelRatio;
+      const c = canvas.getContext("2d");
+      c.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      drawImageOnCanvas(canvas, c, huidig);
+    });
+    ro.observe(canvas);
+    return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -290,6 +308,9 @@ function fotoInlezen(file) {
   });
 }
 
+// Maten (mm) en aantallen: alleen hele getallen.
+const alleenCijfers = (v) => String(v).replace(/[^0-9]/g, "");
+
 // Photo Upload Component
 function PhotoUpload({ label, hint, value, onChange }) {
   const inputRef = useRef(null);
@@ -297,9 +318,14 @@ function PhotoUpload({ label, hint, value, onChange }) {
     <div>
       {label && <div style={{ fontSize: 13, fontWeight: 600, color: BLACK, marginBottom: 6 }}>{label}</div>}
       {hint && <div style={styles.hint}>{hint}</div>}
-      <div style={styles.photoBox} onClick={() => inputRef.current.click()}>
+      <div style={{ ...styles.photoBox, position: "relative" }} onClick={() => inputRef.current.click()}>
         {value ? (
-          <img src={value} alt="upload" style={styles.photoThumb} />
+          <>
+            <img src={value} alt="upload" style={styles.photoThumb} />
+            <button type="button" title="Foto verwijderen" aria-label="Foto verwijderen"
+              onClick={e => { e.stopPropagation(); if (window.confirm("Deze foto verwijderen?")) onChange(null); }}
+              style={{ position: "absolute", top: 6, right: 6, width: 32, height: 32, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "white", fontSize: 16, cursor: "pointer" }}>✕</button>
+          </>
         ) : (
           <>
             <div style={{ fontSize: 28 }}>📷</div>
@@ -364,7 +390,7 @@ function CheckGroupAantal({ options, values, onChange, aantallen, onAantalChange
                 <>
                   <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
                   <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0"
-                    value={aantallen[opt] || ""} onChange={e => onAantalChange(opt, e.target.value)} />
+                    value={aantallen[opt] || ""} onChange={e => onAantalChange(opt, alleenCijfers(e.target.value))} />
                 </>
               )}
             </div>
@@ -385,7 +411,7 @@ const PAGES = [
 
 // Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
 function schakelmateriaalTekst(data) {
-  if (data.eUitvoering === E_UITVOERING_LEIDINGWERK) return "N.v.t. (afmonteren door klant)";
+  if (data.eUitvoering === E_UITVOERING_LEIDINGWERK) return "N.V.T. (afmonteren door klant)";
   const label = data.schakelMerk === "Anders"
     ? (data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders")
     : { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
@@ -426,8 +452,12 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
     if (!heeftWaarde(data[`${prefix}Hoogte`])) missend.push(`${naam}: hoogte`);
     // Vast glas (als optie bij Schuifpui/Openslaande deuren, of als het raamtype
     // zelf) vereist een keuze voor het ventilatierooster.
-    const opties = data[`${prefix}Opties`] || [];
-    const vastGlasGekozen = opties.includes("Vast glas") || (type === "Raam" && data[`${prefix}RaamType`] === "Vast glas");
+    if (type === "Raam" && !heeftWaarde(data[`${prefix}RaamType`])) missend.push(`${naam}: raamtype`);
+    if (type === "Harmonica wand") {
+      if (!heeftWaarde(data[`${prefix}HarmonicaDelen`])) missend.push(`${naam}: aantal delen`);
+      if (!heeftWaarde(data[`${prefix}HarmonicaRichting`])) missend.push(`${naam}: richting`);
+    }
+    const vastGlasGekozen = kozijnVastGlas(data, prefix);
     if (vastGlasGekozen && !heeftWaarde(data[`${prefix}Ventilatierooster`])) missend.push(`${naam}: ventilatierooster (ja/nee)`);
     return missend;
   };
@@ -439,8 +469,6 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
 // zet dit terug op true voor de grote eindtest / productie.
 const VALIDATIE_ACTIEF = false;
 
-const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
-const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
 // Standaard buiten-wandlampen (bron: Wandlampjes_besteloverzicht.xlsx). Foto's staan in assets/wandlamp.
 const WANDLAMPEN = [
   { serie: "Reach Up & Down", opties: [
@@ -521,9 +549,9 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.projectnummer)) missend.push("Projectnummer");
     if (!heeftWaarde(data.naam)) missend.push("Naam");
-    if (!heeftWaarde(data.geslacht)) missend.push("Aanhef");
+    // Aanhef is bewust niet verplicht (wel invulbaar).
     if (!heeftWaarde(data.telefoon)) missend.push("Telefoon");
-    if (!heeftWaarde(data.mail)) missend.push("Mail");
+    if (!heeftWaarde(data.mail)) missend.push("E-mail");
     if (!heeftWaarde(data.plaats)) missend.push("Plaats");
     if (!heeftWaarde(data.adres)) missend.push("Adres");
     if (!heeftWaarde(data.postcode)) missend.push("Postcode");
@@ -564,7 +592,7 @@ const PAGE_VALIDATORS = [
   // geval íets gekozen is.
   (data) => {
     const missend = [];
-    if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwand afwerking");
+    if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwandafwerking");
     if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
     const ietsGekozen = heeftWaarde(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
     if (!ietsGekozen) missend.push("Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)");
@@ -587,7 +615,7 @@ const PAGE_VALIDATORS = [
   (data) => {
     const missend = [];
     if (!heeftWaarde(data.dakbedekking)) missend.push("Dakbedekking");
-    if (!heeftWaarde(data.dakrandAfwerking)) missend.push("Dakrand afwerking");
+    if (!heeftWaarde(data.dakrandAfwerking)) missend.push("Dakrandafwerking");
     if (data.dakrandAfwerking === "Modern zetwerk" && !heeftWaarde(data.dakrandKleur)) missend.push("Dakrand kleur RAL");
     if (!heeftWaarde(data.overstek)) missend.push("Overstek");
     if (data.overstek === "Ja") {
@@ -616,8 +644,10 @@ const PAGE_VALIDATORS = [
 
 export default function App() {
   const [page, setPage] = useState(0);
+  // Verste pagina waar je al bent geweest (tot daar kun je via de bolletjes springen).
+  const [verstePagina, setVerstePagina] = useState(0);
   // Bij elke andere pagina bovenaan beginnen (de navigatiebalk staat onderaan).
-  useEffect(() => { window.scrollTo(0, 0); }, [page]);
+  useEffect(() => { window.scrollTo(0, 0); setVerstePagina(v => Math.max(v, page)); }, [page]);
   const [foutmeldingen, setFoutmeldingen] = useState([]);
   const steenstripAndersFotoRef = useRef(null);
   const composietAndersFotoRef = useRef(null);
@@ -705,6 +735,7 @@ export default function App() {
   const [conceptGecheckt, setConceptGecheckt] = useState(false);
   const gewijzigdRef = useRef(false); // onverstuurde wijzigingen?
   const eersteDataRef = useRef(true);
+  const negeerWijzigingRef = useRef(false); // eerstvolgende data-wijziging niet als "onverstuurd" tellen
 
   useEffect(() => {
     conceptLaden().then((c) => {
@@ -717,6 +748,7 @@ export default function App() {
 
   useEffect(() => {
     if (eersteDataRef.current) { eersteDataRef.current = false; return; }
+    if (negeerWijzigingRef.current) { negeerWijzigingRef.current = false; return; }
     gewijzigdRef.current = true;
   }, [data]);
 
@@ -760,12 +792,14 @@ export default function App() {
     try {
       const res = await fetch(`/api/project-ophalen?projectnummer=${encodeURIComponent(projectnummer)}`);
       if (res.status === 404) {
+        const info = await res.json().catch(() => ({}));
         // Was het formulier gevuld vanuit een ánder project? Dan die gegevens weghalen.
         if (gevuldUitProjectRef.current) {
           gevuldUitProjectRef.current = false;
           setData({ ...beginStaatRef.current, projectnummer });
         }
-        setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
+        setProjectStatus({ loading: false, foundVersion: null, nextVersion: 1,
+          error: info.code === "GEEN_PROJECTMAP" ? `Let op: er is in SharePoint geen projectmap voor ${projectnummer} gevonden. Controleer het nummer of laat de verkoper de map eerst aanmaken — anders lukt het versturen straks niet.` : null });
         return;
       }
       if (!res.ok) {
@@ -800,7 +834,7 @@ export default function App() {
       import("./pdf/InmeetPdf"),
       import("react"),
     ]);
-    return pdf(createElement(InmeetPdf, { data, logoSrc: logoUrl })).toBlob();
+    return pdf(createElement(InmeetPdf, { data: schoneData(data), logoSrc: logoUrl })).toBlob();
   };
 
   const blobNaarDataUrl = (blob) =>
@@ -815,6 +849,38 @@ export default function App() {
   // formuliergegevens, zodat de opmeter hem kan controleren voordat er
   // verstuurd wordt. ---
   const [pdfStatus, setPdfStatus] = useState({ loading: false, error: null });
+
+  // Bestand opslaan op het apparaat (noodoplossing als versturen mislukt).
+  const bewaarBestand = (blob, naam) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = naam;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+  const bestandsBasis = () => `Inmeetformulier_${(data.projectnummer || "zonder-nummer").trim()}_${data.datum || ""}`;
+  const downloadPdf = async () => {
+    try { bewaarBestand(await genereerPdfBlob(), `${bestandsBasis()}.pdf`); }
+    catch (err) { setPdfStatus({ loading: false, error: err.message || "PDF genereren is mislukt" }); }
+  };
+  const downloadGegevens = () =>
+    bewaarBestand(new Blob([JSON.stringify(schoneData(data))], { type: "application/json" }), `${bestandsBasis()}_gegevens.json`);
+
+  // Na succesvol versturen: schoon beginnen voor de volgende klant.
+  const nieuwFormulier = () => {
+    if (!window.confirm("Nieuw formulier beginnen? Het huidige formulier is al opgeslagen in SharePoint.")) return;
+    const vandaag = new Date().toISOString().slice(0, 10);
+    negeerWijzigingRef.current = true;
+    gewijzigdRef.current = false;
+    setData({ ...beginStaatRef.current, datum: vandaag });
+    opgehaaldNrRef.current = "";
+    gevuldUitProjectRef.current = false;
+    setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
+    setSubmitStatus({ loading: false, error: null, done: false, versie: null });
+    setFoutmeldingen([]);
+    conceptWissen();
+    setPage(0);
+  };
 
   const bekijkPdf = async () => {
     setPdfStatus({ loading: true, error: null });
@@ -854,7 +920,7 @@ export default function App() {
       const res = await fetch("/api/project-opslaan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectnummer: data.projectnummer.trim(), data, pdfDataUrl }),
+        body: JSON.stringify({ projectnummer: data.projectnummer.trim(), data: schoneData(data), pdfDataUrl }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Opslaan is mislukt");
@@ -872,11 +938,13 @@ export default function App() {
   // toetsaanslag opnieuw opbouwen, waardoor invoervelden hun focus verliezen.
   const KozijnPage = ({ prefix, num }) => {
     const type = data[`${prefix}Type`];
-    const opties = data[`${prefix}Opties`] || [];
-    const schuifpuiOpties = ["Hefschuifpui", "Binnen/buiten cilinder", "Actief links (buitenaanzicht)", "Actief rechts (buitenaanzicht)", "4-delig (met zijlichten)", "Vast glas"];
-    const openslaandOpties = ["Loopdeur links (binnenaanzicht)", "Loopdeur rechts (binnenaanzicht)", "Met zijlichten", "Vast glas"];
-    const loopdeurOpties = ["BW90 (Schuur)", "BW20 (Modern)", "Dicht"];
-    const vastGlasGekozen = opties.includes("Vast glas") || (type === "Raam" && data[`${prefix}RaamType`] === "Vast glas");
+    // Alleen opties die bij het gekozen type horen (na wisselen van type blijven
+    // opties van het vorige type anders onzichtbaar "hangen").
+    const opties = kozijnOpties(data, prefix);
+    const schuifpuiOpties = KOZIJN_OPTIES.Schuifpui;
+    const openslaandOpties = KOZIJN_OPTIES["Openslaande deuren"];
+    const loopdeurOpties = KOZIJN_OPTIES.Loopdeur;
+    const vastGlasGekozen = kozijnVastGlas(data, prefix);
 
     return (
       <div>
@@ -1010,12 +1078,12 @@ export default function App() {
               <div style={styles.label}>Formaat:</div>
               <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ fontSize: 13 }}>Breedte:</span>
-                <input style={styles.inputSmall} placeholder="0" value={data[`${prefix}Breedte`]}
-                  onChange={e => set(`${prefix}Breedte`, e.target.value)} />
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data[`${prefix}Breedte`]}
+                  onChange={e => set(`${prefix}Breedte`, alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <span style={{ fontSize: 13 }}>Hoogte:</span>
-                <input style={styles.inputSmall} placeholder="0" value={data[`${prefix}Hoogte`]}
-                  onChange={e => set(`${prefix}Hoogte`, e.target.value)} />
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data[`${prefix}Hoogte`]}
+                  onChange={e => set(`${prefix}Hoogte`, alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
               </div>
             </div>
@@ -1025,11 +1093,13 @@ export default function App() {
     );
   };
 
+  const sd = schoneData(data); // opgeschoonde gegevens voor samenvatting en legenda
+  const mmTekst = (v) => (heeftWaarde(v) ? `${v} MM` : "");
   const pages = [
     // 0: Contact
     <div>
       <div style={styles.section}>
-        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Contact gegevens</p></div>
+        <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Contactgegevens</p></div>
         <div style={styles.sectionBody}>
           <div style={styles.row}>
             <div style={styles.label}>Projectnummer:</div>
@@ -1065,7 +1135,7 @@ export default function App() {
           <div style={styles.row}>
             <div style={styles.label}>Telefoon:</div>
             <input type="tel" style={styles.input} value={data.telefoon} onChange={e => set("telefoon", e.target.value)} />
-            <div style={styles.label}>Mail:</div>
+            <div style={styles.label}>E-mail:</div>
             <input type="email" style={styles.input} value={data.mail} onChange={e => set("mail", e.target.value)} />
           </div>
           <div style={styles.divider} />
@@ -1089,7 +1159,7 @@ export default function App() {
         <div style={styles.sectionBody}>
           <div style={styles.row}>
             <div style={styles.label}>Hoogte:</div>
-            <input inputMode="decimal" style={styles.inputSmall} value={data.hoogte} onChange={e => set("hoogte", e.target.value)} />
+            <input inputMode="numeric" style={styles.inputSmall} value={data.hoogte} onChange={e => set("hoogte", alleenCijfers(e.target.value))} />
             <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
             <span style={styles.hint}>P=0 van huidige vloer tot plafond huidige woning</span>
           </div>
@@ -1099,12 +1169,12 @@ export default function App() {
             <div style={{ flex: 1 }}>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Buiten:</span>
-                <input inputMode="decimal" style={styles.inputSmall} value={data.diepteBuiten} onChange={e => set("diepteBuiten", e.target.value)} />
+                <input inputMode="numeric" style={styles.inputSmall} value={data.diepteBuiten} onChange={e => set("diepteBuiten", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
               </div>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Binnen:</span>
-                <input inputMode="decimal" style={styles.inputSmall} value={data.diepteBinnen} onChange={e => set("diepteBinnen", e.target.value)} />
+                <input inputMode="numeric" style={styles.inputSmall} value={data.diepteBinnen} onChange={e => set("diepteBinnen", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
               </div>
             </div>
@@ -1115,13 +1185,13 @@ export default function App() {
             <div style={{ flex: 1 }}>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Buiten:</span>
-                <input inputMode="decimal" style={styles.inputSmall} value={data.breedteBuiten} onChange={e => set("breedteBuiten", e.target.value)} />
+                <input inputMode="numeric" style={styles.inputSmall} value={data.breedteBuiten} onChange={e => set("breedteBuiten", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <span style={styles.hint}>Relevant bij werken met erfgrens</span>
               </div>
               <div style={styles.row}>
                 <span style={{ fontSize: 13, minWidth: 60 }}>Binnen:</span>
-                <input inputMode="decimal" style={styles.inputSmall} value={data.breedteBinnen} onChange={e => set("breedteBinnen", e.target.value)} />
+                <input inputMode="numeric" style={styles.inputSmall} value={data.breedteBinnen} onChange={e => set("breedteBinnen", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <span style={styles.hint}>Wanneer niet afhankelijk van erfgrens</span>
               </div>
@@ -1174,7 +1244,7 @@ export default function App() {
           <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Doorbraak:</div>
-            <input inputMode="decimal" style={styles.inputSmall} placeholder="0" value={data.doorbraakMM} onChange={e => set("doorbraakMM", e.target.value)} />
+            <input inputMode="numeric" style={styles.inputSmall} placeholder="0" value={data.doorbraakMM} onChange={e => set("doorbraakMM", alleenCijfers(e.target.value))} />
             <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
             <div style={styles.label}>Constructeur:</div>
             <RadioGroup name="constructeur" options={["Benodigd", "N.V.T."]} value={data.constructeur} onChange={v => set("constructeur", v)} />
@@ -1213,7 +1283,7 @@ export default function App() {
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Wandafwerking & Gevelbekleding</p></div>
         <div style={styles.sectionBody}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: BLACK, marginBottom: 10 }}>Binnenwand afwerking</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: BLACK, marginBottom: 10 }}>Binnenwandafwerking</div>
           <div style={styles.row}>
             <RadioGroup name="binnenwand" options={["Casco", "Gips", "Compleet afgewerkt"]} value={data.binnenwand} onChange={v => set("binnenwand", v)} />
           </div>
@@ -1383,7 +1453,7 @@ export default function App() {
           <div style={styles.hint}>Bitumen: alleen mogelijk bij aansluiting op bestaand bitumen dak.</div>
           <div style={styles.divider} />
           <div style={styles.row}>
-            <div style={styles.label}>Dakrand afwerking:</div>
+            <div style={styles.label}>Dakrandafwerking:</div>
             <RadioGroup name="dakrand" options={["Modern zetwerk", "Kraal zink", "Zinken zetkap"]} value={data.dakrandAfwerking} onChange={v => set("dakrandAfwerking", v)} />
           </div>
           {data.dakrandAfwerking === "Modern zetwerk" && (
@@ -1403,7 +1473,7 @@ export default function App() {
             <div style={styles.subSection}>
               <div style={styles.row}>
                 <div style={styles.label}>Diepte:</div>
-                <input style={styles.inputSmall} inputMode="decimal" placeholder="MM" value={data.overstekMM} onChange={e => set("overstekMM", e.target.value)} />
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="MM" value={data.overstekMM} onChange={e => set("overstekMM", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <div style={styles.label}>Kleur RAL:</div>
                 <input style={styles.input} placeholder="RAL kleurcode" value={data.overstekRAL} onChange={e => set("overstekRAL", e.target.value)} />
@@ -1435,10 +1505,10 @@ export default function App() {
               <div style={styles.row}>
                 <div style={styles.label}>Formaat:</div>
                 <span style={{ fontSize: 13 }}>Lengte:</span>
-                <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.lichtstraatLengteMM} onChange={e => set("lichtstraatLengteMM", e.target.value)} />
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data.lichtstraatLengteMM} onChange={e => set("lichtstraatLengteMM", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
                 <span style={{ fontSize: 13 }}>Breedte:</span>
-                <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.lichtstraatBreedteMM} onChange={e => set("lichtstraatBreedteMM", e.target.value)} />
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data.lichtstraatBreedteMM} onChange={e => set("lichtstraatBreedteMM", alleenCijfers(e.target.value))} />
                 <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>MM</span>
               </div>
               <div style={styles.divider} />
@@ -1448,7 +1518,7 @@ export default function App() {
               <div style={styles.divider} />
               <div style={styles.row}>
                 <div style={styles.label}>Aantal delen glas:</div>
-                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data.lichtstraatDelenGlas} onChange={e => set("lichtstraatDelenGlas", e.target.value)} />
+                <input style={styles.inputSmall} inputMode="numeric" placeholder="0" value={data.lichtstraatDelenGlas} onChange={e => set("lichtstraatDelenGlas", alleenCijfers(e.target.value))} />
               </div>
               <div style={styles.divider} />
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Positie lichtstraat op dak (schets):</div>
@@ -1564,7 +1634,7 @@ export default function App() {
               {buitenHeeft("Spotjes") && (
                 <>
                   <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
-                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.buitenAantalSpotjes} onChange={e => set("buitenAantalSpotjes", e.target.value)} />
+                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.buitenAantalSpotjes} onChange={e => set("buitenAantalSpotjes", alleenCijfers(e.target.value))} />
                 </>
               )}
             </div>
@@ -1587,7 +1657,7 @@ export default function App() {
               {buitenHeeft("Wandlamp") && (
                 <>
                   <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
-                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.buitenAantalWandlamp} onChange={e => set("buitenAantalWandlamp", e.target.value)} />
+                  <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.buitenAantalWandlamp} onChange={e => set("buitenAantalWandlamp", alleenCijfers(e.target.value))} />
                 </>
               )}
             </div>
@@ -1666,7 +1736,7 @@ export default function App() {
             </div>
           )}
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / Extra's:</div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / extra's:</div>
           <textarea style={styles.textarea} value={data.eOpmerking} onChange={e => set("eOpmerking", e.target.value)} />
         </div>
       </div>
@@ -1683,7 +1753,7 @@ export default function App() {
             {data.hwaMateriaal && (
               <>
                 <span style={{ fontSize: 12, color: "#888" }}>Aantal:</span>
-                <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.hwaAantal} onChange={e => set("hwaAantal", e.target.value)} />
+                <input style={{ ...styles.inputSmall, width: 70 }} inputMode="numeric" placeholder="0" value={data.hwaAantal} onChange={e => set("hwaAantal", alleenCijfers(e.target.value))} />
               </>
             )}
           </div>
@@ -1702,7 +1772,7 @@ export default function App() {
               {data.vloerverwarming === "Gehele woning" && (
                 <div style={{ ...styles.row, marginBottom: 8 }}>
                   <div style={styles.label}>Oppervlakte:</div>
-                  <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.vloerM2} onChange={e => set("vloerM2", e.target.value)} />
+                  <input style={styles.inputSmall} inputMode="decimal" placeholder="0" value={data.vloerM2} onChange={e => set("vloerM2", e.target.value.replace(/[^0-9.,]/g, ""))} />
                   <span style={{ fontSize: 13, color: GOLD, fontWeight: 600 }}>m²</span>
                 </div>
               )}
@@ -1725,7 +1795,7 @@ export default function App() {
             </div>
           )}
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / Extra's:</div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Opmerkingen / extra's:</div>
           <textarea style={styles.textarea} value={data.wOpmerking} onChange={e => set("wOpmerking", e.target.value)} />
         </div>
       </div>
@@ -1744,7 +1814,7 @@ export default function App() {
           <div style={{ marginTop: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Legenda</div>
             <div style={{ ...styles.hint, marginBottom: 8 }}>Wordt automatisch bijgewerkt: "Opgegeven" komt uit E- en W-installaties, "Getekend" telt de symbolen in de tekening.</div>
-            {legendaRijen(data).length === 0 ? (
+            {legendaRijen(sd).length === 0 ? (
               <div style={{ fontSize: 12, color: "#888" }}>Nog niets ingevuld bij E- of W-installaties en nog geen symbolen getekend.</div>
             ) : (
               <div style={{ overflowX: "auto" }}>
@@ -1755,7 +1825,7 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {legendaRijen(data).map(r => {
+                    {legendaRijen(sd).map(r => {
                       const verschil = r.aantal !== r.getekend;
                       const td = { padding: "2px 8px", borderBottom: "1px solid #eee", background: verschil ? "#fdf1e0" : "transparent" };
                       return (
@@ -1771,7 +1841,7 @@ export default function App() {
                     })}
                   </tbody>
                 </table>
-                {legendaRijen(data).some(r => r.aantal !== r.getekend) && (
+                {legendaRijen(sd).some(r => r.aantal !== r.getekend) && (
                   <div style={{ fontSize: 11, color: "#b9770e", marginTop: 6 }}>Oranje: het aantal in de tekening wijkt af van wat bij E-/W-installaties is opgegeven.</div>
                 )}
               </div>
@@ -1785,44 +1855,44 @@ export default function App() {
     <div>
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
-          <p style={styles.sectionTitle}>Samenvatting — {data.naam || "Klant"}</p>
+          <p style={styles.sectionTitle}>Samenvatting — {sd.naam || "Klant"}</p>
         </div>
         <div style={styles.sectionBody}>
           {[
-            ["Contact", [["Projectnummer", data.projectnummer], ["Naam", data.naam], ["Aanhef", data.geslacht], ["Datum", data.datum], ["Telefoon", data.telefoon], ["Mail", data.mail], ["Adres", `${data.adres}, ${data.postcode} ${data.plaats}`]]],
-            ["Maatvoering", [["Hoogte", `${data.hoogte} MM`], ["Diepte buiten", `${data.diepteBuiten} MM`], ["Diepte binnen", `${data.diepteBinnen} MM`], ["Breedte buiten", `${data.breedteBuiten} MM`], ["Breedte binnen", `${data.breedteBinnen} MM`]]],
-            ["Voorbereidingen", [["Ondergrond", data.ondergrond], ["Bereikbaarheid", (data.bereikbaarheid || []).join(", ")], ["Rijplaten", data.rijplaten], ["Bouwtekeningen", data.bouwtekeningen], ["Vergunning", data.vergunning], ["Doorbraak", `${data.doorbraakMM} MM`], ["Constructeur", data.constructeur]]],
-            ["Wandafwerking", [["Binnenwand", data.binnenwand], ["Stucwerk", data.stucwerk]]],
-            ["Gevelbekleding", [["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip], ["Voegkleur", data.steenstripVoegkleur], ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet], ["Kerama type", data.keramaType], ["Kerama kleur", data.keramaKleur], ["Hout type", data.houtType], ["Hout kleur", data.houtKleur]]],
-            ["Kozijn 1", [["Type", data.k1Type], ["Opties", data.k1Opties.join(", ")], ["Raamtype", data.k1RaamType], ["Harmonica delen", data.k1HarmonicaDelen], ["Harmonica richting", data.k1HarmonicaRichting], ["Ventilatierooster", data.k1Ventilatierooster], ["Materiaal", data.k1Materiaal], ["RAL", data.k1RAL], ["Glas", data.k1Glas], ["Breedte", `${data.k1Breedte} MM`], ["Hoogte", `${data.k1Hoogte} MM`]]],
-            ["Kozijn 2", [["Type", data.k2Type], ["Opties", data.k2Opties.join(", ")], ["Raamtype", data.k2RaamType], ["Harmonica delen", data.k2HarmonicaDelen], ["Harmonica richting", data.k2HarmonicaRichting], ["Ventilatierooster", data.k2Ventilatierooster], ["Materiaal", data.k2Materiaal], ["RAL", data.k2RAL], ["Glas", data.k2Glas], ["Breedte", `${data.k2Breedte} MM`], ["Hoogte", `${data.k2Hoogte} MM`]]],
-            ["Kozijn 3", [["Type", data.k3Type], ["Opties", data.k3Opties.join(", ")], ["Raamtype", data.k3RaamType], ["Harmonica delen", data.k3HarmonicaDelen], ["Harmonica richting", data.k3HarmonicaRichting], ["Ventilatierooster", data.k3Ventilatierooster], ["Materiaal", data.k3Materiaal], ["RAL", data.k3RAL], ["Glas", data.k3Glas], ["Breedte", `${data.k3Breedte} MM`], ["Hoogte", `${data.k3Hoogte} MM`]]],
-            ["Dak", [["Dakbedekking", data.dakbedekking], ["Dakrand", data.dakrandAfwerking], ["Dakrand RAL", data.dakrandKleur], ["Overstek", data.overstek === "Ja" ? `Ja, ${data.overstekMM} MM, RAL ${data.overstekRAL}` : "N.V.T."], ["Lichtstraat", data.lichtstraat], ["Lichtstraat afmeting", (data.lichtstraatLengteMM || data.lichtstraatBreedteMM) ? `${data.lichtstraatLengteMM} x ${data.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", data.lichtstraatKleur], ["Lichtstraat delen glas", data.lichtstraatDelenGlas]]],
+            ["Contact", [["Projectnummer", sd.projectnummer], ["Naam", sd.naam], ["Aanhef", sd.geslacht], ["Datum", (sd.datum || "").split("-").reverse().join("-")], ["Telefoon", sd.telefoon], ["E-mail", sd.mail], ["Adres", [sd.adres, [sd.postcode, sd.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")]]],
+            ["Maatvoering", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
+            ["Voorbereidingen", [["Ondergrond", sd.ondergrond], ["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
+            ["Wandafwerking", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
+            ["Gevelbekleding", [["Steenstrips", sd.steenstrip === "Anders" ? sd.steenstripAnders : sd.steenstrip], ["Voegkleur", sd.steenstripVoegkleur], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
+            ["Kozijn 1", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
+            ["Kozijn 2", [["Type", sd.k2Type], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
+            ["Kozijn 3", [["Type", sd.k3Type], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],
+            ["Dak", [["Dakbedekking", sd.dakbedekking], ["Dakrand", sd.dakrandAfwerking], ["Dakrand RAL", sd.dakrandKleur], ["Overstek", sd.overstek === "Ja" ? ["Ja", mmTekst(sd.overstekMM), sd.overstekRAL && `RAL ${sd.overstekRAL}`].filter(Boolean).join(", ") : sd.overstek], ["Lichtstraat", sd.lichtstraat], ["Lichtstraat afmeting", (sd.lichtstraatLengteMM || sd.lichtstraatBreedteMM) ? `${sd.lichtstraatLengteMM} x ${sd.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", sd.lichtstraatKleur], ["Lichtstraat delen glas", sd.lichtstraatDelenGlas]]],
             ["E-installaties", [
-              ["Uitvoering", data.eUitvoering],
+              ["Uitvoering", sd.eUitvoering],
               ["Merk/Type", schakelmateriaalTekst(data)],
-              ["Let op", data.eUitvoering === E_UITVOERING_LEIDINGWERK ? E_GARANTIE_TEKST : ""],
-              ["Stopcontacten", metAantal(data.stopcontacten, { Enkel: data.stopAantalEnkel, Dubbel: data.stopAantalDubbel, Tripel: data.stopAantalTripel, Anders: data.stopAantalAnders })],
-              ["Stopcontacten - Anders", data.stopcontactenAnders],
-              ["Verlichting", metAantal(data.verlichting, { Spotjes: data.verAantalSpotjes, Hanglamp: data.verAantalHanglamp, Wandlampjes: data.verAantalWandlampjes })],
-              ["Verlichting Spotjes kleur", data.verlichtingSpotjesKleur],
-              ["Hanglamp ophangen", (data.verlichting || []).includes("Hanglamp") ? (data.hanglampOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
-              ["Wandlampjes ophangen", (data.verlichting || []).includes("Wandlampjes") ? (data.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
-              ["Schakelaars", metAantal(data.schakelaars, { Schakelaar: data.schAantalSchakelaar, Dimmer: data.schAantalDimmer, Sensor: data.schAantalSensor })],
-              ["Hotelschakeling", data.hotelschakeling ? ["Dubbel", (data.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") : ""],
-              ["Buiten verlichting", metAantal(data.buitenVerlichting, { Spotjes: data.buitenAantalSpotjes, Wandlamp: data.buitenAantalWandlamp })],
-              ["Buiten spotjes kleur", data.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${data.buitenSpotjesRAL ? ` (${data.buitenSpotjesRAL})` : ""}` : data.buitenSpotjesKleur],
-              ["Wandlamp", data.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : data.buitenWandlampType],
-              ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : ""],
-              ["Airco", (data.warmteKoude || []).includes("Airco") ? (data.aircoUitvoering === "Airco" ? `Airco${data.aircoVermogen ? ` ${data.aircoVermogen}` : ""}` : data.aircoUitvoering || "Ja") : ""],
+              ["Let op", sd.eUitvoering === E_UITVOERING_LEIDINGWERK ? E_GARANTIE_TEKST : ""],
+              ["Stopcontacten", metAantal(sd.stopcontacten, { Enkel: sd.stopAantalEnkel, Dubbel: sd.stopAantalDubbel, Tripel: sd.stopAantalTripel, Anders: sd.stopAantalAnders })],
+              ["Stopcontacten - Anders", sd.stopcontactenAnders],
+              ["Verlichting", metAantal(sd.verlichting, { Spotjes: sd.verAantalSpotjes, Hanglamp: sd.verAantalHanglamp, Wandlampjes: sd.verAantalWandlampjes })],
+              ["Verlichting Spotjes kleur", sd.verlichtingSpotjesKleur],
+              ["Hanglamp ophangen", (sd.verlichting || []).includes("Hanglamp") ? (sd.hanglampOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
+              ["Wandlampjes ophangen", (sd.verlichting || []).includes("Wandlampjes") ? (sd.wandlampjesOphangen ? "Ja (klant levert aan)" : "Nee") : ""],
+              ["Schakelaars", metAantal(sd.schakelaars, { Schakelaar: sd.schAantalSchakelaar, Dimmer: sd.schAantalDimmer, Sensor: sd.schAantalSensor })],
+              ["Hotelschakeling", sd.hotelschakeling ? ["Dubbel", (sd.hotelLampen || []).join(", ")].filter(Boolean).join(" - ") : ""],
+              ["Buiten verlichting", metAantal(sd.buitenVerlichting, { Spotjes: sd.buitenAantalSpotjes, Wandlamp: sd.buitenAantalWandlamp })],
+              ["Buiten spotjes kleur", sd.buitenSpotjesKleur === "Kleur van overstek" ? `Kleur van overstek${sd.buitenSpotjesRAL ? ` (${sd.buitenSpotjesRAL})` : ""}` : sd.buitenSpotjesKleur],
+              ["Wandlamp", sd.buitenWandlampType === "Anders" ? "Anders: klant levert zelf aan, AddOn monteert" : sd.buitenWandlampType],
+              ["Buitenstopcontact", sd.wcd ? `Ja${sd.wcdAantal ? `, aantal ${sd.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : ""],
+              ["Airco", (sd.warmteKoude || []).includes("Airco") ? (sd.aircoUitvoering === "Airco" ? `Airco${sd.aircoVermogen ? ` ${sd.aircoVermogen}` : ""}` : sd.aircoUitvoering || "Ja") : ""],
             ]],
             ["W-installaties", [
-              ["HWA", data.hwaMateriaal ? `${data.hwaMateriaal}${data.hwaAantal ? ` (${data.hwaAantal}x)` : ""}` : ""],
-              ["Bladvanger / vergaarbak", [data.bladvanger && "Bladvanger", data.vergaarbak && "Vergaarbak"].filter(Boolean).join(", ")],
-              ["Vorstvrije buitenkraan", data.buitenkraan],
-              ["Vloerverwarming", data.vloerverwarming === "Gehele woning" && data.vloerM2 ? `${data.vloerverwarming} (${data.vloerM2} m²)` : data.vloerverwarming],
-              ["Verdeler", data.vloerverwarming && data.vloerverwarming !== "N.V.T." ? data.verdeler : ""],
-              ["Warmtebron", data.vloerverwarming !== "N.V.T." && data.verdeler === "Verdeler ophangen" ? (data.warmtebron || []).join(", ") : ""],
+              ["HWA", sd.hwaMateriaal ? `${sd.hwaMateriaal}${sd.hwaAantal ? ` (${sd.hwaAantal}x)` : ""}` : ""],
+              ["Bladvanger / vergaarbak", [sd.bladvanger && "Bladvanger", sd.vergaarbak && "Vergaarbak"].filter(Boolean).join(", ")],
+              ["Vorstvrije buitenkraan", sd.buitenkraan],
+              ["Vloerverwarming", sd.vloerverwarming === "Gehele woning" && sd.vloerM2 ? `${sd.vloerverwarming} (${sd.vloerM2} m²)` : sd.vloerverwarming],
+              ["Verdeler", sd.vloerverwarming && sd.vloerverwarming !== "N.V.T." ? sd.verdeler : ""],
+              ["Warmtebron", sd.vloerverwarming !== "N.V.T." && sd.verdeler === "Verdeler ophangen" ? (sd.warmtebron || []).join(", ") : ""],
             ]],
           ].map(([title, rows]) => (
             <div key={title} style={{ marginBottom: 16 }}>
@@ -1847,8 +1917,22 @@ export default function App() {
             onClick={versturenEnOpslaan}>
             {submitStatus.loading ? "Bezig met opslaan..." : `✉️ Versturen & Opslaan (wordt V${projectStatus.nextVersion})`}
           </button>
-          {submitStatus.error && <div style={{ color: "#c0392b", fontSize: 13, marginTop: 8 }}>{submitStatus.error}</div>}
-          {submitStatus.done && <div style={{ color: "#2e7d32", fontSize: 13, marginTop: 8 }}>Opgeslagen in SharePoint als versie V{submitStatus.versie}.</div>}
+          {submitStatus.error && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ color: "#c0392b", fontSize: 13 }}>{submitStatus.error}</div>
+              <div style={{ fontSize: 12, color: "#555", margin: "8px 0 6px" }}>Geen of slecht bereik? Het formulier blijft bewaard op dit apparaat. Je kunt het later opnieuw versturen, of nu een kopie downloaden:</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button style={styles.btnPrev} onClick={downloadPdf}>📄 PDF downloaden</button>
+                <button style={styles.btnPrev} onClick={downloadGegevens}>💾 Gegevens downloaden</button>
+              </div>
+            </div>
+          )}
+          {submitStatus.done && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ color: "#2e7d32", fontSize: 13 }}>Opgeslagen in SharePoint als versie V{submitStatus.versie}.</div>
+              <button style={{ ...styles.btnNext, marginTop: 10 }} onClick={nieuwFormulier}>➕ Nieuw formulier</button>
+            </div>
+          )}
         </div>
       </div>
     </div>,
@@ -1860,7 +1944,13 @@ export default function App() {
         <img src={logoUrl} alt="AddOn Aanbouw op Maat" style={styles.logoImg} />
         <div style={styles.pageTitle}>{PAGES[page]}</div>
         <div style={styles.progress}>
-          {PAGES.map((_, i) => <div key={i} style={styles.progressDot(i === page, i < page)} />)}
+          {PAGES.map((naam, i) => (
+            <div key={i} title={naam}
+              onClick={() => { if (i <= verstePagina) { setFoutmeldingen([]); setPage(i); } }}
+              style={{ padding: "6px 2px", margin: "-6px 0", cursor: i <= verstePagina ? "pointer" : "default" }}>
+              <div style={styles.progressDot(i === page, i < page)} />
+            </div>
+          ))}
         </div>
       </div>
       <div style={styles.body}>

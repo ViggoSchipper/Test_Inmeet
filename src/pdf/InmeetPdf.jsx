@@ -9,6 +9,7 @@
 
 import { Document, Page, Text, View, Image, StyleSheet, Font, Svg, Path } from "@react-pdf/renderer";
 import { legendaRijen, symboolOpKey } from "../symbolen";
+import { E_UITVOERING_LEIDINGWERK } from "../schoon";
 
 const GOLD = "#B69148";
 const BLACK = "#1a1a1a";
@@ -163,7 +164,7 @@ function waarde(v) {
 
 // Merk/Type schakelmateriaal als één leesbare regel, bijv. "Gira 55 (standaard) - Wit".
 function schakelmateriaalTekst(data) {
-  if (data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen") return "N.v.t. (afmonteren door klant)";
+  if (data.eUitvoering === E_UITVOERING_LEIDINGWERK) return "N.V.T. (afmonteren door klant)";
   const label = data.schakelMerk === "Anders"
     ? (data.schakelMerkAnders ? `Anders: ${data.schakelMerkAnders}` : "Anders")
     : { "Gira 55": "Gira 55 (standaard)", "Busch-Jaeger": "Busch-Jaeger (modern)" }[data.schakelMerk];
@@ -307,13 +308,13 @@ function InstallatieLegenda({ data }) {
   const kol = [{ w: 28 }, { w: 150 }, { w: 90 }, { w: 150 }, { w: 50, right: true }, { w: 50, right: true }];
   const cel = (i, extra = {}) => ({ width: kol[i].w, fontSize: 9, paddingVertical: 2, paddingHorizontal: 3, textAlign: kol[i].right ? "right" : "left", ...extra });
   return (
-    <View style={{ marginTop: 8 }} wrap={false}>
-      <Text style={{ fontSize: 10.5, fontWeight: 700, marginBottom: 4 }}>Legenda</Text>
+    <View style={{ marginTop: 8, paddingHorizontal: 8, paddingBottom: 8 }}>
+      <Text style={{ fontSize: 10.5, fontWeight: 700, marginBottom: 4 }} minPresenceAhead={60}>Legenda</Text>
       <View style={{ flexDirection: "row", borderBottom: `1 solid ${GOLD}` }}>
         {["", "Omschrijving", "Kleur", "Type", "Opgegeven", "Getekend"].map((h, i) => <Text key={h + i} style={cel(i, { color: GREY })}>{h}</Text>)}
       </View>
       {rijen.map((r) => (
-        <View key={r.sym} style={{ flexDirection: "row", alignItems: "center", borderBottom: "0.5 solid #e5e5e5" }}>
+        <View key={r.sym} style={{ flexDirection: "row", alignItems: "center", borderBottom: "0.5 solid #e5e5e5" }} wrap={false}>
           <View style={cel(0)}><PdfSymbool symKey={r.sym} /></View>
           <View style={cel(1)}>
             <Text>{r.omschrijving}</Text>
@@ -327,6 +328,12 @@ function InstallatieLegenda({ data }) {
       ))}
     </View>
   );
+}
+
+// "2026-09-30" -> "30-09-2026"
+function datumNL(v) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(waarde(v));
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : waarde(v);
 }
 
 function fmtMM(v) {
@@ -377,7 +384,7 @@ export default function InmeetPdf({ data, logoSrc }) {
           </View>
           <View style={styles.coverRow}>
             <Text style={styles.coverLabel}>Datum opname</Text>
-            <Text style={styles.coverValue}>{waarde(data.datum) || "—"}</Text>
+            <Text style={styles.coverValue}>{datumNL(data.datum) || "—"}</Text>
           </View>
           <View style={styles.coverRow}>
             <Text style={styles.coverLabel}>Adres</Text>
@@ -428,7 +435,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Vergunning", data.vergunning],
             ["Doorbraak", fmtMM(data.doorbraakMM)],
             ["Constructeur", data.constructeur],
-            ["Kruipruimte", data.geenKruipruimte ? "Geen kruipruimte aanwezig" : "Aanwezig (zie foto)"],
+            ["Kruipruimte", data.geenKruipruimte ? "Geen kruipruimte aanwezig" : data.fotoKruipruimte ? "Aanwezig (zie foto)" : ""],
           ]}
         />
         <Section
@@ -474,8 +481,8 @@ export default function InmeetPdf({ data, logoSrc }) {
           title="Dak & lichtstraat"
           fields={[
             ["Dakbedekking", data.dakbedekking],
-            ["Overstek", data.overstek === "Ja" ? `Ja, ${waarde(data.overstekMM)} MM, RAL ${waarde(data.overstekRAL)}` : data.overstek],
-            ["Dakrand afwerking", data.dakrandAfwerking],
+            ["Overstek", data.overstek === "Ja" ? ["Ja", fmtMM(data.overstekMM), waarde(data.overstekRAL) && `RAL ${waarde(data.overstekRAL)}`].filter(Boolean).join(", ") : data.overstek],
+            ["Dakrandafwerking", data.dakrandAfwerking],
             ["Dakrand kleur RAL", data.dakrandKleur],
             ["Lichtstraat", data.lichtstraat],
             ["Lichtstraat lengte", fmtMM(data.lichtstraatLengteMM)],
@@ -504,7 +511,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Buitenstopcontact", data.wcd ? `Ja${data.wcdAantal ? `, aantal ${data.wcdAantal}` : ""} (Dubbel NIKO inbouw horizontaal zwart)` : "Nee"],
             ["Airco", (data.warmteKoude || []).includes("Airco") ? (data.aircoUitvoering === "Airco" ? `Airco${data.aircoVermogen ? ` ${data.aircoVermogen}` : ""}` : data.aircoUitvoering || "Ja") : ""],
           ]}
-          melding={data.eUitvoering === "AddOn verzorgt alleen leidingen en dozen"
+          melding={data.eUitvoering === E_UITVOERING_LEIDINGWERK
             ? "Let op: het afmonteren gebeurt door de klant. Zodra er iets aan de elektra wordt gewijzigd ten opzichte van de staat waarin de aanbouw onze werkplaats verlaat, vervalt de garantie van AddOn op de elektra." : null}
           opmerking={waarde(data.eOpmerking)}
         />
@@ -548,10 +555,12 @@ export default function InmeetPdf({ data, logoSrc }) {
         <PageChrome data={data} pageLabel="Schetsen" logoSrc={logoSrc}>
           <Text style={styles.pageHeading}>Schetsen</Text>
           {aanwezigeSchetsen.map((s) => (
-            <View key={s.key} style={styles.sketchCard} wrap={false}>
+            // De installatietekening krijgt een eigen pagina en een begrensde hoogte,
+            // zodat de legenda eronder past (of netjes doorloopt op de volgende pagina).
+            <View key={s.key} style={styles.sketchCard} wrap={s.key === "schetsEinstallatie"} break={s.key === "schetsEinstallatie"}>
               <Text style={styles.sketchCaption}>{s.label}</Text>
               <View style={styles.sketchImageWrap}>
-                <Image src={data[s.key]} style={styles.sketchImage} />
+                <Image src={data[s.key]} style={s.key === "schetsEinstallatie" ? { ...styles.sketchImage, height: 400 } : styles.sketchImage} />
               </View>
               {s.key === "schetsEinstallatie" ? <InstallatieLegenda data={data} /> : null}
             </View>

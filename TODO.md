@@ -5,7 +5,7 @@
       testen niet elke keer alle verplichte velden opnieuw hoeft in te vullen na een refresh.
       Zet dit terug op `true` vlak voor de grote eindtest / productie.
 - [x] Pagina 1 Contact: layout/velden geoptimaliseerd (Aanhef i.p.v. Geslacht, volgorde, tel-toetsenbord, datum aanpasbaar)
-- [ ] Pagina 1 Contact: **Aanhef niet meer verplicht** bij het weer aanzetten van validatie.
+- [x] Pagina 1 Contact: **Aanhef niet meer verplicht** bij het weer aanzetten van validatie.
       Verplicht wordt dan: Projectnummer, Naam, Adres, Postcode, Plaats, Telefoon, Mail.
       (Aanhef blijft wel gewoon een invulveld, alleen niet meer blokkerend.)
 - [x] Pagina 2 Maatvoering: Diepte krijgt Buiten/Binnen (zoals Breedte), Hoogte altijd verplicht,
@@ -133,9 +133,22 @@
       "Doorgaan met dit formulier?" bij opstarten + waarschuwing bij verlaten; foto's verkleind naar max
       1600 px JPEG 80%; getypte maatlijntekst gaat niet meer verloren; na paginawissel naar boven;
       versienummer onderaan de app.
-- [ ] Review blok A punt 5: backend eerst nieuwe versie uploaden, dan pas archiveren (vereist backend-deploy).
-- [ ] Review blok B (gegevens die verborgen zijn maar toch in PDF komen, lege rommel in samenvatting,
-      PDF-pagina installatietekening), C (handtekening, nieuw formulier, foto verwijderen, ...) en D.
+- [x] Review punt 5/10/16 (backend-code): eerst nieuwe versie opslaan, daarna pas oudere versies
+      archiveren; versienummer telt "Oude versies" mee; W-tekening uit SCHETS_VELDEN, extra losse
+      bestanden voor Anders-foto's en lichtstraatpositie; project-ophalen geeft code GEEN_PROJECTMAP /
+      GEEN_VERSIE en de app waarschuwt al op Contact als de projectmap ontbreekt.
+- [ ] **Backend (Azure Functions) opnieuw deployen** om punt 5/10/16 en Foto_Verdeler actief te maken.
+- [x] Review punt 7/8/9: src/schoon.js haalt verborgen/verouderde velden weg uit samenvatting, PDF en
+      verzending (kozijnopties van ander type, lichtstraat bij N.V.T., kruipruimtefoto, enz.); geen lege
+      " MM"/", " regels meer; installatietekening in PDF op eigen pagina, legenda loopt zo nodig door.
+- [x] Review punt 12/13/15: "Nieuw formulier" na versturen; foto verwijderen (✕); bij mislukt versturen
+      "PDF downloaden" en "Gegevens downloaden".
+- [x] Review punt 17/18/20/21: voortgangsbolletjes aantikbaar (t/m verst bezochte pagina); tekenvlakken
+      schalen mee bij draaien iPad; mm-velden en aantallen cijfertoetsenbord + alleen cijfers; teksten
+      (Contactgegevens, Binnenwandafwerking, Dakrandafwerking, E-mail, Driedubbele, N.V.T., datum
+      dd-mm-jjjj); validatie: Aanhef niet verplicht, Raam/Harmonicawand type verplicht.
+- [ ] Nog voorleggen: 11 handtekening + naam inmeter, 13 "Extra foto's", 14 samenvatting als eindcontrole,
+      19 grotere tikvlakken, HWA N.V.T.-optie.
 - [x] Foto-vakken: niet meer alleen camera; iPad biedt nu "Foto maken" of "Fotobibliotheek".
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
 - [ ] Pagina 17 Samenvatting: nog doorlopen.

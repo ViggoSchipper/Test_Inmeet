@@ -17,13 +17,13 @@ app.http("projectOphalen", {
     try {
       const folder = await findProjectFolder(projectnummer);
       if (!folder) {
-        return { status: 404, jsonBody: { error: "Projectmap niet gevonden" } };
+        return { status: 404, jsonBody: { error: "Projectmap niet gevonden", code: "GEEN_PROJECTMAP" } };
       }
 
       const files = await listInmeetFiles(folder.id);
       const versie = hoogsteVersie(files);
       if (versie === 0) {
-        return { status: 404, jsonBody: { error: "Nog geen eerdere versie voor dit project" } };
+        return { status: 404, jsonBody: { error: "Nog geen eerdere versie voor dit project", code: "GEEN_VERSIE" } };
       }
 
       const dataFile = files.find((f) => f.name === `Inmeetformulier_${projectnummer}_V${versie}_data.json`);

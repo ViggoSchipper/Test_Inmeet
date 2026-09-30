@@ -7,7 +7,7 @@ const {
   jaarUitProjectnummer,
   findProjectFolder,
   listInmeetFiles,
-  hoogsteVersie,
+  hoogsteVersieInclusiefArchief,
   parseDataUrl,
   uploadFile,
   inmeetFormulierPad,
@@ -16,11 +16,11 @@ const {
 
 // POST /api/project-opslaan   body: { projectnummer, data, pdfDataUrl? }
 // Bepaalt zelf het eerstvolgende versienummer (V1, V2, ...) op basis van wat
-// er al in de projectmap staat. Verplaatst daarna alles van de vorige versie
-// naar "Oude versies" (zodat er buiten het archief maar één versie te zien
-// is), en schrijft dan de nieuwe versie weg: data.json + pdf direct in
-// "03 Inmeetformulier", foto's in de "Foto's"-map en schetsen in de
-// "Schetsen"-map.
+// er al in de projectmap (incl. "Oude versies") staat. Schrijft EERST de
+// nieuwe versie weg (data.json + pdf in "03 Inmeetformulier", foto's in
+// "Foto's", schetsen in "Schetsen") en verplaatst pas DAARNA de oudere
+// versies naar "Oude versies". Mislukt het wegschrijven, dan blijft de vorige
+// versie dus gewoon zichtbaar en bruikbaar.
 app.http("projectOpslaan", {
   methods: ["POST"],
   authLevel: "anonymous",
@@ -48,13 +48,8 @@ app.http("projectOpslaan", {
       }
 
       const bestaandeFiles = await listInmeetFiles(folder.id);
-      const versie = hoogsteVersie(bestaandeFiles) + 1;
       const basisPad = inmeetFormulierPad(jaarUitProjectnummer(projectnummer), folder.name);
-
-      // Eerst alles van de vorige versie(s) naar "Oude versies" verplaatsen,
-      // zodat de hoofdmap en de Foto's/Schetsen-mappen straks alleen de
-      // zojuist opgeslagen (nieuwste) versie bevatten.
-      await archiveerOudeVersies(basisPad);
+      const versie = (await hoogsteVersieInclusiefArchief(basisPad, bestaandeFiles)) + 1;
 
       // Volledige formulierdata (incl. foto's/schetsen als base64) - dient als
       // bron voor prefill bij een volgende opname van hetzelfde project.
@@ -94,6 +89,16 @@ app.http("projectOpslaan", {
       }
 
       await Promise.all(uploads);
+
+      // Pas nu de nieuwe versie er volledig staat: oudere versies archiveren,
+      // zodat buiten "Oude versies" alleen de nieuwste zichtbaar is. Lukt dat
+      // niet, dan is de nieuwe versie toch opgeslagen (alleen staat de oude
+      // er dan nog naast) - daarom geen foutmelding naar de gebruiker.
+      try {
+        await archiveerOudeVersies(basisPad, versie);
+      } catch (archiefFout) {
+        context.warn(`Archiveren oude versies mislukt (V${versie} is wel opgeslagen): ${archiefFout.message}`);
+      }
 
       return { status: 200, jsonBody: { versie } };
     } catch (err) {

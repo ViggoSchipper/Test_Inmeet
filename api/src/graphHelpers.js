@@ -11,6 +11,8 @@ const FOTO_VELDEN = {
   fotoKruipruimte: "Foto_Kruipruimte",
   fotoBereikbaarheid: "Foto_Bereikbaarheid",
   fotoVerdeler: "Foto_Verdeler",
+  steenstripAndersFoto: "Foto_SteenstripAnders",
+  composietAndersFoto: "Foto_ComposietAnders",
 };
 
 const SCHETS_VELDEN = {
@@ -18,8 +20,8 @@ const SCHETS_VELDEN = {
   schetsKozijn1: "Schets_Kozijn1",
   schetsKozijn2: "Schets_Kozijn2",
   schetsKozijn3: "Schets_Kozijn3",
+  schetsLichtstraatPositie: "Schets_LichtstraatPositie",
   schetsEinstallatie: "Schets_Einstallatie",
-  schetsWinstallatie: "Schets_Winstallatie",
 };
 
 const CHUNK_SIZE = 16 * 327680; // ~5MB, moet een veelvoud van 327.680 bytes zijn
@@ -235,7 +237,9 @@ async function verplaatsBestand(item, naarFolderId) {
 // nieuwste) versie zichtbaar staat. Beveiliging: verplaatst uitsluitend
 // bestanden die zelf al binnen "03 Inmeetformulier" (of een toegestane
 // submap daarvan) stonden, naar de eveneens toegestane "Oude versies"-map.
-async function archiveerOudeVersies(basisPad) {
+// Alleen bestanden met een versienummer lager dan `huidigeVersie` worden
+// verplaatst: de zojuist weggeschreven nieuwe versie blijft dus staan.
+async function archiveerOudeVersies(basisPad, huidigeVersie) {
   if (!magSchrijvenNaar(basisPad)) {
     throw new Error(`Beveiliging: archiveren geweigerd — pad '${basisPad}' is geen '${TOEGESTANE_SCHRIJFMAP}'-map.`);
   }
@@ -249,9 +253,20 @@ async function archiveerOudeVersies(basisPad) {
   // met een "_V{n}" versienummer in de naam) - geen (sub)mappen zoals
   // Foto's/Schetsen/Oude versies zelf, en ook niets dat iemand met de hand
   // in deze mappen heeft gezet zonder dat patroon.
-  const isEigenVersieBestand = (it) => !it.folder && VERSIE_PATROON.test(it.name);
+  const isEigenVersieBestand = (it) => {
+    if (it.folder) return false;
+    const m = VERSIE_PATROON.exec(it.name);
+    return !!m && parseInt(m[1], 10) < huidigeVersie;
+  };
   const teVerplaatsen = [...topLevel, ...fotos, ...schetsen].filter(isEigenVersieBestand);
   await Promise.all(teVerplaatsen.map((item) => verplaatsBestand(item, archiefFolder.id)));
+}
+
+// Hoogste versienummer over de hoofdmap én de "Oude versies"-map, zodat het
+// volgende nummer altijd uniek is (ook als een eerdere opslag halverwege mislukte).
+async function hoogsteVersieInclusiefArchief(basisPad, topLevelFiles) {
+  const archief = await listChildren(`${basisPad}/${ARCHIEF_SUBMAP}`);
+  return Math.max(hoogsteVersie(topLevelFiles), hoogsteVersie(archief));
 }
 
 function hoogsteVersie(files) {
@@ -347,6 +362,7 @@ module.exports = {
   findProjectFolder,
   listInmeetFiles,
   hoogsteVersie,
+  hoogsteVersieInclusiefArchief,
   downloadJson,
   parseDataUrl,
   uploadFile,
