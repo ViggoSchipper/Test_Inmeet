@@ -677,7 +677,7 @@ export default function App() {
     // Contact
     projectnummer: "",
     geslacht: "", naam: "", datum: new Date().toISOString().split("T")[0],
-    ingemetenDoor: laatsteInmeter(),
+    ingemetenDoor: laatsteInmeter(), gevondenVia: "",
     telefoon: "", mail: "", plaats: "", adres: "", postcode: "", opmerkingen: "",
     // Maatvoering
     hoogte: "", diepteBuiten: "", diepteBinnen: "", breedteBuiten: "", breedteBinnen: "",
@@ -1177,6 +1177,12 @@ export default function App() {
             <div style={styles.label}>Ingemeten door:</div>
             <input style={styles.input} placeholder="Naam inmeter" value={data.ingemetenDoor}
               onChange={e => { set("ingemetenDoor", e.target.value); bewaarInmeter(e.target.value); }} />
+          </div>
+          <div style={styles.divider} />
+          <div style={styles.row}>
+            <div style={styles.label}>Hoe heeft u ons gevonden?</div>
+            <input style={{ ...styles.input, flex: 1 }} placeholder="Bijv. Google, Instagram, via de buren, eerder klant geweest..."
+              value={data.gevondenVia} onChange={e => set("gevondenVia", e.target.value)} />
           </div>
           <div style={styles.divider} />
           <div style={styles.row}>
@@ -1940,7 +1946,7 @@ export default function App() {
             );
           })()}
           {[
-            ["Contact", 0, "opmerkingen", [["Projectnummer", sd.projectnummer], ["Naam", sd.naam], ["Aanhef", sd.geslacht], ["Datum", (sd.datum || "").split("-").reverse().join("-")], ["Ingemeten door", sd.ingemetenDoor], ["Telefoon", sd.telefoon], ["E-mail", sd.mail], ["Adres", [sd.adres, [sd.postcode, sd.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")]]],
+            ["Contact", 0, "opmerkingen", [["Projectnummer", sd.projectnummer], ["Naam", sd.naam], ["Aanhef", sd.geslacht], ["Datum", (sd.datum || "").split("-").reverse().join("-")], ["Ingemeten door", sd.ingemetenDoor], ["Gevonden via", sd.gevondenVia], ["Telefoon", sd.telefoon], ["E-mail", sd.mail], ["Adres", [sd.adres, [sd.postcode, sd.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")]]],
             ["Maatvoering", 1, "", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
             ["Voorbereidingen", 3, "", [["Ondergrond", sd.ondergrond], ["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
             ["Wandafwerking", 5, "", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],

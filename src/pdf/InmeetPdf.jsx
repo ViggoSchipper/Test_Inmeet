@@ -415,6 +415,7 @@ export default function InmeetPdf({ data, logoSrc }) {
             title="Contact"
             fields={[
               ["Aanhef", data.geslacht],
+              ["Gevonden via", data.gevondenVia],
             ]}
             opmerking={waarde(data.opmerkingen)}
           />

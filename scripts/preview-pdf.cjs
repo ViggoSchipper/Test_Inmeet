@@ -40,7 +40,7 @@ const data = {
   projectnummer: "26007",
   geslacht: "Dhr.",
   geslachtAnders: "",
-  naam: "J. de Voorbeeld", ingemetenDoor: "Viggo",
+  naam: "J. de Voorbeeld", ingemetenDoor: "Viggo", gevondenVia: "Google, daarna Instagram bekeken",
   datum: "2026-08-19",
   telefoon: "06-12345678",
   mail: "j.devoorbeeld@example.nl",

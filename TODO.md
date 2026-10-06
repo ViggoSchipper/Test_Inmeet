@@ -158,6 +158,7 @@
 - [x] Navigatiebalk (Vorige/Volgende) staat nu onderaan de pagina i.p.v. vast over de inhoud heen (alle pagina's).
 - [x] Samenvatting doorgelopen (eindcontrole, zie hierboven). Lege Kozijn 2/3 niet meer in samenvatting en PDF.
 
+- [x] Contact: vrij tekstveld "Hoe heeft u ons gevonden?" (niet verplicht), in samenvatting en PDF als "Gevonden via".
 - [x] Eindrun (30-09): complete invulronde met validatie AAN (tijdelijke testbuild) loopt door alle 18
       pagina's zonder blokkade; samenvatting "Alles is ingevuld"; PDF (8 pag.) en gegevens gecontroleerd.
 
