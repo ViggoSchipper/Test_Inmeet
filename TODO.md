@@ -162,6 +162,11 @@
 - [x] Eindrun (30-09): complete invulronde met validatie AAN (tijdelijke testbuild) loopt door alle 18
       pagina's zonder blokkade; samenvatting "Alles is ingevuld"; PDF (8 pag.) en gegevens gecontroleerd.
 
+- [ ] **Projectnummer minder foutgevoelig** (na de iPad-test): (1) na intypen de naam van de projectmap
+      uit SharePoint tonen ter controle (kleine backend-aanpassing: folder.name teruggeven); (2) app leest
+      projectnummer uit de link (?project=26007) zodat kantoor de link in de agenda-afspraak kan zetten;
+      (3) later eventueel Power Automate die de link automatisch in de projectmap/afspraak zet.
+
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
       (steady-moxie-5e89b5.netlify.app).
