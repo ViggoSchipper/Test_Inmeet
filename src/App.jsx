@@ -9,6 +9,7 @@ import fotoCompositTeakZwart from "./assets/gevel/composiet-teak-zwart.jpg";
 import fotoCompositRusticBrown from "./assets/gevel/composiet-rustic-brown.jpg";
 import fotoCompositRusticGrijs from "./assets/gevel/composiet-rustic-grijs.jpg";
 import fotoCompositEikenZwart from "./assets/gevel/composiet-eiken-zwart.jpg";
+import fotoCompositRusticEiken from "./assets/gevel/composiet-rustic-eiken.jpg";
 import fotoKerama from "./assets/gevel/kerama.jpg";
 import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
 import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
@@ -498,7 +499,7 @@ const WANDLAMPEN = [
 // Composiet gevelbekleding (Rhombus-smal profiel): vaste kleuren met foto.
 const COMPOSIET_FOTOS = {
   "Teak met zwart": fotoCompositTeakZwart, "Zwart": fotoCompositZwart, "Rustic Teak": fotoCompositRusticTeak,
-  "Rustic Eiken": null, "Rustic Brown": fotoCompositRusticBrown, "Rustic grijs": fotoCompositRusticGrijs,
+  "Rustic Eiken": fotoCompositRusticEiken, "Rustic Brown": fotoCompositRusticBrown, "Rustic grijs": fotoCompositRusticGrijs,
   "Eiken met zwart": fotoCompositEikenZwart,
 };
 const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
