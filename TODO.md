@@ -167,6 +167,17 @@
       projectnummer uit de link (?project=26007) zodat kantoor de link in de agenda-afspraak kan zetten;
       (3) later eventueel Power Automate die de link automatisch in de projectmap/afspraak zet.
 
+## iPad-test 07-10 — feedbackronde (punt voor punt)
+- [ ] 1. Vorige/Volgende-balk: staat niet goed onderaan, ruimte eronder.
+- [ ] 2. Voorbereidingen: "Ondergrond" eruit (geen vaste prijzen heipalen).
+- [ ] 3. Wanden/gevel: steenstrips (Vanderzanden-link, Dikformaat/Waalformaat, type + code, boven kozijn:
+      rollaag (niet bij overstek) / verticale rollaag / alucarbon); composiet met vaste kleuren + foto (zoals
+      wandlampen); Kerama boven de rest (brandklasse B), ingericht als steenstrips; hout handmatig laten.
+- [ ] 4. Kozijnen: schuifpui 2/4 delen (altijd met cilinder), loopdeur links/rechts (buitenaanzicht), vast glas
+      -> "ventilatieroosters in vast glas" + in welk veld; openslaand idem; harmonicawand + loopdeur met
+      automatisch tegengestelde openingsrichting.
+- [ ] 5. Afbeeldingen laden niet: lichtstraat (Dak), elektra (Merk/Type) en W-installaties/wandlampen.
+
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
       (steady-moxie-5e89b5.netlify.app).

@@ -38,7 +38,7 @@ const BLACK = "#1a1a1a";
 const LIGHT = "#f5f5f5";
 
 const styles = {
-  app: { fontFamily: "'Segoe UI', sans-serif", background: LIGHT, minHeight: "100vh", width: "100vw", boxSizing: "border-box", overflowX: "hidden", padding: 0, margin: 0, display: "flex", flexDirection: "column" },
+  app: { fontFamily: "'Segoe UI', sans-serif", background: LIGHT, minHeight: "100dvh", width: "100vw", boxSizing: "border-box", overflowX: "hidden", padding: 0, margin: 0, display: "flex", flexDirection: "column" },
   header: { borderTop: `5px solid ${GOLD}`, background: "white", padding: "12px 20px", borderBottom: `2px solid ${GOLD}`, display: "flex", alignItems: "center", gap: 14, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.07)" },
   logoImg: { height: 32, width: "auto", display: "block" },
   pageTitle: { fontSize: 18, fontWeight: 600, color: BLACK, marginLeft: 4 },
@@ -62,7 +62,8 @@ const styles = {
   checkLabel: { display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: BLACK, cursor: "pointer", minHeight: 40 },
   divider: { height: 1, background: `${GOLD}33`, margin: "12px 0" },
   // Navigatiebalk staat onderaan de pagina (na de inhoud), niet vast over de inhoud heen.
-  nav: { background: "white", borderTop: `2px solid ${GOLD}`, padding: "12px 20px", display: "flex", justifyContent: "space-between" },
+  // paddingBottom houdt rekening met de "home"-streep onderaan de iPad.
+  nav: { background: "white", borderTop: `2px solid ${GOLD}`, padding: "12px 20px", paddingBottom: "max(12px, env(safe-area-inset-bottom))", display: "flex", justifyContent: "space-between", alignItems: "center" },
   btnPrev: { background: "white", border: `2px solid ${GOLD}`, color: GOLD, borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
   btnNext: { background: GOLD, border: "none", color: "white", borderRadius: 8, padding: "10px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
   photoBox: { border: `2px dashed ${GOLD}`, borderRadius: 8, padding: 16, textAlign: "center", cursor: "pointer", background: "#fdfcf8", minHeight: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 },
@@ -2100,7 +2101,11 @@ export default function App() {
         <button style={styles.btnPrev} onClick={() => { setFoutmeldingen([]); setPage(p => Math.max(0, p - 1)); }} disabled={page === 0}>
           ← Vorige
         </button>
-        <span style={{ fontSize: 12, color: "#888", alignSelf: "center" }}>{page + 1} / {PAGES.length}</span>
+        <span style={{ fontSize: 12, color: "#888", textAlign: "center", lineHeight: 1.4 }}>
+          {page + 1} / {PAGES.length}
+          {/* eslint-disable-next-line no-undef */}
+          <span style={{ display: "block", fontSize: 9, color: "#bbb" }}>Versie {typeof __APP_VERSIE__ !== "undefined" ? __APP_VERSIE__ : "?"}</span>
+        </span>
         {page < PAGES.length - 1 ? (
           <button
             style={styles.btnNext}
@@ -2117,10 +2122,8 @@ export default function App() {
           >
             Volgende →
           </button>
-        ) : null}
+        ) : <div style={{ width: 120 }} />}
       </div>
-      {/* eslint-disable-next-line no-undef */}
-      <div style={{ textAlign: "center", fontSize: 10, color: "#bbb", padding: "4px 0 8px", background: "white" }}>Versie {typeof __APP_VERSIE__ !== "undefined" ? __APP_VERSIE__ : "?"}</div>
     </div>
   );
 }
