@@ -261,7 +261,6 @@ function PageChrome({ data, pageLabel, children, logoSrc }) {
 // visuele swatch kan tonen bij de gekozen optie. Dit zijn (nog) geen echte
 // productfoto's — als Viggo echte materiaalfoto's aanlevert, kunnen die de
 // swatch hieronder vervangen (en meteen ook de keuzekaarten in de app).
-const STEENSTRIP_KLEUREN = { Rood: "#c0392b", Grijs: "#95a5a6", Geel: "#d4ac0d" };
 const COMPOSIET_KLEUREN = { "Rustic Teak": "#8B6914", "Compleet zwart": "#1a1a1a", "Teak met zwart": "#4a3010" };
 
 // --- Foto's / schetsen: veld -> { label, key } -----------------------------
@@ -271,7 +270,7 @@ const FOTO_VELDEN = [
   { key: "fotoAchterBinnen", label: "Achtergevel — binnenkant" },
   { key: "fotoKruipruimte", label: "Kruipruimte" },
   { key: "fotoBereikbaarheid", label: "Bereikbaarheid werkplek" },
-  { key: "steenstripAndersFoto", label: "Gevelbekleding — Steenstrip (Anders)" },
+  { key: "steenstripFoto", label: "Gevelbekleding — Bestaande gevel (steenstrips)" },
   { key: "composietAndersFoto", label: "Gevelbekleding — Composiet (Anders)" },
   { key: "fotoVerdeler", label: "Bestaande verdeler (vloerverwarming)" },
   { key: "extraFoto1", label: "Extra foto 1" },
@@ -456,16 +455,16 @@ export default function InmeetPdf({ data, logoSrc }) {
         <Section
           title="Gevelbekleding"
           swatches={[
-            data.steenstrip && data.steenstrip !== "Anders"
-              ? { label: `Steenstrips: ${data.steenstrip}`, color: STEENSTRIP_KLEUREN[data.steenstrip] }
-              : null,
             data.composiet && data.composiet !== "Anders"
               ? { label: `Composiet: ${data.composiet}`, color: COMPOSIET_KLEUREN[data.composiet] }
               : null,
           ].filter(Boolean)}
           fields={[
-            ["Steenstrips", data.steenstrip === "Anders" ? data.steenstripAnders : data.steenstrip],
+            ["Steenstrips", data.steenstrip],
+            ["Steenstrip type", data.steenstripType],
+            ["Steenstrip code", data.steenstripCode],
             ["Voegkleur", data.steenstripVoegkleur],
+            ["Boven het kozijn", data.steenstripBovenKozijn],
             ["Composiet", data.composiet === "Anders" ? data.composietAnders : data.composiet],
             ["Kerama type", data.keramaType],
             ["Kerama kleur", data.keramaKleur],

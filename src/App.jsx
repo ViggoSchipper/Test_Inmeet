@@ -3,9 +3,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import logoUrl from "./assets/logo.png";
-import fotoSteenstripRood from "./assets/gevel/steenstrip-rood.jpg";
-import fotoSteenstripGrijs from "./assets/gevel/steenstrip-grijs.jpg";
-import fotoSteenstripGeel from "./assets/gevel/steenstrip-geel.jpg";
 import fotoCompositRusticTeak from "./assets/gevel/composiet-rustic-teak.jpg";
 import fotoCompositComleetZwart from "./assets/gevel/composiet-compleet-zwart.jpg";
 import fotoCompositTeakZwart from "./assets/gevel/composiet-teak-zwart.jpg";
@@ -16,7 +13,7 @@ import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import { legendaRijen, symboolOpKey } from "./symbolen";
 import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
 import { conceptLaden, conceptBewaren, conceptWissen } from "./concept";
-import { schoneData, kozijnOpties, kozijnVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
+import { schoneData, STEENSTRIP_FORMATEN, STEENSTRIP_LINK, kozijnOpties, kozijnVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -501,7 +498,7 @@ const VERDELER_LET_OP = "LET OP: het ophangen en aansluiten van de verdeler gebe
 const SAMENVATTING_BEELDEN = [
   ["fotoAchterBuiten", "Achtergevel buiten", 4], ["fotoAchterBinnen", "Achtergevel binnen", 4],
   ["fotoKruipruimte", "Kruipruimte", 4], ["fotoBereikbaarheid", "Bereikbaarheid", 4],
-  ["steenstripAndersFoto", "Steenstrip (anders)", 5], ["composietAndersFoto", "Composiet (anders)", 5],
+  ["steenstripFoto", "Bestaande gevel (steenstrips)", 5], ["composietAndersFoto", "Composiet (anders)", 5],
   ["schetsMaatvoering", "Schets maatvoering", 2], ["schetsKozijn1", "Schets kozijn 1", 7],
   ["schetsKozijn2", "Schets kozijn 2", 9], ["schetsKozijn3", "Schets kozijn 3", 11],
   ["schetsLichtstraatPositie", "Positie lichtstraat", 12], ["fotoVerdeler", "Bestaande verdeler", 14],
@@ -614,9 +611,14 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwandafwerking");
     if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
-    const ietsGekozen = heeftWaarde(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
+    const ietsGekozen = STEENSTRIP_FORMATEN.includes(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
     if (!ietsGekozen) missend.push("Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)");
-    if (heeftWaarde(data.steenstrip) && !heeftWaarde(data.steenstripVoegkleur)) missend.push("Voegkleur steenstrips");
+    if (STEENSTRIP_FORMATEN.includes(data.steenstrip)) {
+      if (!heeftWaarde(data.steenstripType)) missend.push("Type / omschrijving steenstrips");
+      if (!heeftWaarde(data.steenstripCode)) missend.push("Code steenstrips");
+      if (!heeftWaarde(data.steenstripVoegkleur)) missend.push("Voegkleur steenstrips");
+      if (!heeftWaarde(data.steenstripBovenKozijn)) missend.push("Steenstrips: afwerking boven het kozijn");
+    }
     return missend;
   },
   // 6: Kozijn 1 (altijd verplicht)
@@ -671,7 +673,6 @@ export default function App() {
   // Bij elke andere pagina bovenaan beginnen (de navigatiebalk staat onderaan).
   useEffect(() => { window.scrollTo(0, 0); setVerstePagina(v => Math.max(v, page)); }, [page]);
   const [foutmeldingen, setFoutmeldingen] = useState([]);
-  const steenstripAndersFotoRef = useRef(null);
   const composietAndersFotoRef = useRef(null);
   const [data, setData] = useState({
     // Contact
@@ -691,7 +692,7 @@ export default function App() {
     // Wandafwerking
     binnenwand: "", stucwerk: "",
     // Gevelbekleding
-    steenstrip: "", steenstripAnders: "", steenstripAndersFoto: null, steenstripVoegkleur: "",
+    steenstrip: "", steenstripType: "", steenstripCode: "", steenstripVoegkleur: "", steenstripBovenKozijn: "", steenstripFoto: null,
     composiet: "", composietAnders: "", composietAndersFoto: null,
     keramaType: "", keramaKleur: "",
     houtType: "", houtKleur: "",
@@ -1334,46 +1335,42 @@ export default function App() {
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, color: BLACK, marginBottom: 10 }}>Gevelbekleding</div>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Steenstrips</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-            {[{ val: "Rood", hint: "Viola 0013A0", foto: fotoSteenstripRood }, { val: "Grijs", hint: "Platina 0004A0", foto: fotoSteenstripGrijs }, { val: "Geel", hint: "Freya 0504A0", foto: fotoSteenstripGeel }].map(opt => (
-              <div key={opt.val} style={styles.optionCard(data.steenstrip === opt.val)} onClick={() => set("steenstrip", opt.val)}>
-                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
-                  <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <input type="radio" readOnly checked={data.steenstrip === opt.val} style={{ accentColor: GOLD }} />
-                  <span style={{ fontSize: 12 }}>{opt.val}</span>
-                </div>
-                <div style={{ fontSize: 11, color: GOLD }}>{opt.hint}</div>
-              </div>
-            ))}
-            <div style={styles.optionCard(data.steenstrip === "Anders")}>
-              <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden", cursor: "pointer" }}
-                onClick={() => { set("steenstrip", "Anders"); steenstripAndersFotoRef.current?.click(); }}>
-                {data.steenstripAndersFoto ? (
-                  <img src={data.steenstripAndersFoto} alt="Anders" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", border: `2px dashed ${GOLD}`, borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                    <span style={{ fontSize: 20 }}>📷</span>
-                    <span style={{ fontSize: 11, color: GOLD }}>Foto toevoegen</span>
-                  </div>
-                )}
-              </div>
-              <input ref={steenstripAndersFotoRef} type="file" accept="image/*" style={{ display: "none" }}
-                onChange={e => { const f = e.target.files[0]; if (f) fotoInlezen(f).then(url => { set("steenstripAndersFoto", url); set("steenstrip", "Anders"); }); e.target.value = ""; }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input type="radio" readOnly checked={data.steenstrip === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("steenstrip", "Anders")} />
-                <span style={{ fontSize: 12 }}>Type:</span>
-              </div>
-              <input style={{ ...styles.input, marginTop: 4, fontSize: 11 }} placeholder="Invullen..." value={data.steenstripAnders}
-                onChange={e => { set("steenstripAnders", e.target.value); set("steenstrip", "Anders"); }} />
-            </div>
+          <a href={STEENSTRIP_LINK} target="_blank" rel="noopener noreferrer"
+            style={{ display: "inline-block", padding: "10px 16px", borderRadius: 8, border: `2px solid ${GOLD}`, color: GOLD, fontWeight: 700, fontSize: 13, textDecoration: "none", marginBottom: 12 }}>
+            Bekijk steenstrips bij Vandersanden ↗
+          </a>
+          <div style={{ ...styles.row, marginBottom: 6 }}>
+            <div style={styles.label}>Formaat:</div>
+            <RadioGroup name="steenstrip" options={STEENSTRIP_FORMATEN} value={data.steenstrip} onChange={v => set("steenstrip", v)} />
           </div>
-          {heeftWaarde(data.steenstrip) && (
-            <div style={{ ...styles.row, marginBottom: 16 }}>
-              <div style={styles.label}>Voegkleur:</div>
-              <input style={styles.input} placeholder="bijv. Antraciet" value={data.steenstripVoegkleur}
-                onChange={e => set("steenstripVoegkleur", e.target.value)} />
+          {STEENSTRIP_FORMATEN.includes(data.steenstrip) && (
+            <div style={{ ...styles.subSection, marginBottom: 16 }}>
+              <div style={{ ...styles.row, marginBottom: 10 }}>
+                <div style={styles.label}>Type:</div>
+                <input style={styles.input} placeholder="Type / omschrijving, bijv. Mano Rosso" value={data.steenstripType}
+                  onChange={e => set("steenstripType", e.target.value)} />
+              </div>
+              <div style={{ ...styles.row, marginBottom: 10 }}>
+                <div style={styles.label}>Code:</div>
+                <input style={styles.input} placeholder="Code van Vandersanden (ter controle)" value={data.steenstripCode}
+                  onChange={e => set("steenstripCode", e.target.value)} />
+              </div>
+              <div style={{ ...styles.row, marginBottom: 10 }}>
+                <div style={styles.label}>Voegkleur:</div>
+                <input style={styles.input} placeholder="bijv. Antraciet" value={data.steenstripVoegkleur}
+                  onChange={e => set("steenstripVoegkleur", e.target.value)} />
+              </div>
+              <div style={{ ...styles.row, marginBottom: 4 }}>
+                <div style={styles.label}>Boven het kozijn:</div>
+                <RadioGroup name="steenstripBovenKozijn" options={["Verticale rollaag", "Alucarbon"]} value={data.steenstripBovenKozijn} onChange={v => set("steenstripBovenKozijn", v)} />
+              </div>
+              <div style={styles.hint}>Wanneer u een overstek heeft, kunt u niet kiezen voor een rollaag.</div>
+              {data.overstek === "Ja" && data.steenstripBovenKozijn === "Verticale rollaag" && (
+                <div style={{ fontSize: 12, color: "#c0392b", fontWeight: 600, marginTop: 6 }}>Let op: bij Dak & Lichtstraat is een overstek ingevuld. Kies dan Alucarbon.</div>
+              )}
+              <div style={{ marginTop: 14 }}>
+                <PhotoUpload label="Foto bestaande gevel" hint="Zodat kantoor de steenstrip goed kan matchen" value={data.steenstripFoto} onChange={v => set("steenstripFoto", v)} />
+              </div>
             </div>
           )}
 
@@ -1945,7 +1942,7 @@ export default function App() {
             ["Maatvoering", 1, "", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
             ["Voorbereidingen", 3, "", [["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
             ["Wandafwerking", 5, "", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
-            ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip === "Anders" ? sd.steenstripAnders : sd.steenstrip], ["Voegkleur", sd.steenstripVoegkleur], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
+            ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip], ["Type", sd.steenstripType], ["Code", sd.steenstripCode], ["Voegkleur", sd.steenstripVoegkleur], ["Boven het kozijn", sd.steenstripBovenKozijn], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
             ["Kozijn 1", 6, "k1Opmerking", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
             ["Kozijn 2", 8, "k2Opmerking", [["Type", sd.k2Type], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
             ["Kozijn 3", 10, "k3Opmerking", [["Type", sd.k3Type], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],

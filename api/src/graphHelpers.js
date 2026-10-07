@@ -11,7 +11,7 @@ const FOTO_VELDEN = {
   fotoKruipruimte: "Foto_Kruipruimte",
   fotoBereikbaarheid: "Foto_Bereikbaarheid",
   fotoVerdeler: "Foto_Verdeler",
-  steenstripAndersFoto: "Foto_SteenstripAnders",
+  steenstripFoto: "Foto_BestaandeGevel",
   composietAndersFoto: "Foto_ComposietAnders",
   extraFoto1: "Foto_Extra1",
   extraFoto2: "Foto_Extra2",

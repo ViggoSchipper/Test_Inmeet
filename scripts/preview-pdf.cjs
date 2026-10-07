@@ -57,7 +57,7 @@ const data = {
 
   binnenwand: "Spuitwerk", stucwerk: "Glad",
 
-  steenstrip: "Rood", steenstripAnders: "",
+  steenstrip: "Dikformaat (215x20x65)", steenstripType: "Mano Rosso", steenstripCode: "1234", steenstripBovenKozijn: "Alucarbon",
   composiet: "Compleet zwart", composietAnders: "",
   keramaType: "Kerama Marazzi", keramaKleur: "Antraciet",
   houtType: "", houtKleur: "",

@@ -8,6 +8,9 @@
 export const E_UITVOERING_COMPLEET = "AddOn levert en monteert alles incl. afmontage";
 export const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en dozen";
 
+export const STEENSTRIP_FORMATEN = ["Dikformaat (215x20x65)", "Waalformaat (210x20x50)"];
+export const STEENSTRIP_LINK = "https://www.vandersanden.com/nl-nl/productzoeker/steenstrips";
+
 // Welke kozijnopties bij welk kozijntype horen.
 export const KOZIJN_OPTIES = {
   Schuifpui: ["Hefschuifpui", "Binnen/buiten cilinder", "Actief links (buitenaanzicht)", "Actief rechts (buitenaanzicht)", "4-delig (met zijlichten)", "Vast glas"],
@@ -35,8 +38,11 @@ export function schoneData(data) {
   if (d.geenKruipruimte) geen("fotoKruipruimte");
 
   // Gevelbekleding
-  if (d.steenstrip !== "Anders") { leeg("steenstripAnders"); geen("steenstripAndersFoto"); }
-  if (!d.steenstrip) leeg("steenstripVoegkleur");
+  if (!STEENSTRIP_FORMATEN.includes(d.steenstrip)) {
+    leeg("steenstrip", "steenstripType", "steenstripCode", "steenstripVoegkleur", "steenstripBovenKozijn"); geen("steenstripFoto");
+  }
+  // Oude velden (vóór de Vandersanden-opzet), kunnen nog in een concept staan.
+  delete s.steenstripAnders; delete s.steenstripAndersFoto;
   if (d.composiet !== "Anders") { leeg("composietAnders"); geen("composietAndersFoto"); }
 
   // Kozijnen

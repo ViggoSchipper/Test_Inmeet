@@ -170,7 +170,9 @@
 ## iPad-test 07-10 — feedbackronde (punt voor punt)
 - [x] 1. Vorige/Volgende-balk: staat niet goed onderaan, ruimte eronder.
 - [x] 2. Voorbereidingen: "Ondergrond" eruit (geen vaste prijzen heipalen).
-- [ ] 3. Wanden/gevel: steenstrips (Vanderzanden-link, Dikformaat/Waalformaat, type + code, boven kozijn:
+- [x] 3a. Steenstrips: Vandersanden-link, formaat, type, code, voegkleur, boven kozijn (verticale rollaag /
+      alucarbon, waarschuwing bij overstek), foto bestaande gevel. (Backend: foto heet nu Foto_BestaandeGevel.)
+- [ ] 3. Wanden/gevel (rest): steenstrips (Vanderzanden-link, Dikformaat/Waalformaat, type + code, boven kozijn:
       rollaag (niet bij overstek) / verticale rollaag / alucarbon); composiet met vaste kleuren + foto (zoals
       wandlampen); Kerama boven de rest (brandklasse B), ingericht als steenstrips; hout handmatig laten.
 - [ ] 4. Kozijnen: schuifpui 2/4 delen (altijd met cilinder), loopdeur links/rechts (buitenaanzicht), vast glas
