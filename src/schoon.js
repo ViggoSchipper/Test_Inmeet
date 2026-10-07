@@ -11,7 +11,7 @@ export const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en doze
 export const STEENSTRIP_FORMATEN = ["Dikformaat (215x20x65)", "Waalformaat (210x20x50)"];
 export const STEENSTRIP_LINK = "https://www.vandersanden.com/nl-nl/productzoeker/steenstrips";
 export const KERAMA_LINK = "https://keramagroup.nl/gevelbekleding/";
-export const HOUT_LINK = ""; // nog aan te leveren
+export const HOUT_LINK = "https://www.gevenhout.nl/producten/__specie.thermo-frake";
 
 export const COMPOSIET_KLEUREN = ["Teak met zwart", "Zwart", "Rustic Teak", "Rustic Eiken", "Rustic Brown", "Rustic grijs", "Eiken met zwart"];
 
