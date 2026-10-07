@@ -45,8 +45,8 @@ export function schoneData(data) {
   }
   // Oude velden (vóór de Vandersanden-opzet), kunnen nog in een concept staan.
   delete s.steenstripAnders; delete s.steenstripAndersFoto;
-  if (d.composiet !== "Anders") { leeg("composietAnders"); geen("composietAndersFoto"); }
-  if (d.composiet !== "Anders" && !COMPOSIET_KLEUREN.includes(d.composiet)) leeg("composiet");
+  if (!COMPOSIET_KLEUREN.includes(d.composiet)) { leeg("composiet"); s.composietBreed = false; }
+  delete s.composietAnders; delete s.composietAndersFoto;
 
   // Kozijnen
   ["k1", "k2", "k3"].forEach((p) => {

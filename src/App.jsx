@@ -496,7 +496,7 @@ const WANDLAMPEN = [
     { kleur: "Antraciet", code: "7758", foto: fotoNoaAntraciet, opmerking: "Alleen leverbaar in RAL 7021 (niet in RAL 7016)" },
   ] },
 ].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
-// Composiet gevelbekleding (Rhombus-smal profiel): vaste kleuren met foto.
+// Composiet gevelbekleding (Rhombus-profiel, standaard smal): vaste kleuren met foto.
 const COMPOSIET_FOTOS = {
   "Teak met zwart": fotoCompositTeakZwart, "Zwart": fotoCompositZwart, "Rustic Teak": fotoCompositRusticTeak,
   "Rustic Eiken": fotoCompositRusticEiken, "Rustic Brown": fotoCompositRusticBrown, "Rustic grijs": fotoCompositRusticGrijs,
@@ -508,7 +508,7 @@ const VERDELER_LET_OP = "LET OP: het ophangen en aansluiten van de verdeler gebe
 const SAMENVATTING_BEELDEN = [
   ["fotoAchterBuiten", "Achtergevel buiten", 4], ["fotoAchterBinnen", "Achtergevel binnen", 4],
   ["fotoKruipruimte", "Kruipruimte", 4], ["fotoBereikbaarheid", "Bereikbaarheid", 4],
-  ["steenstripFoto", "Bestaande gevel (steenstrips)", 5], ["composietAndersFoto", "Composiet (anders)", 5],
+  ["steenstripFoto", "Bestaande gevel (steenstrips)", 5],
   ["schetsMaatvoering", "Schets maatvoering", 2], ["schetsKozijn1", "Schets kozijn 1", 7],
   ["schetsKozijn2", "Schets kozijn 2", 9], ["schetsKozijn3", "Schets kozijn 3", 11],
   ["schetsLichtstraatPositie", "Positie lichtstraat", 12], ["fotoVerdeler", "Bestaande verdeler", 14],
@@ -621,7 +621,7 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwandafwerking");
     if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
-    const ietsGekozen = STEENSTRIP_FORMATEN.includes(data.steenstrip) || COMPOSIET_KLEUREN.includes(data.composiet) || data.composiet === "Anders" || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
+    const ietsGekozen = STEENSTRIP_FORMATEN.includes(data.steenstrip) || COMPOSIET_KLEUREN.includes(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
     if (!ietsGekozen) missend.push("Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)");
     if (STEENSTRIP_FORMATEN.includes(data.steenstrip)) {
       if (!heeftWaarde(data.steenstripType)) missend.push("Type / omschrijving steenstrips");
@@ -702,7 +702,7 @@ export default function App() {
     binnenwand: "", stucwerk: "",
     // Gevelbekleding
     steenstrip: "", steenstripType: "", steenstripCode: "", steenstripVoegkleur: "", steenstripBovenKozijn: "", steenstripFoto: null,
-    composiet: "", composietAnders: "", composietAndersFoto: null,
+    composiet: "", composietBreed: false,
     keramaType: "", keramaKleur: "",
     houtType: "", houtKleur: "",
     gevelOpmerking: "",
@@ -1383,31 +1383,25 @@ export default function App() {
           )}
 
           <div style={styles.divider} />
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Rhombus-smal profiel (Composiet)</div>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
-            <div style={{ flex: "1 1 220px", minWidth: 0 }}>
-              {[...COMPOSIET_KLEUREN, "Anders"].map(k => (
-                <label key={k} style={{ ...styles.radioLabel, display: "flex", marginBottom: 6 }} onClick={() => set("composiet", k)}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Rhombus profiel (Composiet)</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+            {COMPOSIET_KLEUREN.map(k => (
+              <div key={k} style={styles.optionCard(data.composiet === k)} onClick={() => set("composiet", data.composiet === k ? "" : k)}>
+                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
+                  <img src={COMPOSIET_FOTOS[k]} alt={k} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <input type="radio" readOnly checked={data.composiet === k} style={{ accentColor: GOLD }} />
-                  {k}
-                </label>
-              ))}
-              {data.composiet === "Anders" && (
-                <input style={{ ...styles.input, marginTop: 4 }} placeholder="Type / kleur invullen..." value={data.composietAnders}
-                  onChange={e => set("composietAnders", e.target.value)} />
-              )}
-            </div>
-            {COMPOSIET_KLEUREN.includes(data.composiet) && (COMPOSIET_FOTOS[data.composiet] ? (
-              <img src={COMPOSIET_FOTOS[data.composiet]} alt={data.composiet}
-                style={{ width: 180, height: 180, objectFit: "cover", borderRadius: 6, border: "1px solid #e0e0e0", flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: 180, height: 180, borderRadius: 6, border: "1px dashed #ccc", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#999", flexShrink: 0 }}>Foto volgt</div>
-            ))}
-            {data.composiet === "Anders" && (
-              <div style={{ width: 180, flexShrink: 0 }}>
-                <PhotoUpload value={data.composietAndersFoto} onChange={v => set("composietAndersFoto", v)} />
+                  <span style={{ fontSize: 12 }}>{k}</span>
+                </div>
               </div>
-            )}
+            ))}
+            <div style={{ ...styles.optionCard(data.composietBreed), display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 8 }}
+              onClick={() => set("composietBreed", !data.composietBreed)}>
+              <input type="checkbox" readOnly checked={!!data.composietBreed} style={{ accentColor: GOLD }} />
+              <span style={{ fontSize: 13, fontWeight: 700 }}>Rhombus breed</span>
+              <span style={{ fontSize: 11, color: "#888" }}>i.p.v. smal (standaard)</span>
+            </div>
           </div>
 
           <div style={styles.divider} />
@@ -1941,7 +1935,7 @@ export default function App() {
             ["Maatvoering", 1, "", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
             ["Voorbereidingen", 3, "", [["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
             ["Wandafwerking", 5, "", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
-            ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip], ["Type", sd.steenstripType], ["Code", sd.steenstripCode], ["Voegkleur", sd.steenstripVoegkleur], ["Boven het kozijn", sd.steenstripBovenKozijn], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
+            ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip], ["Type", sd.steenstripType], ["Code", sd.steenstripCode], ["Voegkleur", sd.steenstripVoegkleur], ["Boven het kozijn", sd.steenstripBovenKozijn], ["Composiet", sd.composiet], ["Composiet profiel", sd.composiet ? (sd.composietBreed ? "Rhombus breed" : "Rhombus smal") : ""], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
             ["Kozijn 1", 6, "k1Opmerking", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
             ["Kozijn 2", 8, "k2Opmerking", [["Type", sd.k2Type], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
             ["Kozijn 3", 10, "k3Opmerking", [["Type", sd.k3Type], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],

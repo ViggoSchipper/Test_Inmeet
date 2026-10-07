@@ -12,7 +12,6 @@ const FOTO_VELDEN = {
   fotoBereikbaarheid: "Foto_Bereikbaarheid",
   fotoVerdeler: "Foto_Verdeler",
   steenstripFoto: "Foto_BestaandeGevel",
-  composietAndersFoto: "Foto_ComposietAnders",
   extraFoto1: "Foto_Extra1",
   extraFoto2: "Foto_Extra2",
   extraFoto3: "Foto_Extra3",
