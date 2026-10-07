@@ -171,7 +171,7 @@
 - [x] 1. Vorige/Volgende-balk: staat niet goed onderaan, ruimte eronder.
 - [x] 2. Voorbereidingen: "Ondergrond" eruit (geen vaste prijzen heipalen).
 - [x] 3a. Steenstrips: Vandersanden-link, formaat, type, code, voegkleur, boven kozijn (verticale rollaag /
-      alucarbon, waarschuwing bij overstek), foto bestaande gevel. (Backend: foto heet nu Foto_BestaandeGevel.)
+      alucarbon, waarschuwing bij overstek), voegkleur licht-/midden-/donkergrijs, foto bestaande gevel. (Backend: foto heet nu Foto_BestaandeGevel.)
 - [ ] 3. Wanden/gevel (rest): steenstrips (Vanderzanden-link, Dikformaat/Waalformaat, type + code, boven kozijn:
       rollaag (niet bij overstek) / verticale rollaag / alucarbon); composiet met vaste kleuren + foto (zoals
       wandlampen); Kerama boven de rest (brandklasse B), ingericht als steenstrips; hout handmatig laten.

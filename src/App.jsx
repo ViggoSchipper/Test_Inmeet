@@ -1357,8 +1357,7 @@ export default function App() {
               </div>
               <div style={{ ...styles.row, marginBottom: 10 }}>
                 <div style={styles.label}>Voegkleur:</div>
-                <input style={styles.input} placeholder="bijv. Antraciet" value={data.steenstripVoegkleur}
-                  onChange={e => set("steenstripVoegkleur", e.target.value)} />
+                <RadioGroup name="steenstripVoegkleur" options={["Lichtgrijs", "Middengrijs", "Donkergrijs"]} value={data.steenstripVoegkleur} onChange={v => set("steenstripVoegkleur", v)} />
               </div>
               <div style={{ ...styles.row, marginBottom: 4 }}>
                 <div style={styles.label}>Boven het kozijn:</div>
