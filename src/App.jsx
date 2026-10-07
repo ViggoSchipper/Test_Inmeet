@@ -4,8 +4,11 @@
 import { useState, useRef, useEffect } from "react";
 import logoUrl from "./assets/logo.png";
 import fotoCompositRusticTeak from "./assets/gevel/composiet-rustic-teak.jpg";
-import fotoCompositComleetZwart from "./assets/gevel/composiet-compleet-zwart.jpg";
+import fotoCompositZwart from "./assets/gevel/composiet-zwart.jpg";
 import fotoCompositTeakZwart from "./assets/gevel/composiet-teak-zwart.jpg";
+import fotoCompositRusticBrown from "./assets/gevel/composiet-rustic-brown.jpg";
+import fotoCompositRusticGrijs from "./assets/gevel/composiet-rustic-grijs.jpg";
+import fotoCompositEikenZwart from "./assets/gevel/composiet-eiken-zwart.jpg";
 import fotoKerama from "./assets/gevel/kerama.jpg";
 import fotoHoutThermisch from "./assets/gevel/hout-thermisch.jpg";
 import fotoLichtstraatLessenaar from "./assets/lichtstraat/lessenaar.jpg";
@@ -13,7 +16,7 @@ import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import { legendaRijen, symboolOpKey } from "./symbolen";
 import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
 import { conceptLaden, conceptBewaren, conceptWissen } from "./concept";
-import { schoneData, STEENSTRIP_FORMATEN, STEENSTRIP_LINK, kozijnOpties, kozijnVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
+import { schoneData, STEENSTRIP_FORMATEN, COMPOSIET_KLEUREN, STEENSTRIP_LINK, kozijnOpties, kozijnVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -492,6 +495,12 @@ const WANDLAMPEN = [
     { kleur: "Antraciet", code: "7758", foto: fotoNoaAntraciet, opmerking: "Alleen leverbaar in RAL 7021 (niet in RAL 7016)" },
   ] },
 ].map(s => ({ ...s, opties: s.opties.map(o => ({ ...o, label: `${s.serie} - ${o.kleur} (${o.code})` })) }));
+// Composiet gevelbekleding (Rhombus-smal profiel): vaste kleuren met foto.
+const COMPOSIET_FOTOS = {
+  "Teak met zwart": fotoCompositTeakZwart, "Zwart": fotoCompositZwart, "Rustic Teak": fotoCompositRusticTeak,
+  "Rustic Eiken": null, "Rustic Brown": fotoCompositRusticBrown, "Rustic grijs": fotoCompositRusticGrijs,
+  "Eiken met zwart": fotoCompositEikenZwart,
+};
 const wandlampFoto = (label) => WANDLAMPEN.flatMap(s => s.opties).find(o => o.label === label)?.foto;
 const VERDELER_LET_OP = "LET OP: het ophangen en aansluiten van de verdeler gebeurt altijd op stelpost, vanwege de verschillende situaties. Op de locatie van de verdeler dient een stopcontact aanwezig te zijn. Is dit er niet, dan dient dit met AddOn afgestemd te worden. AddOn kan op de plek van de verdeler voor € 300,- incl. btw een stopcontact realiseren.";
 // Foto's en tekeningen in de samenvatting: [veld, omschrijving, pagina-index].
@@ -611,7 +620,7 @@ const PAGE_VALIDATORS = [
     const missend = [];
     if (!heeftWaarde(data.binnenwand)) missend.push("Binnenwandafwerking");
     if (data.binnenwand === "Compleet afgewerkt" && !heeftWaarde(data.stucwerk)) missend.push("Stucwerk");
-    const ietsGekozen = STEENSTRIP_FORMATEN.includes(data.steenstrip) || heeftWaarde(data.composiet) || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
+    const ietsGekozen = STEENSTRIP_FORMATEN.includes(data.steenstrip) || COMPOSIET_KLEUREN.includes(data.composiet) || data.composiet === "Anders" || heeftWaarde(data.keramaType) || heeftWaarde(data.houtType);
     if (!ietsGekozen) missend.push("Minimaal één gevelbekleding-optie (steenstrips, composiet, kerama of hout)");
     if (STEENSTRIP_FORMATEN.includes(data.steenstrip)) {
       if (!heeftWaarde(data.steenstripType)) missend.push("Type / omschrijving steenstrips");
@@ -673,7 +682,6 @@ export default function App() {
   // Bij elke andere pagina bovenaan beginnen (de navigatiebalk staat onderaan).
   useEffect(() => { window.scrollTo(0, 0); setVerstePagina(v => Math.max(v, page)); }, [page]);
   const [foutmeldingen, setFoutmeldingen] = useState([]);
-  const composietAndersFotoRef = useRef(null);
   const [data, setData] = useState({
     // Contact
     projectnummer: "",
@@ -1375,39 +1383,30 @@ export default function App() {
 
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Rhombus-smal profiel (Composiet)</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-            {[{ val: "Rustic Teak", foto: fotoCompositRusticTeak }, { val: "Compleet zwart", foto: fotoCompositComleetZwart }, { val: "Teak met zwart", foto: fotoCompositTeakZwart }].map(opt => (
-              <div key={opt.val} style={styles.optionCard(data.composiet === opt.val)} onClick={() => set("composiet", opt.val)}>
-                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
-                  <img src={opt.foto} alt={opt.val} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <input type="radio" readOnly checked={data.composiet === opt.val} style={{ accentColor: GOLD }} />
-                  <span style={{ fontSize: 12 }}>{opt.val}</span>
-                </div>
-              </div>
-            ))}
-            <div style={styles.optionCard(data.composiet === "Anders")}>
-              <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden", cursor: "pointer" }}
-                onClick={() => { set("composiet", "Anders"); composietAndersFotoRef.current?.click(); }}>
-                {data.composietAndersFoto ? (
-                  <img src={data.composietAndersFoto} alt="Anders" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", border: `2px dashed ${GOLD}`, borderRadius: 6, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                    <span style={{ fontSize: 20 }}>📷</span>
-                    <span style={{ fontSize: 11, color: GOLD }}>Foto toevoegen</span>
-                  </div>
-                )}
-              </div>
-              <input ref={composietAndersFotoRef} type="file" accept="image/*" style={{ display: "none" }}
-                onChange={e => { const f = e.target.files[0]; if (f) fotoInlezen(f).then(url => { set("composietAndersFoto", url); set("composiet", "Anders"); }); e.target.value = ""; }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input type="radio" readOnly checked={data.composiet === "Anders"} style={{ accentColor: GOLD }} onClick={() => set("composiet", "Anders")} />
-                <span style={{ fontSize: 12 }}>Type:</span>
-              </div>
-              <input style={{ ...styles.input, marginTop: 4, fontSize: 11 }} placeholder="Invullen..." value={data.composietAnders}
-                onChange={e => { set("composietAnders", e.target.value); set("composiet", "Anders"); }} />
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+            <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+              {[...COMPOSIET_KLEUREN, "Anders"].map(k => (
+                <label key={k} style={{ ...styles.radioLabel, display: "flex", marginBottom: 6 }} onClick={() => set("composiet", k)}>
+                  <input type="radio" readOnly checked={data.composiet === k} style={{ accentColor: GOLD }} />
+                  {k}
+                </label>
+              ))}
+              {data.composiet === "Anders" && (
+                <input style={{ ...styles.input, marginTop: 4 }} placeholder="Type / kleur invullen..." value={data.composietAnders}
+                  onChange={e => set("composietAnders", e.target.value)} />
+              )}
             </div>
+            {COMPOSIET_KLEUREN.includes(data.composiet) && (COMPOSIET_FOTOS[data.composiet] ? (
+              <img src={COMPOSIET_FOTOS[data.composiet]} alt={data.composiet}
+                style={{ width: 180, height: 180, objectFit: "cover", borderRadius: 6, border: "1px solid #e0e0e0", flexShrink: 0 }} />
+            ) : (
+              <div style={{ width: 180, height: 180, borderRadius: 6, border: "1px dashed #ccc", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#999", flexShrink: 0 }}>Foto volgt</div>
+            ))}
+            {data.composiet === "Anders" && (
+              <div style={{ width: 180, flexShrink: 0 }}>
+                <PhotoUpload value={data.composietAndersFoto} onChange={v => set("composietAndersFoto", v)} />
+              </div>
+            )}
           </div>
 
           <div style={styles.divider} />

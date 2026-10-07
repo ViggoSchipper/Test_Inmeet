@@ -261,7 +261,6 @@ function PageChrome({ data, pageLabel, children, logoSrc }) {
 // visuele swatch kan tonen bij de gekozen optie. Dit zijn (nog) geen echte
 // productfoto's — als Viggo echte materiaalfoto's aanlevert, kunnen die de
 // swatch hieronder vervangen (en meteen ook de keuzekaarten in de app).
-const COMPOSIET_KLEUREN = { "Rustic Teak": "#8B6914", "Compleet zwart": "#1a1a1a", "Teak met zwart": "#4a3010" };
 
 // --- Foto's / schetsen: veld -> { label, key } -----------------------------
 
@@ -454,11 +453,6 @@ export default function InmeetPdf({ data, logoSrc }) {
         />
         <Section
           title="Gevelbekleding"
-          swatches={[
-            data.composiet && data.composiet !== "Anders"
-              ? { label: `Composiet: ${data.composiet}`, color: COMPOSIET_KLEUREN[data.composiet] }
-              : null,
-          ].filter(Boolean)}
           fields={[
             ["Steenstrips", data.steenstrip],
             ["Steenstrip type", data.steenstripType],

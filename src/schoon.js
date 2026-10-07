@@ -11,6 +11,8 @@ export const E_UITVOERING_LEIDINGWERK = "AddOn verzorgt alleen leidingen en doze
 export const STEENSTRIP_FORMATEN = ["Dikformaat (215x20x65)", "Waalformaat (210x20x50)"];
 export const STEENSTRIP_LINK = "https://www.vandersanden.com/nl-nl/productzoeker/steenstrips";
 
+export const COMPOSIET_KLEUREN = ["Teak met zwart", "Zwart", "Rustic Teak", "Rustic Eiken", "Rustic Brown", "Rustic grijs", "Eiken met zwart"];
+
 // Welke kozijnopties bij welk kozijntype horen.
 export const KOZIJN_OPTIES = {
   Schuifpui: ["Hefschuifpui", "Binnen/buiten cilinder", "Actief links (buitenaanzicht)", "Actief rechts (buitenaanzicht)", "4-delig (met zijlichten)", "Vast glas"],
@@ -44,6 +46,7 @@ export function schoneData(data) {
   // Oude velden (vóór de Vandersanden-opzet), kunnen nog in een concept staan.
   delete s.steenstripAnders; delete s.steenstripAndersFoto;
   if (d.composiet !== "Anders") { leeg("composietAnders"); geen("composietAndersFoto"); }
+  if (d.composiet !== "Anders" && !COMPOSIET_KLEUREN.includes(d.composiet)) leeg("composiet");
 
   // Kozijnen
   ["k1", "k2", "k3"].forEach((p) => {
