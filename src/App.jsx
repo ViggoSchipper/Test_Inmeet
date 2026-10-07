@@ -1384,24 +1384,24 @@ export default function App() {
 
           <div style={styles.divider} />
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Rhombus profiel (Composiet)</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-            {COMPOSIET_KLEUREN.map(k => (
-              <div key={k} style={styles.optionCard(data.composiet === k)} onClick={() => set("composiet", data.composiet === k ? "" : k)}>
-                <div style={{ aspectRatio: "1 / 1", borderRadius: 6, marginBottom: 6, overflow: "hidden" }}>
-                  <img src={COMPOSIET_FOTOS[k]} alt={k} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start", marginBottom: 16 }}>
+            <div style={{ flex: "1 1 360px", minWidth: 0, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px 12px" }}>
+              {COMPOSIET_KLEUREN.map(k => (
+                <label key={k} style={{ ...styles.radioLabel, display: "flex" }} onClick={e => { e.preventDefault(); set("composiet", data.composiet === k ? "" : k); }}>
                   <input type="radio" readOnly checked={data.composiet === k} style={{ accentColor: GOLD }} />
-                  <span style={{ fontSize: 12 }}>{k}</span>
-                </div>
-              </div>
-            ))}
-            <div style={{ ...styles.optionCard(data.composietBreed), display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 8 }}
-              onClick={() => set("composietBreed", !data.composietBreed)}>
-              <input type="checkbox" readOnly checked={!!data.composietBreed} style={{ accentColor: GOLD }} />
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Rhombus breed</span>
-              <span style={{ fontSize: 11, color: "#888" }}>i.p.v. smal (standaard)</span>
+                  {k}
+                </label>
+              ))}
+              <label style={{ ...styles.radioLabel, display: "flex", fontWeight: 600 }} onClick={e => { e.preventDefault(); set("composietBreed", !data.composietBreed); }}>
+                <input type="checkbox" readOnly checked={!!data.composietBreed} style={{ accentColor: GOLD }} />
+                Rhombus breed
+              </label>
+              <div style={{ ...styles.hint, gridColumn: "1 / -1", marginTop: 0 }}>Standaard is het profiel smal. Vink "Rhombus breed" aan voor de brede uitvoering.</div>
             </div>
+            {COMPOSIET_FOTOS[data.composiet] && (
+              <img src={COMPOSIET_FOTOS[data.composiet]} alt={data.composiet}
+                style={{ width: 160, height: 160, objectFit: "cover", borderRadius: 6, border: "1px solid #e0e0e0", flexShrink: 0 }} />
+            )}
           </div>
 
           <div style={styles.divider} />
