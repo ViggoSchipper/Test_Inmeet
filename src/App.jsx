@@ -591,7 +591,6 @@ const PAGE_VALIDATORS = [
   // 3: Voorbereidingen
   (data) => {
     const missend = [];
-    if (!heeftWaarde(data.ondergrond)) missend.push("Ondergrond");
     if (!heeftWaarde(data.bereikbaarheid)) missend.push("Bereikbaarheid");
     if (!heeftWaarde(data.rijplaten)) missend.push("Rijplaten");
     if (!heeftWaarde(data.bouwtekeningen)) missend.push("Bouwtekeningen");
@@ -684,7 +683,7 @@ export default function App() {
     hoogte: "", diepteBuiten: "", diepteBinnen: "", breedteBuiten: "", breedteBinnen: "",
     schetsMaatvoering: null,
     // Voorbereidingen
-    ondergrond: "", bereikbaarheid: [], rijplaten: "",
+    bereikbaarheid: [], rijplaten: "",
     bouwtekeningen: "", vergunning: "", doorbraakMM: "", constructeur: "",
     // Foto's
     fotoAchterBuiten: null, fotoAchterBinnen: null, fotoKruipruimte: null, fotoBereikbaarheid: null,
@@ -1258,11 +1257,6 @@ export default function App() {
       <div style={styles.section}>
         <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Voorbereidingen</p></div>
         <div style={styles.sectionBody}>
-          <div style={styles.row}>
-            <div style={styles.label}>Ondergrond:</div>
-            <RadioGroup name="ondergrond" options={["Klei", "Zand"]} value={data.ondergrond} onChange={v => set("ondergrond", v)} />
-          </div>
-          <div style={styles.divider} />
           <div style={styles.row}>
             <div style={styles.label}>Bereikbaarheid:</div>
             <CheckGroup options={["Kraan", "Bereikbaar"]} values={data.bereikbaarheid} onChange={v => set("bereikbaarheid", v)} />
@@ -1949,7 +1943,7 @@ export default function App() {
           {[
             ["Contact", 0, "opmerkingen", [["Projectnummer", sd.projectnummer], ["Naam", sd.naam], ["Aanhef", sd.geslacht], ["Datum", (sd.datum || "").split("-").reverse().join("-")], ["Ingemeten door", sd.ingemetenDoor], ["Gevonden via", sd.gevondenVia], ["Telefoon", sd.telefoon], ["E-mail", sd.mail], ["Adres", [sd.adres, [sd.postcode, sd.plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ")]]],
             ["Maatvoering", 1, "", [["Hoogte", mmTekst(sd.hoogte)], ["Diepte buiten", mmTekst(sd.diepteBuiten)], ["Diepte binnen", mmTekst(sd.diepteBinnen)], ["Breedte buiten", mmTekst(sd.breedteBuiten)], ["Breedte binnen", mmTekst(sd.breedteBinnen)]]],
-            ["Voorbereidingen", 3, "", [["Ondergrond", sd.ondergrond], ["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
+            ["Voorbereidingen", 3, "", [["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
             ["Wandafwerking", 5, "", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
             ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip === "Anders" ? sd.steenstripAnders : sd.steenstrip], ["Voegkleur", sd.steenstripVoegkleur], ["Composiet", sd.composiet === "Anders" ? sd.composietAnders : sd.composiet], ["Kerama type", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout type", sd.houtType], ["Hout kleur", sd.houtKleur]]],
             ["Kozijn 1", 6, "k1Opmerking", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],

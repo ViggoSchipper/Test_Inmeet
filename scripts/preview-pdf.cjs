@@ -51,7 +51,7 @@ const data = {
 
   hoogte: "2600", diepte: "3500", breedteBuiten: "5400", breedteBinnen: "5320",
 
-  ondergrond: "Klei", bereikbaarheid: ["Kraan"], rijplaten: "Benodigd",
+  bereikbaarheid: ["Kraan"], rijplaten: "Benodigd",
   bouwtekeningen: "Aanwezig", vergunning: "Vergunningsvrij", doorbraakMM: "3200", constructeur: "Bouwadvies Jansen",
   kruipruimteStatus: "Droog, goed bereikbaar",
 

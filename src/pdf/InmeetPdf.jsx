@@ -437,7 +437,6 @@ export default function InmeetPdf({ data, logoSrc }) {
         <Section
           title="Voorbereidingen"
           fields={[
-            ["Ondergrond", data.ondergrond],
             ["Bereikbaarheid", data.bereikbaarheid],
             ["Rijplaten", data.rijplaten],
             ["Bouwtekeningen", data.bouwtekeningen],
