@@ -174,6 +174,7 @@
       alucarbon, waarschuwing bij overstek), voegkleur licht-/midden-/donkergrijs, foto bestaande gevel. (Backend: foto heet nu Foto_BestaandeGevel.)
 - [x] 3b. Composiet: 7 kleuren als kaarten (2x4) met foto + vakje "Rhombus breed" (standaard smal); Anders vervallen.
 - [x] 3c. Kerama als 2e onder gevelbekleding: link keramagroup.nl, profiel, kleur, BBL-opmerking brandklasse B.
+- [x] 3d. Hout: profiel + kleur Blank/Zwart/Anders; opmerkingen-hint bij meerdere materialen. (Link hout-site nog aanleveren: HOUT_LINK in schoon.js.)
 - [ ] 3. Wanden/gevel (rest): steenstrips (Vanderzanden-link, Dikformaat/Waalformaat, type + code, boven kozijn:
       rollaag (niet bij overstek) / verticale rollaag / alucarbon); composiet met vaste kleuren + foto (zoals
       wandlampen); Kerama boven de rest (brandklasse B), ingericht als steenstrips; hout handmatig laten.

@@ -462,8 +462,8 @@ export default function InmeetPdf({ data, logoSrc }) {
             ["Composiet profiel", data.composiet ? (data.composietBreed ? "Rhombus breed" : "Rhombus smal") : ""],
             ["Kerama profiel", data.keramaType],
             ["Kerama kleur", data.keramaKleur],
-            ["Hout type", data.houtType],
-            ["Hout kleur", data.houtKleur],
+            ["Hout profiel", data.houtType],
+            ["Hout kleur", data.houtKleur === "Anders" ? data.houtKleurAnders : data.houtKleur],
           ]}
           opmerking={waarde(data.gevelOpmerking)}
         />
