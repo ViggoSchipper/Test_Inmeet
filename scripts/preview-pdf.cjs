@@ -66,7 +66,7 @@ const data = {
   k1Type: "Schuifpui", k1Opties: [], k1Delen: "4-delig", k1Loopdeur: "Links", k1VentVastGlas: true, k1VentVak: "Rechter vaste deel", k1Opmerking: "Extra brede middenstijl gewenst.",
   k1Materiaal: "Aluminium", k1RAL: "RAL 7016", k1Glas: "Triple", k1Breedte: "4200", k1Hoogte: "2400",
 
-  k2Type: "Openslaande deuren", k2Opties: ["Loopdeur links (binnenaanzicht)"], k2Opmerking: "",
+  k2Type: "Openslaande deuren", k2Opties: ["Met zijlichten"], k2Loopdeur: "Rechts", k2Opmerking: "",
   k2Materiaal: "Aluminium", k2RAL: "RAL 7016", k2Glas: "HR+++", k2Breedte: "1800", k2Hoogte: "2300",
 
   k3Type: "Raam", k3Opties: [], k3Opmerking: "Vast glas, geen opening.",

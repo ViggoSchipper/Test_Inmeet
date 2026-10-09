@@ -15,7 +15,7 @@ import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import { legendaRijen, symboolOpKey } from "./symbolen";
 import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
 import { conceptLaden, conceptBewaren, conceptWissen } from "./concept";
-import { schoneData, STEENSTRIP_FORMATEN, COMPOSIET_KLEUREN, STEENSTRIP_LINK, KERAMA_LINK, HOUT_LINK, kozijnOpties, kozijnVastGlas, kozijnVentVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
+import { schoneData, STEENSTRIP_FORMATEN, COMPOSIET_KLEUREN, STEENSTRIP_LINK, KERAMA_LINK, HOUT_LINK, kozijnOpties, kozijnVastGlas, kozijnVentVastGlas, KOZIJN_OPTIES, KOZIJN_LOOPDEUR_TYPES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -460,10 +460,8 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
     // Vast glas (als optie bij Schuifpui/Openslaande deuren, of als het raamtype
     // zelf) vereist een keuze voor het ventilatierooster.
     if (type === "Raam" && !heeftWaarde(data[`${prefix}RaamType`])) missend.push(`${naam}: raamtype`);
-    if (type === "Schuifpui") {
-      if (!heeftWaarde(data[`${prefix}Delen`])) missend.push(`${naam}: aantal delen`);
-      if (!heeftWaarde(data[`${prefix}Loopdeur`])) missend.push(`${naam}: loopdeur links/rechts`);
-    }
+    if (type === "Schuifpui" && !heeftWaarde(data[`${prefix}Delen`])) missend.push(`${naam}: aantal delen`);
+    if (KOZIJN_LOOPDEUR_TYPES.includes(type) && !heeftWaarde(data[`${prefix}Loopdeur`])) missend.push(`${naam}: loopdeur links/rechts`);
     if (kozijnVentVastGlas(data, prefix) && !heeftWaarde(data[`${prefix}VentVak`])) missend.push(`${naam}: in welk vak komt het ventilatierooster`);
     if (type === "Harmonica wand") {
       if (!heeftWaarde(data[`${prefix}HarmonicaDelen`])) missend.push(`${naam}: aantal delen`);
@@ -1050,14 +1048,24 @@ export default function App() {
           <div style={styles.section}>
             <div style={styles.sectionHeader}><p style={{ ...styles.sectionTitle, color: GOLD }}>Openslaande deuren opties</p></div>
             <div style={styles.sectionBody}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <CheckGroup options={openslaandOpties} values={opties} onChange={v => set(`${prefix}Opties`, v)} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>Opmerkingen:</div>
-                  <textarea style={styles.textarea} placeholder="Extra opmerkingen..." value={data[`${prefix}Opmerking`]}
-                    onChange={e => set(`${prefix}Opmerking`, e.target.value)} />
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Loopdeur:</div>
+                  <RadioGroup name={`${prefix}loopdeur`} options={["Links", "Rechts"]}
+                    value={data[`${prefix}Loopdeur`]} onChange={v => set(`${prefix}Loopdeur`, v)} />
+                  <div style={styles.hint}>Vanaf buitenaanzicht.</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Extra:</div>
+                  <CheckGroup options={openslaandOpties} values={opties} onChange={v => set(`${prefix}Opties`, v)} />
                 </div>
               </div>
+              <div style={styles.divider} />
+              {VentVastGlasVeld(prefix)}
+              <div style={styles.divider} />
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>Opmerkingen:</div>
+              <textarea style={styles.textarea} placeholder="Extra opmerkingen..." value={data[`${prefix}Opmerking`]}
+                onChange={e => set(`${prefix}Opmerking`, e.target.value)} />
             </div>
           </div>
         )}
