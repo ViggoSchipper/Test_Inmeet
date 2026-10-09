@@ -63,7 +63,7 @@ const data = {
   houtType: "", houtKleur: "",
   gevelOpmerking: "Kleur moet aansluiten bij bestaande gevel.",
 
-  k1Type: "Schuifpui", k1Opties: ["Hefschuifpui", "Actief links (buitenaanzicht)"], k1Opmerking: "Extra brede middenstijl gewenst.",
+  k1Type: "Schuifpui", k1Opties: [], k1Delen: "4-delig", k1Loopdeur: "Links", k1VentVastGlas: true, k1VentVak: "Rechter vaste deel", k1Opmerking: "Extra brede middenstijl gewenst.",
   k1Materiaal: "Aluminium", k1RAL: "RAL 7016", k1Glas: "Triple", k1Breedte: "4200", k1Hoogte: "2400",
 
   k2Type: "Openslaande deuren", k2Opties: ["Loopdeur links (binnenaanzicht)"], k2Opmerking: "",

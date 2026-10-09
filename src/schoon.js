@@ -17,7 +17,7 @@ export const COMPOSIET_KLEUREN = ["Teak met zwart", "Zwart", "Rustic Teak", "Rus
 
 // Welke kozijnopties bij welk kozijntype horen.
 export const KOZIJN_OPTIES = {
-  Schuifpui: ["Hefschuifpui", "Binnen/buiten cilinder", "Actief links (buitenaanzicht)", "Actief rechts (buitenaanzicht)", "4-delig (met zijlichten)", "Vast glas"],
+  Schuifpui: [],
   "Openslaande deuren": ["Loopdeur links (binnenaanzicht)", "Loopdeur rechts (binnenaanzicht)", "Met zijlichten", "Vast glas"],
   Loopdeur: ["BW90 (Schuur)", "BW20 (Modern)", "Dicht"],
 };
@@ -25,6 +25,11 @@ export const KOZIJN_OPTIES = {
 // Alleen de opties die bij het huidige kozijntype horen.
 export const kozijnOpties = (data, prefix) =>
   (data[`${prefix}Opties`] || []).filter((o) => (KOZIJN_OPTIES[data[`${prefix}Type`]] || []).includes(o));
+
+// Types met de keuze "Ventilatieroosters in vast glas".
+export const KOZIJN_VENT_TYPES = ["Schuifpui"];
+export const kozijnVentVastGlas = (data, prefix) =>
+  KOZIJN_VENT_TYPES.includes(data[`${prefix}Type`]) && !!data[`${prefix}VentVastGlas`];
 
 export const kozijnVastGlas = (data, prefix) =>
   kozijnOpties(data, prefix).includes("Vast glas") ||
@@ -58,6 +63,8 @@ export function schoneData(data) {
     if (type !== "Raam") leeg(`${p}RaamType`);
     if (type !== "Harmonica wand") leeg(`${p}HarmonicaDelen`, `${p}HarmonicaRichting`);
     if (!kozijnVastGlas(d, p)) leeg(`${p}Ventilatierooster`);
+    if (type !== "Schuifpui") leeg(`${p}Delen`, `${p}Loopdeur`);
+    if (!kozijnVentVastGlas(d, p)) { s[`${p}VentVastGlas`] = false; leeg(`${p}VentVak`); }
   });
 
   // Dak & lichtstraat

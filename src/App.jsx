@@ -15,7 +15,7 @@ import fotoLichtstraatZadeldak from "./assets/lichtstraat/zadeldak.jpg";
 import { legendaRijen, symboolOpKey } from "./symbolen";
 import InstallatieCanvas, { SymboolIcoon } from "./InstallatieCanvas";
 import { conceptLaden, conceptBewaren, conceptWissen } from "./concept";
-import { schoneData, STEENSTRIP_FORMATEN, COMPOSIET_KLEUREN, STEENSTRIP_LINK, KERAMA_LINK, HOUT_LINK, kozijnOpties, kozijnVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
+import { schoneData, STEENSTRIP_FORMATEN, COMPOSIET_KLEUREN, STEENSTRIP_LINK, KERAMA_LINK, HOUT_LINK, kozijnOpties, kozijnVastGlas, kozijnVentVastGlas, KOZIJN_OPTIES, E_UITVOERING_COMPLEET, E_UITVOERING_LEIDINGWERK } from "./schoon";
 import fotoGira55 from "./assets/elektra/gira55.jpg";
 import fotoBuschJaeger from "./assets/elektra/busch-jaeger.jpg";
 import fotoReachChampagne from "./assets/wandlamp/reach-champagne.jpg";
@@ -460,6 +460,11 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
     // Vast glas (als optie bij Schuifpui/Openslaande deuren, of als het raamtype
     // zelf) vereist een keuze voor het ventilatierooster.
     if (type === "Raam" && !heeftWaarde(data[`${prefix}RaamType`])) missend.push(`${naam}: raamtype`);
+    if (type === "Schuifpui") {
+      if (!heeftWaarde(data[`${prefix}Delen`])) missend.push(`${naam}: aantal delen`);
+      if (!heeftWaarde(data[`${prefix}Loopdeur`])) missend.push(`${naam}: loopdeur links/rechts`);
+    }
+    if (kozijnVentVastGlas(data, prefix) && !heeftWaarde(data[`${prefix}VentVak`])) missend.push(`${naam}: in welk vak komt het ventilatierooster`);
     if (type === "Harmonica wand") {
       if (!heeftWaarde(data[`${prefix}HarmonicaDelen`])) missend.push(`${naam}: aantal delen`);
       if (!heeftWaarde(data[`${prefix}HarmonicaRichting`])) missend.push(`${naam}: richting`);
@@ -706,15 +711,15 @@ export default function App() {
     gevelOpmerking: "",
     // Kozijn 1
     k1Type: "", k1Opties: [], k1Opmerking: "", k1Materiaal: "", k1RAL: "", k1Glas: "", k1Breedte: "", k1Hoogte: "",
-    k1RaamType: "", k1HarmonicaDelen: "", k1HarmonicaRichting: "", k1Ventilatierooster: "",
+    k1RaamType: "", k1HarmonicaDelen: "", k1HarmonicaRichting: "", k1Ventilatierooster: "", k1Delen: "", k1Loopdeur: "", k1VentVastGlas: false, k1VentVak: "",
     schetsKozijn1: null,
     // Kozijn 2
     k2Type: "", k2Opties: [], k2Opmerking: "", k2Materiaal: "", k2RAL: "", k2Glas: "", k2Breedte: "", k2Hoogte: "",
-    k2RaamType: "", k2HarmonicaDelen: "", k2HarmonicaRichting: "", k2Ventilatierooster: "",
+    k2RaamType: "", k2HarmonicaDelen: "", k2HarmonicaRichting: "", k2Ventilatierooster: "", k2Delen: "", k2Loopdeur: "", k2VentVastGlas: false, k2VentVak: "",
     schetsKozijn2: null,
     // Kozijn 3
     k3Type: "", k3Opties: [], k3Opmerking: "", k3Materiaal: "", k3RAL: "", k3Glas: "", k3Breedte: "", k3Hoogte: "",
-    k3RaamType: "", k3HarmonicaDelen: "", k3HarmonicaRichting: "", k3Ventilatierooster: "",
+    k3RaamType: "", k3HarmonicaDelen: "", k3HarmonicaRichting: "", k3Ventilatierooster: "", k3Delen: "", k3Loopdeur: "", k3VentVastGlas: false, k3VentVak: "",
     schetsKozijn3: null,
     // Dak
     dakbedekking: "", overstek: "", overstekMM: "", overstekRAL: "", dakrandAfwerking: "", dakrandKleur: "",
@@ -972,6 +977,24 @@ export default function App() {
     }
   };
 
+  // "Ventilatieroosters in vast glas" + in welk vak (schuifpui e.d.).
+  const VentVastGlasVeld = (prefix) => (
+    <div>
+      <label style={{ ...styles.radioLabel, display: "flex" }}
+        onClick={e => { e.preventDefault(); set(`${prefix}VentVastGlas`, !data[`${prefix}VentVastGlas`]); }}>
+        <input type="checkbox" readOnly checked={!!data[`${prefix}VentVastGlas`]} style={{ accentColor: GOLD }} />
+        Ventilatieroosters in vast glas
+      </label>
+      {data[`${prefix}VentVastGlas`] && (
+        <div style={{ ...styles.row, marginTop: 8 }}>
+          <div style={styles.label}>In welk vak?</div>
+          <input style={styles.input} placeholder="bijv. linker vaste deel" value={data[`${prefix}VentVak`]}
+            onChange={e => set(`${prefix}VentVak`, e.target.value)} />
+        </div>
+      )}
+    </div>
+  );
+
   // Let op: wordt als gewone functie aangeroepen ({KozijnPage(...)}), niet als
   // <KozijnPage />. Als component-binnen-App zou React de hele pagina bij elke
   // toetsaanslag opnieuw opbouwen, waardoor invoervelden hun focus verliezen.
@@ -999,14 +1022,26 @@ export default function App() {
           <div style={styles.section}>
             <div style={styles.sectionHeader}><p style={{ ...styles.sectionTitle, color: GOLD }}>Schuifpui opties</p></div>
             <div style={styles.sectionBody}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <CheckGroup options={schuifpuiOpties} values={opties} onChange={v => set(`${prefix}Opties`, v)} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>Opmerkingen:</div>
-                  <textarea style={styles.textarea} placeholder="Extra opmerkingen..." value={data[`${prefix}Opmerking`]}
-                    onChange={e => set(`${prefix}Opmerking`, e.target.value)} />
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Aantal delen:</div>
+                  <RadioGroup name={`${prefix}delen`} options={["2-delig", "4-delig"]}
+                    value={data[`${prefix}Delen`]} onChange={v => set(`${prefix}Delen`, v)} />
+                  <div style={styles.hint}>Hefschuifpui, altijd met cilinder geleverd.</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Loopdeur:</div>
+                  <RadioGroup name={`${prefix}loopdeur`} options={["Links", "Rechts"]}
+                    value={data[`${prefix}Loopdeur`]} onChange={v => set(`${prefix}Loopdeur`, v)} />
+                  <div style={styles.hint}>Vanaf buitenaanzicht.</div>
                 </div>
               </div>
+              <div style={styles.divider} />
+              {VentVastGlasVeld(prefix)}
+              <div style={styles.divider} />
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>Opmerkingen:</div>
+              <textarea style={styles.textarea} placeholder="Extra opmerkingen..." value={data[`${prefix}Opmerking`]}
+                onChange={e => set(`${prefix}Opmerking`, e.target.value)} />
             </div>
           </div>
         )}
@@ -1956,9 +1991,9 @@ export default function App() {
             ["Voorbereidingen", 3, "", [["Bereikbaarheid", (sd.bereikbaarheid || []).join(", ")], ["Rijplaten", sd.rijplaten], ["Bouwtekeningen", sd.bouwtekeningen], ["Vergunning", sd.vergunning], ["Doorbraak", mmTekst(sd.doorbraakMM)], ["Constructeur", sd.constructeur]]],
             ["Wandafwerking", 5, "", [["Binnenwand", sd.binnenwand], ["Stucwerk", sd.stucwerk]]],
             ["Gevelbekleding", 5, "gevelOpmerking", [["Steenstrips", sd.steenstrip], ["Type", sd.steenstripType], ["Code", sd.steenstripCode], ["Voegkleur", sd.steenstripVoegkleur], ["Boven het kozijn", sd.steenstripBovenKozijn], ["Composiet", sd.composiet], ["Composiet profiel", sd.composiet ? (sd.composietBreed ? "Rhombus breed" : "Rhombus smal") : ""], ["Kerama profiel", sd.keramaType], ["Kerama kleur", sd.keramaKleur], ["Hout profiel", sd.houtType], ["Hout kleur", sd.houtKleur === "Anders" ? sd.houtKleurAnders : sd.houtKleur]]],
-            ["Kozijn 1", 6, "k1Opmerking", [["Type", sd.k1Type], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
-            ["Kozijn 2", 8, "k2Opmerking", [["Type", sd.k2Type], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
-            ["Kozijn 3", 10, "k3Opmerking", [["Type", sd.k3Type], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],
+            ["Kozijn 1", 6, "k1Opmerking", [["Type", sd.k1Type], ["Aantal delen", sd.k1Delen], ["Loopdeur", sd.k1Loopdeur ? `${sd.k1Loopdeur} (buitenaanzicht)` : ""], ["Ventilatieroosters in vast glas", sd.k1VentVastGlas ? (sd.k1VentVak || "Ja") : ""], ["Opties", sd.k1Opties.join(", ")], ["Raamtype", sd.k1RaamType], ["Harmonica delen", sd.k1HarmonicaDelen], ["Harmonica richting", sd.k1HarmonicaRichting], ["Ventilatierooster", sd.k1Ventilatierooster], ["Materiaal", sd.k1Materiaal], ["RAL", sd.k1RAL], ["Glas", sd.k1Glas], ["Breedte", mmTekst(sd.k1Breedte)], ["Hoogte", mmTekst(sd.k1Hoogte)]]],
+            ["Kozijn 2", 8, "k2Opmerking", [["Type", sd.k2Type], ["Aantal delen", sd.k2Delen], ["Loopdeur", sd.k2Loopdeur ? `${sd.k2Loopdeur} (buitenaanzicht)` : ""], ["Ventilatieroosters in vast glas", sd.k2VentVastGlas ? (sd.k2VentVak || "Ja") : ""], ["Opties", sd.k2Opties.join(", ")], ["Raamtype", sd.k2RaamType], ["Harmonica delen", sd.k2HarmonicaDelen], ["Harmonica richting", sd.k2HarmonicaRichting], ["Ventilatierooster", sd.k2Ventilatierooster], ["Materiaal", sd.k2Materiaal], ["RAL", sd.k2RAL], ["Glas", sd.k2Glas], ["Breedte", mmTekst(sd.k2Breedte)], ["Hoogte", mmTekst(sd.k2Hoogte)]]],
+            ["Kozijn 3", 10, "k3Opmerking", [["Type", sd.k3Type], ["Aantal delen", sd.k3Delen], ["Loopdeur", sd.k3Loopdeur ? `${sd.k3Loopdeur} (buitenaanzicht)` : ""], ["Ventilatieroosters in vast glas", sd.k3VentVastGlas ? (sd.k3VentVak || "Ja") : ""], ["Opties", sd.k3Opties.join(", ")], ["Raamtype", sd.k3RaamType], ["Harmonica delen", sd.k3HarmonicaDelen], ["Harmonica richting", sd.k3HarmonicaRichting], ["Ventilatierooster", sd.k3Ventilatierooster], ["Materiaal", sd.k3Materiaal], ["RAL", sd.k3RAL], ["Glas", sd.k3Glas], ["Breedte", mmTekst(sd.k3Breedte)], ["Hoogte", mmTekst(sd.k3Hoogte)]]],
             ["Dak", 12, "dakOpmerking", [["Dakbedekking", sd.dakbedekking], ["Dakrand", sd.dakrandAfwerking], ["Dakrand RAL", sd.dakrandKleur], ["Overstek", sd.overstek === "Ja" ? ["Ja", mmTekst(sd.overstekMM), sd.overstekRAL && `RAL ${sd.overstekRAL}`].filter(Boolean).join(", ") : sd.overstek], ["Lichtstraat", sd.lichtstraat], ["Lichtstraat afmeting", (sd.lichtstraatLengteMM || sd.lichtstraatBreedteMM) ? `${sd.lichtstraatLengteMM} x ${sd.lichtstraatBreedteMM} MM` : ""], ["Lichtstraat kleur", sd.lichtstraatKleur], ["Lichtstraat delen glas", sd.lichtstraatDelenGlas]]],
             ["E-installaties", 13, "eOpmerking", [
               ["Uitvoering", sd.eUitvoering],

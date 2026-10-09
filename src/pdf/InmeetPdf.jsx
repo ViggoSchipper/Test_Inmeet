@@ -347,6 +347,9 @@ function fmtMM(v) {
 export default function InmeetPdf({ data, logoSrc }) {
   const kozijnFields = (prefix) => [
     ["Type", data[`${prefix}Type`]],
+    ["Aantal delen", data[`${prefix}Delen`]],
+    ["Loopdeur", data[`${prefix}Loopdeur`] ? `${data[`${prefix}Loopdeur`]} (buitenaanzicht)` : ""],
+    ["Ventilatieroosters in vast glas", data[`${prefix}VentVastGlas`] ? (data[`${prefix}VentVak`] || "Ja") : ""],
     ["Opties", data[`${prefix}Opties`]],
     ["Raamtype", data[`${prefix}RaamType`]],
     ["Harmonica delen", data[`${prefix}HarmonicaDelen`]],
