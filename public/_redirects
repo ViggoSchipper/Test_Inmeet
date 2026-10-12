@@ -1,0 +1,5 @@
+# Netlify: alle backend-verzoeken (/api/...) doorsturen naar de Azure Functions
+# die bij de Azure Static Web App "addon-inmeet-formulier" draaien.
+# Zonder deze regel kan de Netlify-site SharePoint niet bereiken
+# (ophalen, versturen, linkgenerator).
+/api/*  https://kind-field-02a2c3e10.7.azurestaticapps.net/api/:splat  200
