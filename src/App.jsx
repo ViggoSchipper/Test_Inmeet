@@ -676,7 +676,94 @@ const PAGE_VALIDATORS = [
   null,
 ];
 
+// --- Inmeetlink: projectnummer uit de link (?project=26007) -----------------
+// Kantoor maakt via de linkgenerator (?link) een persoonlijke link per project.
+// Opent de inmeter die link, dan staat het projectnummer vast ingevuld.
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const LINK_PROJECT = (URL_PARAMS.get("project") || "").trim();
+const LINK_MODUS = URL_PARAMS.has("link");
+const inmeetLink = (nr) => `${window.location.origin}/?project=${encodeURIComponent(nr)}`;
+
+function LinkGenerator() {
+  const [nr, setNr] = useState("");
+  const [status, setStatus] = useState(null); // { soort: "ok" | "waarschuwing" | "fout", tekst, link }
+  const [bezig, setBezig] = useState(false);
+  const [gekopieerd, setGekopieerd] = useState(false);
+  const linkRef = useRef(null);
+
+  const controleren = async () => {
+    const projectnummer = nr.trim();
+    if (!projectnummer) return;
+    setBezig(true); setStatus(null); setGekopieerd(false);
+    const link = inmeetLink(projectnummer);
+    try {
+      const res = await fetch(`/api/project-ophalen?projectnummer=${encodeURIComponent(projectnummer)}`);
+      const info = await res.json().catch(() => ({}));
+      if (res.ok) setStatus({ soort: "ok", tekst: `Projectmap ${projectnummer} gevonden (er is al een versie V${info.versie}; de inmeter gaat daarmee verder).`, link });
+      else if (res.status === 404 && info.code === "GEEN_PROJECTMAP") setStatus({ soort: "fout", tekst: `Er is in SharePoint geen projectmap voor ${projectnummer} gevonden. Controleer het nummer of maak eerst de projectmap aan.` });
+      else if (res.status === 404 && info.code === "GEEN_VERSIE") setStatus({ soort: "ok", tekst: `Projectmap ${projectnummer} gevonden (nog geen eerdere inmeting).`, link });
+      else setStatus({ soort: "waarschuwing", tekst: "Kon niet controleren of de projectmap bestaat. Controleer het nummer zelf goed voordat je de link deelt.", link });
+    } catch {
+      setStatus({ soort: "waarschuwing", tekst: "Kon SharePoint niet bereiken. Controleer het nummer zelf goed voordat je de link deelt.", link });
+    }
+    setBezig(false);
+  };
+
+  const kopieren = async () => {
+    try { await navigator.clipboard.writeText(status.link); setGekopieerd(true); }
+    catch { linkRef.current?.select(); }
+  };
+
+  const kleur = { ok: "#2e7d32", waarschuwing: "#b26a00", fout: "#c0392b" };
+  return (
+    <div style={styles.app}>
+      <div style={styles.header}>
+        <img src={logoUrl} alt="AddOn Aanbouw op Maat" style={styles.logoImg} />
+        <div style={styles.pageTitle}>Inmeetlink maken</div>
+      </div>
+      <div style={styles.body}>
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}><p style={styles.sectionTitle}>Persoonlijke inmeetlink per project</p></div>
+          <div style={styles.sectionBody}>
+            <div style={{ ...styles.hint, marginBottom: 12 }}>Vul het projectnummer in. Je krijgt een link waarmee de inmeter het formulier opent met dit projectnummer al vast ingevuld. Zet de link in de agenda-afspraak of stuur hem door.</div>
+            <div style={{ ...styles.row, alignItems: "center" }}>
+              <div style={styles.label}>Projectnummer:</div>
+              <input style={{ ...styles.input, maxWidth: 160 }} inputMode="numeric" placeholder="bijv. 26007" value={nr}
+                onChange={e => { setNr(e.target.value); setStatus(null); }}
+                onKeyDown={e => { if (e.key === "Enter") controleren(); }} />
+              <button style={styles.btnNext} disabled={bezig || !nr.trim()} onClick={controleren}>
+                {bezig ? "Bezig..." : "Link maken"}
+              </button>
+            </div>
+            {status && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 13, color: kleur[status.soort], fontWeight: 600, marginBottom: 10 }}>
+                  {status.soort === "fout" ? "✕ " : status.soort === "ok" ? "✓ " : "! "}{status.tekst}
+                </div>
+                {status.link && (
+                  <>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <input ref={linkRef} readOnly style={{ ...styles.input, flex: "1 1 280px", fontFamily: "monospace", fontSize: 13 }} value={status.link}
+                        onFocus={e => e.target.select()} />
+                      <button style={styles.btnNext} onClick={kopieren}>{gekopieerd ? "Gekopieerd ✓" : "Kopieer link"}</button>
+                      <a href={status.link} target="_blank" rel="noopener noreferrer" style={{ ...styles.btnPrev, textDecoration: "none", display: "inline-block" }}>Openen</a>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  return LINK_MODUS ? <LinkGenerator /> : <Formulier />;
+}
+
+function Formulier() {
   const [page, setPage] = useState(0);
   // Verste pagina waar je al bent geweest (tot daar kun je via de bolletjes springen).
   const [verstePagina, setVerstePagina] = useState(0);
@@ -685,7 +772,7 @@ export default function App() {
   const [foutmeldingen, setFoutmeldingen] = useState([]);
   const [data, setData] = useState({
     // Contact
-    projectnummer: "",
+    projectnummer: LINK_PROJECT,
     geslacht: "", naam: "", datum: new Date().toISOString().split("T")[0],
     ingemetenDoor: laatsteInmeter(), gevondenVia: "",
     telefoon: "", mail: "", plaats: "", adres: "", postcode: "", opmerkingen: "",
@@ -748,7 +835,9 @@ export default function App() {
   });
   // Lege beginstaat (met de datum van vandaag), om te kunnen vergelijken en resetten.
   const beginStaatRef = useRef(null);
-  if (!beginStaatRef.current) beginStaatRef.current = data;
+  if (!beginStaatRef.current) beginStaatRef.current = { ...data, projectnummer: "" };
+  // Projectnummer vastgezet via de inmeetlink (zolang het formulier bij dat project hoort).
+  const nrVastgezet = !!LINK_PROJECT && data.projectnummer === LINK_PROJECT;
 
   const set = (key, val) => setData(d => ({ ...d, [key]: val }));
   const buitenHeeft = (opt) => (data.buitenVerlichting || []).includes(opt);
@@ -782,6 +871,15 @@ export default function App() {
     });
   }, []);
 
+  // Geopend via een inmeetlink: direct de projectgegevens ophalen (pas nadat
+  // duidelijk is of er nog een bewaard concept op het apparaat staat).
+  const linkOpgehaaldRef = useRef(false);
+  useEffect(() => {
+    if (!LINK_PROJECT || !conceptGecheckt || conceptAanbod || linkOpgehaaldRef.current) return;
+    linkOpgehaaldRef.current = true;
+    if (data.projectnummer === LINK_PROJECT) projectGegevensOphalen(LINK_PROJECT);
+  }, [conceptGecheckt, conceptAanbod]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (eersteDataRef.current) { eersteDataRef.current = false; return; }
     if (negeerWijzigingRef.current) { negeerWijzigingRef.current = false; return; }
@@ -812,6 +910,7 @@ export default function App() {
   const conceptWeggooien = () => {
     if (!window.confirm("Weet je zeker dat je het bewaarde formulier wilt weggooien en opnieuw wilt beginnen?")) return;
     conceptWissen();
+    if (LINK_PROJECT) setData(d => ({ ...d, projectnummer: LINK_PROJECT }));
     setConceptAanbod(null);
   };
 
@@ -914,6 +1013,8 @@ export default function App() {
     negeerWijzigingRef.current = true;
     gewijzigdRef.current = false;
     setData({ ...beginStaatRef.current, datum: vandaag, ingemetenDoor: data.ingemetenDoor });
+    // De inmeetlink hoorde bij het vorige project: uit de adresbalk halen.
+    if (LINK_PROJECT) window.history.replaceState(null, "", window.location.pathname);
     opgehaaldNrRef.current = "";
     gevuldUitProjectRef.current = false;
     setProjectStatus({ loading: false, error: null, foundVersion: null, nextVersion: 1 });
@@ -1000,7 +1101,6 @@ export default function App() {
     // Alleen opties die bij het gekozen type horen (na wisselen van type blijven
     // opties van het vorige type anders onzichtbaar "hangen").
     const opties = kozijnOpties(data, prefix);
-    const schuifpuiOpties = KOZIJN_OPTIES.Schuifpui;
     const openslaandOpties = KOZIJN_OPTIES["Openslaande deuren"];
     const loopdeurOpties = KOZIJN_OPTIES.Loopdeur;
     const vastGlasGekozen = kozijnVastGlas(data, prefix);
@@ -1189,9 +1289,11 @@ export default function App() {
         <div style={styles.sectionBody}>
           <div style={styles.row}>
             <div style={styles.label}>Projectnummer:</div>
-            <input style={{ ...styles.input, maxWidth: 160 }} placeholder="bijv. 26001" value={data.projectnummer}
+            <input style={{ ...styles.input, maxWidth: 160, ...(nrVastgezet ? { background: LIGHT, color: "#555" } : {}) }} placeholder="bijv. 26001" value={data.projectnummer}
+              readOnly={nrVastgezet}
               onChange={e => set("projectnummer", e.target.value)}
-              onBlur={e => projectGegevensOphalen(e.target.value)} />
+              onBlur={e => { if (!nrVastgezet) projectGegevensOphalen(e.target.value); }} />
+            {nrVastgezet && <span style={{ ...styles.hint, fontStyle: "normal" }}>🔒 Vastgezet via de inmeetlink</span>}
             {projectStatus.loading && <span style={styles.hint}>Bezig met ophalen uit SharePoint...</span>}
             {!projectStatus.loading && projectStatus.foundVersion && (
               <span style={styles.hint}>Vorige versie V{projectStatus.foundVersion} gevonden — gegevens vooraf ingevuld. Dit wordt V{projectStatus.nextVersion}.</span>
@@ -2121,6 +2223,7 @@ export default function App() {
             <div style={{ color: "#555", marginBottom: 10 }}>
               {conceptAanbod.data.projectnummer ? `Project ${conceptAanbod.data.projectnummer}` : "Zonder projectnummer"}
               {conceptAanbod.data.naam ? ` — ${conceptAanbod.data.naam}` : ""}
+              {LINK_PROJECT && (conceptAanbod.data.projectnummer || "").trim() !== LINK_PROJECT ? ` (let op: de link die je opende is voor project ${LINK_PROJECT})` : ""}
               {conceptAanbod.bewaardOp ? `, laatst bewaard op ${new Date(conceptAanbod.bewaardOp).toLocaleString("nl-NL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

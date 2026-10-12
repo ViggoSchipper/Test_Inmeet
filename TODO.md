@@ -162,6 +162,7 @@
 - [x] Eindrun (30-09): complete invulronde met validatie AAN (tijdelijke testbuild) loopt door alle 18
       pagina's zonder blokkade; samenvatting "Alles is ingevuld"; PDF (8 pag.) en gegevens gecontroleerd.
 
+- [x] Linkgenerator (?link) + projectnummer vast uit de inmeetlink (?project=26007).
 - [ ] **Projectnummer minder foutgevoelig** (na de iPad-test): (1) na intypen de naam van de projectmap
       uit SharePoint tonen ter controle (kleine backend-aanpassing: folder.name teruggeven); (2) app leest
       projectnummer uit de link (?project=26007) zodat kantoor de link in de agenda-afspraak kan zetten;
