@@ -184,7 +184,7 @@
 - [x] 4. Kozijnen (rest, afgerond; loopdeur en raam ongewijzigd): schuifpui 2/4 delen (altijd met cilinder), loopdeur links/rechts (buitenaanzicht), vast glas
       -> "ventilatieroosters in vast glas" + in welk veld; openslaand idem; harmonicawand + loopdeur met
       automatisch tegengestelde openingsrichting.
-- [ ] 5. Afbeeldingen laden niet: lichtstraat (Dak), elektra (Merk/Type) en W-installaties/wandlampen.
+- [x] 5. Afbeeldingen laden niet: lichtstraat, elektra, wandlampen. Oorzaak: oude versie in iPad-geheugen; na herladen OK (geen codewijziging).
 
 ## Vóór overgang naar productie
 - [ ] Custom domain instellen (bijv. inmeetformulier.addon.nl) i.p.v. het huidige Netlify-adres
