@@ -180,7 +180,8 @@
       wandlampen); Kerama boven de rest (brandklasse B), ingericht als steenstrips; hout handmatig laten.
 - [x] 4a. Schuifpui: 2/4-delig (hefschuifpui, altijd cilinder), loopdeur L/R (buitenaanzicht), ventilatieroosters in vast glas + vak.
 - [x] 4b. Openslaande deuren: loopdeur L/R (buitenaanzicht), met zijlichten, ventilatieroosters in vast glas + vak.
-- [ ] 4. Kozijnen (rest): schuifpui 2/4 delen (altijd met cilinder), loopdeur links/rechts (buitenaanzicht), vast glas
+- [x] 4c. Harmonicawand: loopdeur L/R (buitenaanzicht), openingsrichting automatisch tegenovergesteld.
+- [x] 4. Kozijnen (rest, afgerond; loopdeur en raam ongewijzigd): schuifpui 2/4 delen (altijd met cilinder), loopdeur links/rechts (buitenaanzicht), vast glas
       -> "ventilatieroosters in vast glas" + in welk veld; openslaand idem; harmonicawand + loopdeur met
       automatisch tegengestelde openingsrichting.
 - [ ] 5. Afbeeldingen laden niet: lichtstraat (Dak), elektra (Merk/Type) en W-installaties/wandlampen.
