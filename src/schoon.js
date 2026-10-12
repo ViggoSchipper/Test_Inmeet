@@ -29,7 +29,7 @@ export const kozijnOpties = (data, prefix) =>
 // Types met de keuze "Ventilatieroosters in vast glas".
 export const KOZIJN_VENT_TYPES = ["Schuifpui", "Openslaande deuren"];
 // Types met de keuze loopdeur links/rechts (vanaf buitenaanzicht).
-export const KOZIJN_LOOPDEUR_TYPES = ["Schuifpui", "Openslaande deuren"];
+export const KOZIJN_LOOPDEUR_TYPES = ["Schuifpui", "Openslaande deuren", "Harmonica wand"];
 export const kozijnVentVastGlas = (data, prefix) =>
   KOZIJN_VENT_TYPES.includes(data[`${prefix}Type`]) && !!data[`${prefix}VentVastGlas`];
 

@@ -465,7 +465,6 @@ function kozijnValidator(prefix, naam, altijdVerplicht) {
     if (kozijnVentVastGlas(data, prefix) && !heeftWaarde(data[`${prefix}VentVak`])) missend.push(`${naam}: in welk vak komt het ventilatierooster`);
     if (type === "Harmonica wand") {
       if (!heeftWaarde(data[`${prefix}HarmonicaDelen`])) missend.push(`${naam}: aantal delen`);
-      if (!heeftWaarde(data[`${prefix}HarmonicaRichting`])) missend.push(`${naam}: richting`);
     }
     const vastGlasGekozen = kozijnVastGlas(data, prefix);
     if (vastGlasGekozen && !heeftWaarde(data[`${prefix}Ventilatierooster`])) missend.push(`${naam}: ventilatierooster (ja/nee)`);
@@ -1097,9 +1096,13 @@ export default function App() {
                     value={data[`${prefix}HarmonicaDelen`]} onChange={v => set(`${prefix}HarmonicaDelen`, v)} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Openingsrichting:</div>
-                  <RadioGroup name={`${prefix}harmonicaRichting`} options={["Links", "Rechts"]}
-                    value={data[`${prefix}HarmonicaRichting`]} onChange={v => set(`${prefix}HarmonicaRichting`, v)} />
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Loopdeur:</div>
+                  <RadioGroup name={`${prefix}loopdeur`} options={["Links", "Rechts"]}
+                    value={data[`${prefix}Loopdeur`]} onChange={v => { set(`${prefix}Loopdeur`, v); set(`${prefix}HarmonicaRichting`, v === "Links" ? "Rechts" : "Links"); }} />
+                  <div style={styles.hint}>Vanaf buitenaanzicht.</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 12 }}>
+                    Openingsrichting: <b style={{ color: BLACK }}>{data[`${prefix}Loopdeur`] ? data[`${prefix}HarmonicaRichting`] : "—"}</b> <span style={{ fontSize: 11 }}>(automatisch, tegenover de loopdeur)</span>
+                  </div>
                 </div>
               </div>
               <div style={styles.divider} />
