@@ -162,6 +162,8 @@
 - [x] Eindrun (30-09): complete invulronde met validatie AAN (tijdelijke testbuild) loopt door alle 18
       pagina's zonder blokkade; samenvatting "Alles is ingevuld"; PDF (8 pag.) en gegevens gecontroleerd.
 
+- [x] Oorzaak 'SharePoint werkt niet': Azure-proefperiode was verlopen (alles op pauze, site gaf 404).
+      Opgelost door Azure te upgraden naar Betalen per gebruik (SWA blijft op Free-plan). Budgetwaarschuwing instellen!
 - [x] Netlify stuurt /api/* door naar de Azure Static Web App (public/_redirects). Daarvóór werkte
       op Netlify niets met SharePoint (ophalen/versturen/linkgenerator). Let op bij opruimen van die Azure-app!
 - [x] Linkgenerator (?link) + projectnummer vast uit de inmeetlink (?project=26007).
